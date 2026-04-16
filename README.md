@@ -1,7 +1,9 @@
 # 🌦️ Prognoză Meteo Dinamică - Târgu Neamț
 
 O aplicație web (widget) modernă și minimalistă care oferă date meteorologice în timp real pentru orașul Târgu Neamț. Proiectul utilizează un model hibrid de colectare a datelor pentru a asigura o precizie maximă.
-
+### 📸 Prezentare Vizuală
+![Vremea Targu Neamt Light Mode]((https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/blob/main/mod%20zi.png))
+![Vremea Targu Neamt Dark Mode]([mod nocturn.png](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/blob/main/mod%20nocturn.png))
 ## 🚀 Caracteristici principale
 
 * **Model Hibrid de Date:** Combină citirile în timp real de la stațiile **ANM** (prin hub-ul YO8ACR) cu prognoze predictive de la **WeatherAPI** și **Meteoblue**.
@@ -16,10 +18,6 @@ Aplicația centralizează informații din următoarele surse:
 1.  **ANM (Administrația Națională de Meteorologie):** Temperatură curentă, umiditate, presiune și viteza vântului (via `vremea-tg-neamt.yo8acr.workers.dev`).
 2.  **WeatherAPI:** Condiții meteo detaliate, acoperirea norilor, indice UV și șanse de precipitații.
 3.  **Meteoblue:** Estimări ale temperaturii pentru noaptea curentă.
-
-### 📸 Prezentare Vizuală
-![Vremea Targu Neamt Light Mode](mod zi.png)
-![Vremea Targu Neamt Dark Mode](mod nocturn.png)
 
 ## 🖥️ Tehnologii Utilizate
 
