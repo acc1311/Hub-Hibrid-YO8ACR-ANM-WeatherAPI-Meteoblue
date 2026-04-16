@@ -1,5 +1,10 @@
 # 🌦️ Prognoză Meteo Dinamică - Târgu Neamț
-🔗 **[Vezi aplicația live aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)**
+🔗
+# 🌦️ Prognoză Meteo Dinamică - Târgu Neamț
+
+> ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)  sau 🔗[Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
+
+---
 
 O aplicație web (widget) modernă și minimalistă care oferă date meteorologice în timp real pentru orașul Târgu Neamț. Proiectul utilizează un model hibrid de colectare a datelor pentru a asigura o precizie maximă.
 
