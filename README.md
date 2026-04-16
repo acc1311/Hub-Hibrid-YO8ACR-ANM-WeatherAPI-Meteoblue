@@ -4,9 +4,8 @@ O aplicație web (widget) modernă și minimalistă care oferă date meteorologi
 
 ### 📸 Prezentare Vizuală
 <p align="center">
-  <img src="mod%20zi.png" alt="Vremea Targu Neamt Light Mode" width="400">
-  <br>
-  <img src="mod%20nocturn.png" alt="Vremea Targu Neamt Dark Mode" width="400">
+  <img src="mod%20zi.png" alt="Vremea Targu Neamt Light Mode" width="200">
+  <img src="mod%20nocturn.png" alt="Vremea Targu Neamt Dark Mode" width="200">
 </p>
 
 ## 🚀 Caracteristici principale
