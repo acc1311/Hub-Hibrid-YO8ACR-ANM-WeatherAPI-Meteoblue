@@ -1,6 +1,4 @@
 # 🌦️ Prognoză Meteo Dinamică - Târgu Neamț
-🔗
-# 🌦️ Prognoză Meteo Dinamică - Târgu Neamț
 
 > ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)  sau 🔗[Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
 
