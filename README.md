@@ -1,8 +1,8 @@
 # 🌦️ Prognoză Meteo Dinamică - Târgu Neamț
 
 O aplicație web (widget) modernă și minimalistă care oferă date meteorologice în timp real pentru orașul Târgu Neamț. Proiectul utilizează un model hibrid de colectare a datelor pentru a asigura o precizie maximă.
-![Preview Widget](mod zi.png)
-![Preview Widget](mod nocturn.png)
+[Preview Widget](mod zi.png)
+[Preview Widget](mod nocturn.png)
 
 ## 🚀 Caracteristici principale
 
