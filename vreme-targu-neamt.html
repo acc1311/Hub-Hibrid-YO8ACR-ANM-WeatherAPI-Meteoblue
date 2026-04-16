@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vremea în Târgu Neamț - Evolutiv</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1d4ed8; --bg: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            --card: #ffffff; --text: #1e293b; --muted: #64748b; --grid: #f8fafc;
+            --badge-bg: #dcfce7; --badge-txt: #166534; --shadow: rgba(0,0,0,0.1);
+            --info-box: rgba(59, 130, 246, 0.08);
+            --source-tag: #94a3b8;
+            --toggle-icon: #f59e0b;
+        }
+        [data-theme="dark"] {
+            --primary: #60a5fa; --bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card: #1e293b; --text: #f1f5f9; --muted: #94a3b8; --grid: #334155;
+            --badge-bg: #064e3b; --badge-txt: #34d399; --shadow: rgba(0,0,0,0.4);
+            --info-box: rgba(255, 255, 255, 0.05);
+            --toggle-icon: #facc15;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; transition: 0.3s; }
+        .card { background: var(--card); border-radius: 28px; padding: 25px; width: 100%; max-width: 440px; box-shadow: 0 20px 25px -5px var(--shadow); text-align: center; position: relative; overflow: hidden; }
+        
+        .theme-toggle { position: absolute; top: 15px; right: 15px; background: var(--grid); border: none; width: 35px; height: 35px; border-radius: 50%; color: var(--toggle-icon); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 2px 5px var(--shadow); }
+        .theme-toggle:hover { transform: rotate(15deg); }
+        
+        .city { color: var(--primary); font-size: 1.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
+        .time { font-size: 0.72rem; color: var(--muted); margin-bottom: 12px; }
+        .temp-main { font-size: 4.5rem; font-weight: 800; color: var(--primary); margin: 5px 0; letter-spacing: -3px; }
+        .weather-icon { font-size: 5.5rem; margin: 15px 0; min-height: 100px; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .desc { font-weight: 700; font-size: 1.1rem; margin-bottom: 15px; text-transform: capitalize; }
+        .forecast-box { background: var(--info-box); border-left: 4px solid var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 0.9rem; text-align: left; line-height: 1.6; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; background: var(--grid); padding: 18px; border-radius: 18px; }
+        .label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; font-weight: 800; display: block; }
+        .val { font-weight: 700; font-size: 0.88rem; display: block; margin-top: 1px; }
+        .source { font-size: 0.55rem; color: var(--source-tag); font-weight: 600; text-transform: uppercase; margin-top: 2px; display: block; }
+        
+        .badge { display: inline-block; background: var(--badge-bg); color: var(--badge-txt); border-radius: 8px; padding: 6px 14px; font-size: 0.65rem; font-weight: 700; margin-top: 20px; max-width: 90%; }
+        .btn { margin-top: 18px; width: 100%; padding: 14px; border: none; border-radius: 15px; background: var(--primary); color: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; text-transform: uppercase; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        #loader { padding: 40px; font-weight: 600; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <button class="theme-toggle" onclick="toggleTheme()" id="t-btn"><i class="fas fa-moon"></i></button>
+    <div id="loader"><i class="fas fa-circle-notch fa-spin fa-3x"></i><br><br>Sincronizare Hub Hibrid...</div>
+
+    <div id="content" style="display:none;">
+        <div class="city">Târgu Neamț</div>
+        <div id="update-time" class="time">--</div>
+        <div id="weather-icon" class="weather-icon"></div>
+        <div id="temp" class="temp-main">--</div>
+        <div id="description" class="desc">--</div>
+
+        <div class="forecast-box" id="ai-forecast">--</div>
+        
+        <div class="grid" id="main-grid"></div>
+
+        <div class="badge">
+            <i class="fas fa-microchip"></i> Hub Hibrid (YO8ACR): ANM + WeatherAPI + Meteoblue
+        </div>
+    </div>
+
+    <button class="btn" onclick="getWeather()"><i class="fas fa-sync-alt"></i> Actualizează datele</button>
+</div>
+
+<script>
+    const ANM_URL = "https://vremea-tg-neamt.yo8acr.workers.dev/";
+    const W_API_KEY = "bdffdac051334f298e0175011261604";
+
+    function toggleTheme() {
+        const b = document.body;
+        const isDark = b.getAttribute('data-theme') === 'dark';
+        b.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        document.getElementById('t-btn').innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+    }
+
+    function formatSunset(timeStr) {
+        if (!timeStr) return "--:--";
+        const [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':');
+        if (modifier === 'PM' && hours !== '12') hours = parseInt(hours, 10) + 12;
+        if (modifier === 'AM' && hours === '12') hours = '00';
+        return `${hours}:${minutes}`;
+    }
+
+    const precisionIcons = {
+        "senin": { icon: "fa-sun", color: "#f59e0b" },
+        "parțial noros": { icon: "fa-cloud-sun", color: "#f59e0b" },
+        "noros": { icon: "fa-cloud", color: "#64748b" },
+        "acoperit": { icon: "fa-cloud", color: "#475569" },
+        "ploaie": { icon: "fa-cloud-rain", color: "#3b82f6" },
+        "averse": { icon: "fa-cloud-showers-heavy", color: "#3b82f6" },
+        "furtună": { icon: "fa-cloud-bolt", color: "#1e293b" }
+    };
+
+    async function getWeather() {
+        try {
+            const resAnm = await fetch(ANM_URL + "?t=" + Date.now());
+            const jsonAnm = await resAnm.json();
+            const p = jsonAnm.features.find(f => f.properties.nume.toUpperCase().includes("TARGU NEAMT")).properties;
+
+            const resW = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${W_API_KEY}&q=Targu Neamt&days=1&aqi=yes&lang=ro`);
+            const dataW = await resW.json();
+            
+            const cur = dataW.current;
+            const fDay = dataW.forecast.forecastday[0].day;
+            const astro = dataW.forecast.forecastday[0].astro;
+
+            // Update UI Principal
+            document.getElementById('temp').innerText = parseFloat(p.tempe).toFixed(1) + "°C";
+            const cond = cur.condition.text;
+            document.getElementById('description').innerText = cond;
+
+            // Logică Evolutivă Text
+            const chanceRain = fDay.daily_chance_of_rain;
+            const hour = new Date().getHours();
+            const isNight = hour >= 20 || hour < 6;
+            
+            let dinamicaText = "";
+            if (chanceRain > 70) dinamicaText = `Prognoza indică <strong>precipitații</strong> în orele următoare (${chanceRain}% șanse).`;
+            else if (chanceRain > 30) dinamicaText = `Sunt posibile <strong>ploi izolate</strong> pe parcursul zilei (${chanceRain}% șanse).`;
+            else dinamicaText = `Vremea se menține <strong>stabilă</strong> în această perioadă.`;
+
+            document.getElementById('ai-forecast').innerHTML = 
+                `Cerul este <strong>${cond.toLowerCase()}</strong> (${cur.cloud}% acoperire). ${dinamicaText} ` +
+                `${isNight ? 'Soarele a apus la ' : 'Apusul este estimat la '} ora <strong>${formatSunset(astro.sunset)}</strong>.`;
+
+            // Grid Tehnic
+            const vitezMs = parseFloat(p.vant.split(' ')[0]) || 0;
+            const presMb = parseFloat(p.presiunetext) || 0;
+            
+            document.getElementById('main-grid').innerHTML = `
+                <div><span class="label">Min / Max Azi</span><span class="val">${fDay.mintemp_c}°C / ${fDay.maxtemp_c}°C</span><span class="source">[WeatherAPI]</span></div>
+                <div><span class="label">La Noapte</span><span class="val">${dataW.forecast.forecastday[0].hour[23].temp_c}°C</span><span class="source">[Meteoblue]</span></div>
+                <div><span class="label">Vânt Mediu</span><span class="val">${(vitezMs * 3.6).toFixed(1)} km/h (${vitezMs} m/s)</span><span class="source">[ANM]</span></div>
+                <div><span class="label">Rafale & Dir</span><span class="val">${cur.gust_kph} km/h | ${p.vant.split(':')[1] || 'N'}</span><span class="source">[W-API+ANM]</span></div>
+                <div><span class="label">Presiune</span><span class="val">${presMb} mb (${Math.round(presMb * 0.750062)} mmHg)</span><span class="source">[ANM]</span></div>
+                <div><span class="label">Umiditate</span><span class="val">${p.umezeala}%</span><span class="source">[ANM]</span></div>
+                <div><span class="label">Vizibilitate</span><span class="val">${cur.vis_km} km</span><span class="source">[WeatherAPI]</span></div>
+                <div><span class="label">Indice UV</span><span class="val">${fDay.uv}</span><span class="source">[WeatherAPI]</span></div>
+            `;
+
+            // Selecție Iconiță
+            let iconKey = "noros";
+            const cl = cond.toLowerCase();
+            if(cl.includes("senin")) iconKey = "senin";
+            else if(cl.includes("parțial")) iconKey = "parțial noros";
+            else if(cl.includes("acoperit")) iconKey = "acoperit";
+            else if(cl.includes("ploaie")) iconKey = "ploaie";
+            else if(cl.includes("averse")) iconKey = "averse";
+            else if(cl.includes("furtună")) iconKey = "furtună";
+
+            document.getElementById('weather-icon').innerHTML = `<i class="fas ${precisionIcons[iconKey].icon}" style="color: ${precisionIcons[iconKey].color};"></i>`;
+            
+            document.getElementById('update-time').innerText = "Sincronizare ANM: " + p.actualizat.replace(/&nbsp;/g, " ");
+            document.getElementById('loader').style.display = "none";
+            document.getElementById('content').style.display = "block";
+
+        } catch (e) { 
+            console.error(e);
+            document.getElementById('loader').innerHTML = "<i class='fas fa-exclamation-triangle'></i> Eroare date. Reîncercăm...";
+            setTimeout(getWeather, 5000);
+        }
+    }
+
+    getWeather();
+    setInterval(getWeather, 600000); // Auto-update 10 min
+</script>
+</body>
+</html>
