@@ -27,7 +27,7 @@ Aplicația centralizează informații din următoarele surse:
 ## 🤝 Contribuții
 
 Aprecierile și contribuțiile sunt binevenite! Proiectul a fost dezvoltat cu pasiune pentru comunitatea locală. 
-Mulțumiri speciale către **YO8ACR** pentru furnizarea accesului la datele colectate de la stațiile ANM.
+Mulțumiri speciale către **YO8ACR** pentru furnizarea accesului la datele colectate de la stațiile meteorologice.
 
 ---
 ⭐ Dacă îți place acest proiect, nu uita să îi dai un Star pe GitHub!
