@@ -3,203 +3,2291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub Hibrid PRO - Versiunea Completă</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; child-src 'self' https: blob:; frame-src https://embed.windy.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; connect-src 'self' https:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:;">
+    <title>Hub Hibrid PRO + Radar vreme</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --primary: #4f46e5; --bg: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-            --card: #ffffff; --text: #1e293b; --muted: #64748b; --grid: #f1f5f9;
-            --info-box: #eff6ff;
+            --primary: #4f46e5;
+            --bg-start: #e0f2fe; --bg-end: #bae6fd;
+            --card: #ffffffee; --text: #1e293b; --muted: #64748b;
+            --grid: #f1f5f9; --info-box: #eff6ff;
+            --shadow: 0 25px 60px -12px rgba(0,0,0,0.15);
         }
         [data-theme="dark"] {
-            --primary: #818cf8; --bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            --card: #1e293b; --text: #f8fafc; --muted: #94a3b8; --grid: #334155;
-            --info-box: rgba(129, 140, 248, 0.1);
+            --primary: #818cf8;
+            --bg-start: #0f172a; --bg-end: #1e293b;
+            --card: #1e293bee; --text: #f8fafc; --muted: #94a3b8;
+            --grid: #334155; --info-box: rgba(129,140,248,0.1);
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; transition: 0.3s; }
-        .card { background: var(--card); border-radius: 32px; padding: 25px; width: 100%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }
-        
-        /* Header & Search */
-        .header-actions { display: flex; gap: 8px; margin-bottom: 20px; }
-        .search-box { flex: 1; display: flex; background: var(--grid); border-radius: 16px; padding: 5px 10px; }
-        .search-box input { border: none; background: transparent; color: var(--text); padding: 10px; outline: none; width: 100%; font-weight: 600; }
-        .btn-action { background: var(--primary); color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: var(--text); display: flex; justify-content: center;
+            align-items: flex-start; min-height: 100vh; padding: 20px;
+            transition: background 0.6s ease, color 0.3s;
+        }
+        .card {
+            background: var(--card); border-radius: 32px; padding: 24px;
+            width: 100%; max-width: 520px; box-shadow: var(--shadow);
+            backdrop-filter: blur(12px); animation: fadeInUp 0.5s ease;
+        }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
-        /* Main Display */
-        .city-name { color: var(--primary); font-size: 1.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; text-align: center; }
-        .time-sync { font-size: 0.65rem; color: var(--muted); margin-bottom: 15px; text-align: center; font-weight: 600; }
+        /* HEADER */
+        .header-actions { display: flex; gap: 8px; margin-bottom: 12px; position: relative; }
+        .search-box {
+            flex: 1; display: flex; background: var(--grid);
+            border-radius: 16px; padding: 5px 10px; align-items: center;
+            transition: box-shadow 0.2s; position: relative;
+        }
+        .search-box:focus-within { box-shadow: 0 0 0 3px rgba(79,70,229,0.25); }
+        .search-box input {
+            border: none; background: transparent; color: var(--text);
+            padding: 10px 8px; outline: none; width: 100%;
+            font-weight: 600; font-size: 0.9rem;
+        }
+        .btn-action {
+            background: var(--primary); color: white; border: none;
+            width: 44px; height: 44px; border-radius: 13px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.15s, opacity 0.2s; flex-shrink: 0;
+        }
+        .btn-action:hover  { opacity: 0.85; }
+        .btn-action:active { transform: scale(0.92); }
+        .btn-geo   { background: #059669; }
+        .btn-theme { background: var(--grid); color: #f59e0b; }
+        .btn-lang  { background: var(--grid); color: #2563eb; font-size: 0.65rem; font-weight: 800; }
+
+        /* ===================== AUTOCOMPLETE DROPDOWN ===================== */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 52px;
+            background: var(--card);
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+            z-index: 9999;
+            max-height: 260px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 4px;
+            border: 1px solid var(--grid);
+        }
+        .autocomplete-dropdown.visible { display: block; }
+        .autocomplete-dropdown::-webkit-scrollbar { width: 5px; }
+        .autocomplete-dropdown::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 99px; }
+        .ac-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text);
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ac-item:hover, .ac-item.selected {
+            background: var(--info-box);
+        }
+        .ac-item .ac-icon {
+            width: 28px; height: 28px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 800; flex-shrink: 0;
+        }
+        .ac-item .ac-icon.anm-icon { background: #dcfce7; color: #166534; }
+        .ac-item .ac-icon.wapi-icon { background: #e0e7ff; color: #4338ca; }
+        .ac-item .ac-name { flex: 1; }
+        .ac-item .ac-detail { font-size: 0.65rem; color: var(--muted); font-weight: 700; }
+        .ac-section-title {
+            padding: 8px 14px 4px;
+            font-size: 0.58rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+        }
+
+        /* ===================== PROVIDER SELECTOR ===================== */
+        .provider-selector {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            margin-bottom: 16px; padding: 10px 14px;
+            background: var(--grid); border-radius: 16px;
+        }
+        .ps-label {
+            font-size: 0.58rem; font-weight: 800; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+        }
+        .ps-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+        .ps-chip {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: 10px;
+            border: 1.5px solid transparent;
+            background: var(--card); color: var(--muted);
+            font-size: 0.68rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; opacity: 0.45;
+            user-select: none; white-space: nowrap;
+        }
+        .ps-chip:hover { opacity: 0.7; }
+        .ps-chip.active            { opacity: 1; border-color: var(--primary); color: var(--primary); }
+        .ps-chip.active.c-anm      { border-color: #059669; color: #059669; }
+        .ps-chip.active.c-mb       { border-color: #2563eb; color: #2563eb; }
+        .ps-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: currentColor; flex-shrink: 0;
+        }
+        .ps-status {
+            width: 100%; font-size: 0.58rem; color: var(--muted);
+            font-weight: 700; margin-top: 2px; text-align: center;
+        }
+
+        /* CITY */
+        .city-name {
+            color: var(--primary); font-size: 1.85rem; font-weight: 800;
+            text-transform: uppercase; text-align: center; letter-spacing: 1px; margin-bottom: 2px;
+        }
+        .time-sync {
+            font-size: 0.65rem; color: var(--muted); text-align: center;
+            font-weight: 600; margin-bottom: 16px;
+        }
+
+        /* WEATHER MAIN */
         .weather-main { text-align: center; margin-bottom: 20px; }
-        .temp-main { font-size: 5.5rem; font-weight: 800; color: var(--primary); margin: 0; line-height: 1; letter-spacing: -3px; }
-        .condition-text { font-weight: 700; font-size: 1.2rem; margin-top: 10px; text-transform: capitalize; }
+        .big-icon-wrap { font-size: 4.5rem; margin-bottom: 10px; line-height: 1; }
+        .big-icon-wrap i { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
+        .temp-main { font-size: 5.5rem; font-weight: 800; color: var(--primary); line-height: 1; letter-spacing: -3px; }
+        .temp-feel { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-top: 4px; }
+        .condition-text { font-weight: 700; font-size: 1.15rem; margin-top: 8px; text-transform: capitalize; }
 
-        /* Smart Banner */
-        .smart-banner { background: var(--info-box); border-radius: 16px; padding: 15px; margin-bottom: 20px; font-size: 0.85rem; line-height: 1.4; border-left: 4px solid var(--primary); }
+        /* SMART BANNER */
+        .smart-banner {
+            background: var(--info-box); border-radius: 16px; padding: 14px 16px;
+            margin-bottom: 18px; font-size: 0.83rem; line-height: 1.5;
+            border-left: 4px solid var(--primary); transition: background 0.3s;
+        }
 
-        /* Data Grid - 10 Itemuri */
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--grid); padding: 20px; border-radius: 24px; margin-bottom: 20px; }
-        .data-item { display: flex; flex-direction: column; min-height: 45px; }
-        .item-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
-        .item-val { font-weight: 700; font-size: 0.85rem; margin-top: 2px; }
-        .item-src { font-size: 0.5rem; color: var(--muted); font-weight: 700; opacity: 0.6; }
+        /* DATA GRID */
+        .data-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            background: var(--grid); padding: 18px; border-radius: 24px; margin-bottom: 18px;
+        }
+        .data-item { display: flex; flex-direction: column; gap: 2px; }
+        .item-label { font-size: 0.58rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+        .item-val   { font-weight: 700; font-size: 0.83rem; }
+        .item-src   { font-size: 0.5rem; color: var(--muted); font-weight: 700; opacity: 0.55; }
 
-        /* Radar Controls */
-        .radar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; }
-        .radar-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); }
-        .radar-tabs { display: flex; gap: 4px; background: var(--grid); padding: 3px; border-radius: 10px; }
-        .radar-tab { padding: 5px 10px; border-radius: 7px; font-size: 0.65rem; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--muted); }
-        .radar-tab.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        
-        .map-container { border-radius: 24px; overflow: hidden; height: 320px; background: var(--grid); border: 2px solid var(--grid); }
-        
-        .footer-tag { text-align: center; font-size: 0.7rem; font-weight: 800; color: #166534; background: #dcfce7; padding: 8px; border-radius: 15px; margin: 15px 0; text-transform: uppercase; }
+        /* AQI */
+        .aqi-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; margin-left: 4px; vertical-align: middle; }
+        .aqi-1{background:#dcfce7;color:#166534} .aqi-2{background:#fef9c3;color:#854d0e}
+        .aqi-3{background:#ffedd5;color:#c2410c} .aqi-4{background:#fee2e2;color:#b91c1c}
+        .aqi-5{background:#4c1d95;color:#e9d5ff}
+
+        /* RAIN BAR */
+        .rain-bar-wrap { margin-top: 6px; }
+        .rain-bar-bg   { background: rgba(0,0,0,0.07); border-radius: 99px; height: 5px; overflow: hidden; }
+        .rain-bar-fill { height: 100%; border-radius: 99px; background: #3b82f6; transition: width 0.8s ease; }
+
+        /* SECTION TITLE */
+        .section-title {
+            font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+            color: var(--muted); letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        /* HOURLY CHART */
+        .hourly-chart-wrap {
+            background: var(--grid); border-radius: 20px;
+            padding: 14px 14px 10px; margin-bottom: 18px;
+        }
+        .hourly-chart-wrap .section-title { margin-bottom: 10px; }
+        #hourly-svg { width: 100%; height: 90px; display: block; }
+        .hourly-labels { display: flex; justify-content: space-between; margin-top: 4px; padding: 0 4px; }
+        .hourly-labels span { font-size: 0.6rem; color: var(--muted); font-weight: 700; }
+
+        /* 5-DAY FORECAST */
+        .forecast-wrap { background: var(--grid); border-radius: 20px; padding: 14px; margin-bottom: 18px; }
+        .forecast-wrap .section-title { margin-bottom: 12px; }
+        .forecast-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+        .forecast-scroll::-webkit-scrollbar { height: 4px; }
+        .forecast-scroll::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 99px; }
+        .forecast-card {
+            flex-shrink: 0; background: var(--card); border-radius: 14px;
+            padding: 10px 14px; text-align: center; min-width: 75px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.15s;
+        }
+        .forecast-card:hover { transform: translateY(-3px); }
+        .forecast-card.today { border: 2px solid var(--primary); }
+        .fc-day  { font-size: 0.62rem; font-weight: 800; color: var(--muted); text-transform: uppercase; }
+        .fc-icon { font-size: 1.4rem; margin: 6px 0; }
+        .fc-max  { font-size: 0.85rem; font-weight: 800; }
+        .fc-min  { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+        .fc-rain { font-size: 0.6rem; color: #3b82f6; font-weight: 700; margin-top: 3px; }
+
+        /* ===================== RADAR SECTION ===================== */
+        .radar-section { margin-bottom: 18px; }
+        .radar-header  {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;
+        }
+        .radar-tabs {
+            display: flex; gap: 4px; background: var(--grid);
+            padding: 3px; border-radius: 10px; flex-wrap: wrap;
+        }
+        .radar-tab {
+            padding: 5px 10px; border-radius: 7px; font-size: 0.62rem; font-weight: 700;
+            border: none; cursor: pointer; background: transparent; color: var(--muted);
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .radar-tab.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+        /* Map wrapper */
+        .map-wrapper {
+            border-radius: 20px; overflow: hidden; position: relative;
+            height: 320px; border: 2px solid var(--grid);
+        }
+        #radar-map { height: 100%; width: 100%; }
+
+        /* Radar Controls Bar */
+        .radar-controls {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(15,23,42,0.82); backdrop-filter: blur(6px);
+            padding: 8px 12px; display: flex; align-items: center; gap: 10px;
+        }
+        .radar-play-btn {
+            background: var(--primary); color: white; border: none;
+            width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; flex-shrink: 0; transition: opacity 0.2s;
+        }
+        .radar-play-btn:hover { opacity: 0.85; }
+        .radar-timeline { flex: 1; position: relative; height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; cursor: pointer; }
+        .radar-timeline-fill { height: 100%; background: var(--primary); border-radius: 99px; transition: width 0.3s; pointer-events: none; }
+        .radar-time-label { font-size: 0.62rem; font-weight: 700; color: #fff; min-width: 38px; text-align: right; }
+        .radar-layer-info { font-size: 0.58rem; color: rgba(255,255,255,0.6); font-weight: 700; }
+
+        /* Windy iframe fallback */
+        .windy-frame {
+            border-radius: 20px; overflow: hidden; height: 320px;
+            border: 2px solid var(--grid); display: none;
+            position: relative;
+        }
+        .windy-frame iframe { width: 100%; height: 100%; border: none; }
+        .windy-logo-cover {
+            position: absolute; bottom: 8px; left: 8px; z-index: 500;
+            background: var(--card); border-radius: 8px;
+            padding: 2px 10px; font-size: 0.6rem; font-weight: 800;
+            color: var(--muted); pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Radar layer buttons */
+        .radar-layers {
+            position: absolute; top: 10px; right: 10px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .layer-btn {
+            background: rgba(15,23,42,0.8); color: #fff; border: none;
+            padding: 5px 8px; border-radius: 8px; font-size: 0.58rem;
+            font-weight: 700; cursor: pointer; backdrop-filter: blur(4px);
+            transition: background 0.2s; white-space: nowrap;
+        }
+        .layer-btn.active { background: var(--primary); }
+        .layer-btn:hover  { background: rgba(79,70,229,0.8); }
+
+        /* FOOTER */
+        .footer-tag {
+            text-align: center; font-size: 0.7rem; font-weight: 800;
+            color: #166534; background: #dcfce7; padding: 8px;
+            border-radius: 14px; margin-bottom: 14px; text-transform: uppercase;
+        }
         [data-theme="dark"] .footer-tag { background: #064e3b; color: #4ade80; }
-        .btn-update { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn-update {
+            width: 100%; background: var(--primary); color: white; border: none;
+            padding: 16px; border-radius: 18px; font-weight: 800; cursor: pointer;
+            text-transform: uppercase; font-size: 0.9rem;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+        .btn-update:hover  { opacity: 0.9; }
         .btn-update:active { transform: scale(0.98); }
-        #loader { display: none; text-align: center; padding: 20px; }
+
+        /* LOADER */
+        #loader { display: none; text-align: center; padding: 30px; }
+        #main-content { transition: opacity 0.3s; }
+
+        /* TOAST */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: #1e293b; color: #f8fafc; padding: 12px 18px; border-radius: 14px;
+            font-size: 0.82rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            display: flex; align-items: center; gap: 10px; max-width: 280px;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+        }
+        .toast.success { border-left: 4px solid #4ade80; }
+        .toast.error   { border-left: 4px solid #f87171; }
+        .toast.info    { border-left: 4px solid #60a5fa; }
+        @keyframes toastIn  { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes toastOut { to{opacity:0;transform:translateX(20px)} }
+
+        /* Leaflet overrides */
+        .leaflet-control-attribution { font-size: 0.5rem !important; }
+        .leaflet-control-zoom { border-radius: 10px !important; overflow: hidden; }
+
+        /* ===================== WIDGETS ROW ===================== */
+        .widgets-row {
+            display: flex; gap: 12px; margin-bottom: 18px;
+        }
+        .widget-card {
+            flex: 1; background: var(--grid); border-radius: 20px;
+            padding: 14px; text-align: center;
+        }
+        .widget-card .section-title { justify-content: center; margin-bottom: 8px; }
+
+        /* ── WIND COMPASS ── */
+        #wind-compass-svg { margin: 0 auto; display: block; }
+        .wind-speed-big {
+            font-size: 1.1rem; font-weight: 800; color: var(--primary);
+            margin-top: 4px;
+        }
+        .wind-speed-big span { font-size: 0.65rem; color: var(--muted); font-weight: 600; }
+
+        /* ── SUN ARC ── */
+        #sun-arc-svg { display: block; margin: 0 auto; }
+        .sun-times {
+            font-size: 0.68rem; color: var(--muted); font-weight: 700;
+            margin-top: 6px; text-align: center;
+        }
+        .sun-times span { color: var(--text); font-weight: 800; }
+
+        /* ── AQI DETAIL PANEL ── */
+        .aqi-detail-panel {
+            background: var(--grid); border-radius: 20px;
+            padding: 14px; margin-bottom: 18px;
+        }
+        .aqi-detail-panel .section-title { margin-bottom: 10px; }
+        .aqi-detail-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+        }
+        .aqi-item {
+            background: var(--card); border-radius: 12px; padding: 8px;
+            text-align: center;
+        }
+        .aqi-item-label { font-size: 0.55rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; }
+        .aqi-item-val { font-size: 0.9rem; font-weight: 800; margin-top: 2px; }
+        .aqi-item-unit { font-size: 0.5rem; color: var(--muted); font-weight: 600; }
+
+        /* ── MOON ── */
+        .moon-display {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            margin-top: 4px;
+        }
+        .moon-icon { font-size: 2.2rem; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15)); }
+        .moon-info { text-align: left; }
+        .moon-name { font-size: 0.8rem; font-weight: 800; }
+        .moon-illum { font-size: 0.62rem; color: var(--muted); font-weight: 600; }
+
+        /* ── CONFORT TERMIC ── */
+        .comfort-info { margin-top: 4px; }
+        .comfort-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+        .comfort-label { font-size: 0.6rem; color: var(--muted); font-weight: 700; }
+        .comfort-val { font-size: 0.75rem; font-weight: 800; }
+        .comfort-text {
+            margin-top: 6px; padding: 6px 10px; border-radius: 10px;
+            font-size: 0.68rem; font-weight: 700; text-align: center;
+        }
+        .comfort-good { background: #dcfce7; color: #166534; }
+        .comfort-ok   { background: #fef9c3; color: #854d0e; }
+        .comfort-bad  { background: #fee2e2; color: #b91c1c; }
+        [data-theme="dark"] .comfort-good { background: #064e3b; color: #4ade80; }
+        [data-theme="dark"] .comfort-ok   { background: #422006; color: #fbbf24; }
+        [data-theme="dark"] .comfort-bad  { background: #450a0a; color: #fca5a5; }
+
+        /* ── AUTO REFRESH ── */
+        .refresh-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: var(--grid); border-radius: 8px;
+            padding: 2px 8px; font-size: 0.55rem; font-weight: 800;
+            color: var(--muted); margin-left: 6px; vertical-align: middle;
+        }
+        .refresh-badge i { font-size: 0.5rem; }
+        .refresh-badge.countdown { color: var(--primary); }
+
+        @media (max-width: 400px) {
+            .card { padding: 18px; border-radius: 24px; }
+            .temp-main { font-size: 4.5rem; }
+            .aqi-detail-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
 
+<div class="toast-container" id="toast-container"></div>
+
 <div class="card">
+
+    <!-- SEARCH + GEO + THEME + LANG -->
     <div class="header-actions">
         <div class="search-box">
-            <input type="text" id="city-in" placeholder="Caută oraș (Ex: Târgu Neamț)..." onkeypress="if(event.key==='Enter') updateWeather()">
-            <button class="btn-action" onclick="updateWeather()"><i class="fas fa-search"></i></button>
+            <i class="fas fa-search" style="color:var(--muted);font-size:0.85rem;margin-right:4px;"></i>
+            <input type="text" id="city-in"
+                   data-i18n-placeholder="search_placeholder"
+                   placeholder="Caută oraș (Ex: Iași, Cluj...)"
+                   autocomplete="off"
+                   oninput="onSearchInput(this.value)"
+                   onfocus="onSearchFocus()"
+                   onkeypress="if(event.key==='Enter') updateWeather()">
         </div>
-        <button class="btn-action" style="background: var(--grid); color: #f59e0b;" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
+        <button class="btn-action btn-geo"   onclick="geoLocate()"   title="Localizare automată"><i class="fas fa-location-crosshairs"></i></button>
+        <button class="btn-action btn-theme" onclick="toggleTheme()" title="Schimbă tema"><i class="fas fa-moon" id="theme-icon"></i></button>
+        <button class="btn-action btn-lang"  onclick="toggleLang()"  title="Switch language" id="btn-lang">RO</button>
+
+        <!-- AUTOCOMPLETE DROPDOWN -->
+        <div class="autocomplete-dropdown" id="ac-dropdown"></div>
     </div>
 
-    <div id="loader"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--primary);"></i></div>
+    <!-- PROVIDER SELECTOR -->
+    <div class="provider-selector">
+        <span class="ps-label" data-i18n="provider_label">Furnizori:</span>
+        <div class="ps-chips">
+            <button class="ps-chip active" id="chip-wapi" onclick="toggleProvider('wapi', this)" title="WeatherAPI — temp, vânt, UV, AQI, prognoză 5 zile">
+                <span class="ps-dot"></span> WeatherAPI
+            </button>
+            <button class="ps-chip active c-anm" id="chip-anm" onclick="toggleProvider('anm', this)" title="Meteoromania.ro (ANM) — stații meteorologice oficiale RO">
+                <span class="ps-dot"></span> ANM
+            </button>
+            <button class="ps-chip active c-mb" id="chip-mb" onclick="toggleProvider('mb', this)" title="Meteoblue — temperaturi orare, prognoză noapte">
+                <span class="ps-dot"></span> Meteoblue
+            </button>
+        </div>
+        <span class="ps-status" id="ps-status">Toate sursele active</span>
+    </div>
+
+    <div id="loader">
+        <i class="fas fa-circle-notch fa-spin fa-2x" style="color:var(--primary);"></i>
+        <div style="margin-top:10px;font-size:0.8rem;color:var(--muted);font-weight:700;" data-i18n="loading_text">Se încarcă datele...</div>
+    </div>
 
     <div id="main-content">
+
         <div id="city-title" class="city-name">--</div>
-        <div id="sync-info" class="time-sync">--</div>
-        
+        <div id="sync-info"  class="time-sync">--<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 10:00</span></div>
+
         <div class="weather-main">
-            <div id="big-icon" style="font-size: 4.5rem; margin-bottom: 10px;"></div>
+            <div class="big-icon-wrap" id="big-icon"></div>
             <div id="main-temp" class="temp-main">--</div>
+            <div id="temp-feel" class="temp-feel"></div>
             <div id="main-desc" class="condition-text">--</div>
         </div>
 
         <div class="smart-banner" id="smart-text">Se încarcă prognoza inteligentă...</div>
-        
-        <div class="data-grid" id="full-grid">
-            </div>
 
-        <div class="radar-header">
-            <span class="radar-title"><i class="fas fa-satellite-dish"></i> Radar Live</span>
-            <div class="radar-tabs">
-                <button class="radar-tab active" onclick="switchRadar('meteo', this)">MeteoRadar</button>
-                <button class="radar-tab" onclick="switchRadar('windy', this)">Windy</button>
+        <div class="data-grid" id="full-grid"></div>
+
+        <!-- BUSOLA VANT + ARC SOARE -->
+        <div class="widgets-row">
+            <div class="widget-card">
+                <div class="section-title"><i class="fas fa-compass"></i> <span data-i18n="compass_title">Busola Vant</span></div>
+                <svg id="wind-compass-svg" viewBox="0 0 160 160" width="130" height="130"></svg>
+                <div class="wind-speed-big" id="wind-speed-big">-- <span>km/h</span></div>
+            </div>
+            <div class="widget-card">
+                <div class="section-title"><i class="fas fa-sun"></i> <span data-i18n="sunarc_title">Arc Soare</span></div>
+                <svg id="sun-arc-svg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="sun-times" id="sun-times"><span>--:--</span> | <span>--:--</span></div>
             </div>
         </div>
-        <div class="map-container">
-            <iframe id="radar-iframe" width="100%" height="100%" frameborder="0" sandbox="allow-scripts allow-same-origin" style="border:0;"></iframe>
+
+        <!-- AQI DETALIAT -->
+        <div class="aqi-detail-panel" id="aqi-detail-panel">
+            <div class="section-title"><i class="fas fa-lungs"></i> <span data-i18n="aqi_title">Calitate Aer — Detaliat</span></div>
+            <div class="aqi-detail-grid" id="aqi-detail-grid"></div>
         </div>
 
-        <div class="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro: ANM + W-API + Meteoblue</div>
-        <button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> Actualizează Datele</button>
+        <!-- FAZA LUNII + CONFORT TERMIC -->
+        <div class="widgets-row">
+            <div class="widget-card">
+                <div class="section-title"><i class="fas fa-moon"></i> <span data-i18n="moon_title">Faza Lunii</span></div>
+                <div class="moon-display" id="moon-display"></div>
+            </div>
+            <div class="widget-card">
+                <div class="section-title"><i class="fas fa-temperature-half"></i> <span data-i18n="comfort_title">Confort Termic</span></div>
+                <div class="comfort-info" id="comfort-info"></div>
+            </div>
+        </div>
+
+        <!-- HOURLY CHART — shown only when data available -->
+        <div class="hourly-chart-wrap" id="hourly-section">
+            <div class="section-title"><i class="fas fa-chart-line"></i> <span data-i18n="hourly_title" id="hourly-title-label">Temperaturi Orare (8h)</span></div>
+            <svg id="hourly-svg" viewBox="0 0 460 90" preserveAspectRatio="none"></svg>
+            <div class="hourly-labels" id="hourly-labels"></div>
+        </div>
+
+        <!-- 5-DAY FORECAST — shown only when W-API active -->
+        <div class="forecast-wrap" id="forecast-section">
+            <div class="section-title"><i class="fas fa-calendar-days"></i> <span data-i18n="forecast_title">Prognoză 5 Zile</span></div>
+            <div class="forecast-scroll" id="forecast-scroll"></div>
+        </div>
+
+        <div class="radar-section">
+            <div class="radar-header">
+                <span class="section-title"><i class="fas fa-cloud-showers-heavy"></i> <span data-i18n="radar_title">Radar Ploi Live</span></span>
+                <div class="radar-tabs">
+                    <button class="radar-tab active" onclick="showRadarTab('leaflet', this)" data-i18n="radar_tab_animated">🌧️ Radar Animat</button>
+                    <button class="radar-tab"        onclick="showRadarTab('windy',   this)" data-i18n="radar_tab_windy">💨 Windy</button>
+                </div>
+            </div>
+
+            <div class="map-wrapper" id="map-wrapper">
+                <div id="radar-map"></div>
+
+                <div class="radar-layers">
+                    <button class="layer-btn active" onclick="setRadarLayer('radar',this)" title="Radar ploi" data-i18n="rain_btn">🌧️ Ploi</button>
+                </div>
+
+                <div class="radar-controls">
+                    <button class="radar-play-btn" id="play-btn" onclick="togglePlay()">
+                        <i class="fas fa-play" id="play-icon"></i>
+                    </button>
+                    <div class="radar-timeline" id="radar-timeline" onclick="timelineClick(event)">
+                        <div class="radar-timeline-fill" id="timeline-fill" style="width:0%"></div>
+                    </div>
+                    <span class="radar-time-label" id="radar-time">--:--</span>
+                    <span class="radar-layer-info" id="radar-layer-info">RADAR</span>
+                </div>
+            </div>
+
+            <div class="windy-frame" id="windy-frame">
+                <iframe id="windy-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="no-referrer"></iframe>
+                <div class="windy-logo-cover">💨 Windy</div>
+            </div>
+        </div>
+
+        <div class="footer-tag" id="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro — ANM + W-API + Meteoblue + Radar ploi + Windy</div>
+        <button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> <span data-i18n="update_btn">Actualizează Datele</span></button>
+
     </div>
 </div>
 
 <script>
-    const W_KEY = "bdffdac051334f298e0175011261604";
-    const M_KEY = "dTx4DkKZerufXShl";
-    const ANM_PROXY = "https://vremea-tg-neamt.yo8acr.workers.dev/";
-    
-    let currentCoords = { lat: 47.17, lon: 26.36 };
-    let currentMode = 'meteo';
+/* ================================================================
+   I18N — Internationalization System
+================================================================ */
+let currentLang = localStorage.getItem('hub_lang') || 'ro';
 
-    function toggleTheme() {
-        const b = document.body;
-        const isDark = b.getAttribute('data-theme') === 'dark';
-        b.setAttribute('data-theme', isDark ? 'light' : 'dark');
-        document.getElementById('theme-icon').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+const LANG = {
+    ro: {
+        search_placeholder: 'Caută oraș (Ex: Iași, Cluj...)',
+        search_placeholder_anm: 'Caută stație ANM (Ex: Târgu Neamț, Iași...)',
+        search_placeholder_generic: 'Caută locație...',
+        provider_label: 'Furnizori:',
+        provider_all_active: 'Toate sursele active',
+        provider_deactivated: '{name} dezactivat',
+        provider_active: 'Active: ',
+        loading_text: 'Se încarcă datele...',
+        updating_smart: 'Se încarcă prognoza inteligentă...',
+        compass_title: 'Busola Vant',
+        sunarc_title: 'Arc Soare',
+        aqi_title: 'Calitate Aer — Detaliat',
+        moon_title: 'Faza Lunii',
+        comfort_title: 'Confort Termic',
+        hourly_title: 'Temperaturi Orare (8h)',
+        forecast_title: 'Prognoză 5 Zile',
+        radar_title: 'Radar Ploi Live',
+        radar_tab_animated: '🌧️ Radar Animat',
+        radar_tab_windy: '💨 Windy',
+        update_btn: 'Actualizează Datele',
+        footer_text: 'Hub Hibrid Pro — ',
+        no_results: 'Niciun rezultat găsit',
+        anm_stations: 'Stații ANM Meteo Romania',
+        not_found: 'Nicio stație ANM găsită! Încearcă alt nume sau activează WeatherAPI.',
+        anm_only_note: '(doar ANM activ)',
+        temp_actual: 'Temp. Actuală',
+        min_max_today: 'Min / Max Azi',
+        tonight_23: 'La Noapte (23:00)',
+        feels_like: 'Resimțit',
+        avg_wind: 'Vânt Mediu',
+        dir_gusts: 'Direcție & Rafale',
+        pressure: 'Presiune',
+        humidity: 'Umiditate',
+        visibility: 'Vizibilitate',
+        uv_index: 'Indice UV',
+        aqi_label: 'Calitate Aer (AQI)',
+        rain_chance: 'Șanse Precipitații',
+        sunrise: 'Răsărit Soare',
+        sunset: 'Apus Soare',
+        nebulozitate: 'Nebulozitate',
+        temp_apa: 'Temp. Apă',
+        strat_zapada: 'Strat de Zăpadă',
+        minima: 'Minima',
+        maxima: 'Maxima',
+        smart_precip: 'Șanse precipitații:',
+        smart_minmax: 'Min/Max:',
+        wind_strong: 'Vânt puternic!',
+        smart_anm_station: 'Stație oficială ANM Meteoromania.',
+        smart_updated_at: 'Date actualizate la',
+        smart_for_detail: 'Pentru prognoză detaliată, activează WeatherAPI.',
+        toast_provider_need_one: 'Cel puțin un furnizor trebuie să rămână activ!',
+        toast_activated: 'activat ✓',
+        toast_anm_loaded: 'Date ANM încărcate ✓',
+        toast_mb_added: 'Meteoblue: date orare adăugate ✓',
+        toast_radar_loaded: 'Radar încărcat ✓',
+        toast_radar_error: 'Eroare încărcare radar',
+        toast_no_radar: 'Nu există date radar disponibile',
+        toast_mb_unavailable: 'Meteoblue indisponibil — fallback W-API',
+        toast_anm_unavailable: 'ANM indisponibil — fallback W-API',
+        toast_loading_radar: 'Se încarcă...',
+        toast_detecting_loc: 'Se detectează locația...',
+        toast_geo_not_supported: 'Geolocalizarea nu este suportată',
+        toast_geo_denied: 'Acces la locație refuzat',
+        uv_low: 'Scăzut',
+        uv_moderate: 'Moderat',
+        uv_high: 'Ridicat',
+        uv_very_high: 'Foarte Ridicat',
+        uv_extreme: 'Extrem',
+        aqi_good: 'Bun',
+        aqi_moderate: 'Acceptabil',
+        aqi_unhealthy_sens: 'Moderat',
+        aqi_unhealthy: 'Slab',
+        aqi_very_unhealthy: 'Periculos',
+        aqi_hazardous: 'Periculos',
+        dew_point: 'Punct de rouă',
+        wind_discomfort: 'Vant disconfort',
+        comfort_high: 'Ridicat',
+        comfort_moderate: 'Moderat',
+        comfort_low: 'Scăzut',
+        comfort_good: 'Condiții confortabile — plăcut afara!',
+        comfort_cold: 'Frig extrem — îmbracă-te gros!',
+        comfort_hot: 'Cald foarte — hidratează-te!',
+        comfort_cold_feel: 'Se simte mult mai rece din cauza vântului!',
+        comfort_hot_feel: 'Se simte mai cald din cauza umidității!',
+        comfort_ok: 'Condiții acceptabile pentru activități outdoor.',
+        days_short: ['Dum','Lun','Mar','Mie','Joi','Vin','Sâm'],
+        today: 'Azi',
+        hourly_title_mb: 'Temperaturi Orare (8h) [Meteoblue]',
+        radar_loading: 'Se încarcă...',
+        radar_rain: 'RADAR PLOI',
+        radar_sat_ir: 'SATELIT IR',
+        radar_error: 'EROARE',
+        rain_btn: '🌧️ Ploi',
+        feels_like_label: 'Resimțit',
+        tonight: 'La Noapte',
+        wind_dir: 'Direcție Vânt',
+        radar_ploi: 'Radar ploi'
+    },
+    en: {
+        search_placeholder: 'Search city (e.g. Iași, Cluj...)',
+        search_placeholder_anm: 'Search ANM station (e.g. Târgu Neamț, Iași...)',
+        search_placeholder_generic: 'Search location...',
+        provider_label: 'Providers:',
+        provider_all_active: 'All sources active',
+        provider_deactivated: '{name} deactivated',
+        provider_active: 'Active: ',
+        loading_text: 'Loading weather data...',
+        updating_smart: 'Loading smart forecast...',
+        compass_title: 'Wind Compass',
+        sunarc_title: 'Sun Arc',
+        aqi_title: 'Air Quality — Detailed',
+        moon_title: 'Moon Phase',
+        comfort_title: 'Thermal Comfort',
+        hourly_title: 'Hourly Temperatures (8h)',
+        forecast_title: '5-Day Forecast',
+        radar_title: 'Live Rain Radar',
+        radar_tab_animated: '🌧️ Animated Radar',
+        radar_tab_windy: '💨 Windy',
+        update_btn: 'Refresh Data',
+        footer_text: 'Hub Hibrid Pro — ',
+        no_results: 'No results found',
+        anm_stations: 'ANM Meteo Romania Stations',
+        not_found: 'No ANM station found! Try another name or enable WeatherAPI.',
+        anm_only_note: '(ANM only active)',
+        temp_actual: 'Current Temp.',
+        min_max_today: 'Min / Max Today',
+        tonight_23: 'Tonight (23:00)',
+        feels_like: 'Feels Like',
+        avg_wind: 'Avg. Wind',
+        dir_gusts: 'Direction & Gusts',
+        pressure: 'Pressure',
+        humidity: 'Humidity',
+        visibility: 'Visibility',
+        uv_index: 'UV Index',
+        aqi_label: 'Air Quality (AQI)',
+        rain_chance: 'Precip. Chance',
+        sunrise: 'Sunrise',
+        sunset: 'Sunset',
+        nebulozitate: 'Cloudiness',
+        temp_apa: 'Water Temp.',
+        strat_zapada: 'Snow Depth',
+        minima: 'Minimum',
+        maxima: 'Maximum',
+        smart_precip: 'Precip. chance:',
+        smart_minmax: 'Min/Max:',
+        wind_strong: 'Strong wind!',
+        smart_anm_station: 'Official ANM Meteoromania station.',
+        smart_updated_at: 'Data updated at',
+        smart_for_detail: 'For detailed forecast, enable WeatherAPI.',
+        toast_provider_need_one: 'At least one provider must remain active!',
+        toast_activated: 'activated ✓',
+        toast_anm_loaded: 'ANM data loaded ✓',
+        toast_mb_added: 'Meteoblue: hourly data added ✓',
+        toast_radar_loaded: 'Radar loaded ✓',
+        toast_radar_error: 'Radar loading error',
+        toast_no_radar: 'No radar data available',
+        toast_mb_unavailable: 'Meteoblue unavailable — W-API fallback',
+        toast_anm_unavailable: 'ANM unavailable — W-API fallback',
+        toast_loading_radar: 'Loading...',
+        toast_detecting_loc: 'Detecting location...',
+        toast_geo_not_supported: 'Geolocation not supported',
+        toast_geo_denied: 'Location access denied',
+        uv_low: 'Low',
+        uv_moderate: 'Moderate',
+        uv_high: 'High',
+        uv_very_high: 'Very High',
+        uv_extreme: 'Extreme',
+        aqi_good: 'Good',
+        aqi_moderate: 'Moderate',
+        aqi_unhealthy_sens: 'Unhealthy (Sensitive)',
+        aqi_unhealthy: 'Unhealthy',
+        aqi_very_unhealthy: 'Very Unhealthy',
+        aqi_hazardous: 'Hazardous',
+        dew_point: 'Dew Point',
+        wind_discomfort: 'Wind Discomfort',
+        comfort_high: 'High',
+        comfort_moderate: 'Moderate',
+        comfort_low: 'Low',
+        comfort_good: 'Comfortable conditions — pleasant outside!',
+        comfort_cold: 'Extreme cold — dress warmly!',
+        comfort_hot: 'Very hot — stay hydrated!',
+        comfort_cold_feel: 'Feels much colder due to wind!',
+        comfort_hot_feel: 'Feels warmer due to humidity!',
+        comfort_ok: 'Acceptable conditions for outdoor activities.',
+        days_short: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+        today: 'Today',
+        hourly_title_mb: 'Hourly Temperatures (8h) [Meteoblue]',
+        radar_loading: 'Loading...',
+        radar_rain: 'RAIN RADAR',
+        radar_sat_ir: 'IR SATELLITE',
+        radar_error: 'ERROR',
+        rain_btn: '🌧️ Rain',
+        feels_like_label: 'Feels Like',
+        tonight: 'Tonight',
+        wind_dir: 'Wind Direction',
+        radar_ploi: 'Rain Radar'
     }
+};
 
-    function switchRadar(type, btn) {
-        currentMode = type;
-        document.querySelectorAll('.radar-tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        const iframe = document.getElementById('radar-iframe');
-        if(type === 'meteo') {
-            iframe.src = `https://radar.wo-cloud.com/pwa/?center=${currentCoords.lat},${currentCoords.lon}&zoom=8&tz=Europe/Bucharest&tf=HH:mm&lang=ro`;
-        } else {
-            iframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=8&overlay=radar&product=radar&level=surface&lat=${currentCoords.lat}&lon=${currentCoords.lon}`;
+function t(key) {
+    const keys = key.split('.');
+    let val = LANG[currentLang];
+    for (const k of keys) {
+        val = val ? val[k] : undefined;
+    }
+    return val || key;
+}
+
+function applyStaticTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        el.textContent = t(key);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        el.placeholder = t(key);
+    });
+    document.getElementById('btn-lang').textContent = currentLang.toUpperCase();
+}
+
+function toggleLang() {
+    currentLang = currentLang === 'ro' ? 'en' : 'ro';
+    localStorage.setItem('hub_lang', currentLang);
+    applyStaticTranslations();
+    updateProviderStatus();
+    /* Re-trigger weather update to refresh dynamic text */
+    if (!providers.wapi) {
+        updateWeatherANMOnly();
+    } else {
+        updateWeather();
+    }
+}
+
+/* ================================================================
+   CONFIG — Chei API
+================================================================ */
+const W_KEY     = "bdffdac051334f298e0175011261604";   // WeatherAPI
+const M_KEY     = "dTx4DkKZerufXShl";                  // Meteoblue
+const ANM_PROXY = "https://vremea-tg-neamt.yo8acr.workers.dev"; // Meteoromania proxy
+
+let currentCoords = { lat: 47.17, lon: 26.36 };
+let isDark        = false;
+
+/* Global cached ANM data for search */
+let anmCache       = null;
+let anmCacheTime   = 0;
+const ANM_CACHE_TTL = 5 * 60 * 1000; // 5 minute
+
+/* Currently selected ANM station (when in ANM-only mode) */
+let selectedAnmStation = null;
+
+/* ================================================================
+   PROVIDER STATE
+================================================================ */
+const providers = { wapi: true, anm: true, mb: true };
+
+function toggleProvider(key, btn) {
+    if (providers[key]) {
+        const activeCount = Object.values(providers).filter(Boolean).length;
+        if (activeCount <= 1) {
+            showToast(t('toast_provider_need_one'), 'error');
+            return;
         }
     }
 
-    async function updateWeather() {
-        const cityInput = document.getElementById('city-in').value || "Targu Neamt";
-        const loader = document.getElementById('loader');
-        const content = document.getElementById('main-content');
+    providers[key] = !providers[key];
+    btn.classList.toggle('active', providers[key]);
 
-        loader.style.display = "block";
-        content.style.opacity = "0.3";
+    /* ── Secțiunile prognoză + grafic + radar: mereu active indiferent de furnizor ── */
+    document.getElementById('hourly-section').style.display = 'block';
+    document.getElementById('forecast-section').style.display = 'block';
+    document.querySelector('.radar-section').style.display = 'block';
 
-        try {
-            // 1. WeatherAPI Data
-            const resW = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${W_KEY}&q=${cityInput}&days=1&lang=ro`);
-            const dW = await resW.json();
-            
-            currentCoords = { lat: dW.location.lat, lon: dW.location.lon };
-            switchRadar(currentMode, document.querySelector('.radar-tab.active'));
+    updateProviderStatus();
+    showToast(
+        providers[key]
+            ? btn.innerText.trim() + ' ' + t('toast_activated')
+            : btn.innerText.trim() + ' ' + t('provider_deactivated').replace('{name}', '').trim(),
+        providers[key] ? 'success' : 'info'
+    );
+}
 
-            // 2. Meteoblue (pentru "La Noapte")
-            let tempNoapte = "--";
-            try {
-                const resM = await fetch(`https://my.meteoblue.com/packages/basic-1h?lat=${currentCoords.lat}&lon=${currentCoords.lon}&apikey=${M_KEY}&format=json`);
-                const dM = await resM.json();
-                tempNoapte = dM.data_1h.temperature[23].toFixed(1);
-            } catch(e) {}
+function updateProviderStatus() {
+    const names = { wapi: 'WeatherAPI', anm: 'ANM', mb: 'Meteoblue' };
+    const on  = Object.entries(providers).filter(([,v]) => v).map(([k]) => names[k]);
+    const off = Object.entries(providers).filter(([,v]) => !v).map(([k]) => names[k]);
+    const el  = document.getElementById('ps-status');
+    if (off.length === 0)      el.textContent = t('provider_all_active');
+    else if (off.length === 1) el.textContent = off[0] + ' ' + t('provider_deactivated').replace('{name}','').trim();
+    else                       el.textContent = t('provider_active') + on.join(', ');
 
-            // 3. ANM Proxy
-            const resA = await fetch(ANM_PROXY + "?t=" + Date.now());
-            const jA = await resA.json();
-            const cityNameClean = dW.location.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const station = jA.features.find(f => f.properties.nume.toUpperCase().includes(cityNameClean.split(' ')[0]));
-            const p = station ? station.properties : null;
-
-            // UI Updates
-            document.getElementById('city-title').innerText = p ? p.nume : dW.location.name;
-            document.getElementById('main-temp').innerText = (p ? parseFloat(p.tempe).toFixed(1) : dW.current.temp_c) + "°C";
-            document.getElementById('main-desc').innerText = dW.current.condition.text;
-            document.getElementById('sync-info').innerText = p ? `Stație ANM: ${p.nume} | ${p.actualizat}` : `Sursă: W-API | ${new Date().toLocaleTimeString('ro-RO')}`;
-            
-            // Smart Banner
-            document.getElementById('smart-text').innerHTML = `Starea vremii în <b>${dW.location.name}</b>: ${dW.current.condition.text.toLowerCase()}. Șanse de precipitații: ${dW.forecast.forecastday[0].day.daily_chance_of_rain}%.`;
-
-            // Grid Complet (10 itemuri)
-            const vWindMs = p ? parseFloat(p.vant) : (dW.current.wind_kph/3.6).toFixed(1);
-            const vWindKmh = (vWindMs * 3.6).toFixed(1);
-            const pressMmHg = (dW.current.pressure_mb * 0.75006).toFixed(0);
-
-            document.getElementById('full-grid').innerHTML = `
-                <div class="data-item"><span class="item-label">Min / Max Azi</span><span class="item-val">${dW.forecast.forecastday[0].day.mintemp_c}° / ${dW.forecast.forecastday[0].day.maxtemp_c}°C</span><span class="item-src">[W-API]</span></div>
-                <div class="data-item"><span class="item-label">La Noapte</span><span class="item-val">${tempNoapte}°C</span><span class="item-src">[METEOBLUE]</span></div>
-                <div class="data-item"><span class="item-label">Vânt Mediu</span><span class="item-val">${vWindKmh} km/h (${vWindMs} m/s)</span><span class="item-src">${p?'[ANM]':'[W-API]'}</span></div>
-                <div class="data-item"><span class="item-label">Direcție & Rafale</span><span class="item-val">${dW.current.wind_dir} | ${dW.current.gust_kph} km/h</span><span class="item-src">[W-API]</span></div>
-                <div class="data-item"><span class="item-label">Presiune</span><span class="item-val">${dW.current.pressure_mb} mb (${pressMmHg} mmHg)</span><span class="item-src">${p?'[ANM]':'[W-API]'}</span></div>
-                <div class="data-item"><span class="item-label">Umiditate</span><span class="item-val">${p ? p.umezeala : dW.current.humidity}%</span><span class="item-src">${p?'[ANM]':'[W-API]'}</span></div>
-                <div class="data-item"><span class="item-label">Vizibilitate</span><span class="item-val">${dW.current.vis_km} km</span><span class="item-src">[W-API]</span></div>
-                <div class="data-item"><span class="item-label">Indice UV</span><span class="item-val">${dW.current.uv} (Scăzut)</span><span class="item-src">[W-API]</span></div>
-                <div class="data-item"><span class="item-label">Răsărit Soare</span><span class="item-val">${dW.forecast.forecastday[0].astro.sunrise}</span><span class="item-src">[W-API]</span></div>
-                <div class="data-item"><span class="item-label">Apus Soare</span><span class="item-val">${dW.forecast.forecastday[0].astro.sunset}</span><span class="item-src">[W-API]</span></div>
-            `;
-
-            // Icon Dinamic
-            const cond = dW.current.condition.text.toLowerCase();
-            let iconClass = dW.current.is_day ? "fa-sun" : "fa-moon";
-            let iconColor = dW.current.is_day ? "#f59e0b" : "#94a3b8";
-            if(cond.includes("ploaie")) { iconClass = "fa-cloud-showers-heavy"; iconColor = "#3b82f6"; }
-            else if(cond.includes("nor")) { iconClass = dW.current.is_day ? "fa-cloud-sun" : "fa-cloud-moon"; }
-            document.getElementById('big-icon').innerHTML = `<i class="fas ${iconClass}" style="color: ${iconColor}"></i>`;
-
-        } catch(e) { console.error(e); }
-        finally { loader.style.display = "none"; content.style.opacity = "1"; }
+    const input = document.getElementById('city-in');
+    if (!providers.wapi && providers.anm) {
+        input.placeholder = t('search_placeholder_anm');
+    } else if (providers.wapi) {
+        input.placeholder = t('search_placeholder');
+    } else {
+        input.placeholder = t('search_placeholder_generic');
     }
 
+    const active = [];
+    if (providers.wapi) active.push('W-API');
+    if (providers.anm)  active.push('ANM');
+    if (providers.mb)   active.push('Meteoblue');
+    active.push(currentLang === 'ro' ? 'Radar ploi' : 'Rain Radar');
+    document.getElementById('footer-tag').innerHTML =
+        '<i class="fas fa-check-circle"></i> ' + t('footer_text') + active.join(' + ');
+}
+
+/* ================================================================
+   AUTOCOMPLETE / SEARCH SUGGESTIONS
+================================================================ */
+let acDebounceTimer = null;
+
+async function onSearchInput(value) {
+    clearTimeout(acDebounceTimer);
+    if (value.trim().length < 2) {
+        hideAutocomplete();
+        return;
+    }
+    acDebounceTimer = setTimeout(() => buildAutocomplete(value.trim()), 250);
+}
+
+function onSearchFocus() {
+    const val = document.getElementById('city-in').value.trim();
+    if (val.length >= 2) buildAutocomplete(val);
+}
+
+function hideAutocomplete() {
+    document.getElementById('ac-dropdown').classList.remove('visible');
+}
+
+async function buildAutocomplete(query) {
+    const dropdown = document.getElementById('ac-dropdown');
+    let items = [];
+
+    if (providers.anm) {
+        const anmData = await fetchANMData();
+        if (anmData && anmData.features) {
+            const q = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const matches = anmData.features.filter(f => {
+                const name = (f.properties.nume || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                return name.includes(q);
+            }).slice(0, 6);
+
+            matches.forEach(f => {
+                const p = f.properties;
+                const temp = p.tempe ? parseFloat(p.tempe).toFixed(1) + '°C' : '--';
+                items.push({
+                    type: 'anm',
+                    name: cleanAnmText(p.nume),
+                    detail: temp + ' | ' + cleanAnmText(p.actualizat || ''),
+                    lat: f.geometry.coordinates[1],
+                    lon: f.geometry.coordinates[0],
+                    feature: f
+                });
+            });
+        }
+    }
+
+    if (providers.wapi) {
+        try {
+            const res = await fetch(
+                `https://api.weatherapi.com/v1/search.json?key=${W_KEY}&q=${encodeURIComponent(query)}`
+            );
+            if (res.ok) {
+                const cities = await res.json();
+                cities.slice(0, 5).forEach(c => {
+                    items.push({
+                        type: 'wapi',
+                        name: c.name,
+                        detail: c.region + ', ' + c.country,
+                        lat: c.lat,
+                        lon: c.lon,
+                        wapiCity: c.name
+                    });
+                });
+            }
+        } catch(e) {
+            console.warn('W-API search error:', e);
+        }
+    }
+
+    if (items.length === 0) {
+        dropdown.innerHTML = '<div class="ac-item" style="color:var(--muted);cursor:default;"><i class="fas fa-search" style="margin-right:6px;"></i>' + t('no_results') + '</div>';
+        dropdown.classList.add('visible');
+        return;
+    }
+
+    let html = '';
+    const anmItems = items.filter(i => i.type === 'anm');
+    const wapiItems = items.filter(i => i.type === 'wapi');
+
+    if (anmItems.length > 0) {
+        html += '<div class="ac-section-title"><i class="fas fa-satellite-dish"></i> ' + t('anm_stations') + '</div>';
+        anmItems.forEach((item, idx) => {
+            html += `<div class="ac-item" onclick="selectAutocompleteItem('anm', ${idx})">
+                <div class="ac-icon anm-icon">ANM</div>
+                <span class="ac-name">${item.name}</span>
+                <span class="ac-detail">${item.detail}</span>
+            </div>`;
+        });
+    }
+
+    if (wapiItems.length > 0) {
+        html += '<div class="ac-section-title"><i class="fas fa-cloud-sun"></i> WeatherAPI</div>';
+        wapiItems.forEach((item, idx) => {
+            html += `<div class="ac-item" onclick="selectAutocompleteItem('wapi', ${idx})">
+                <div class="ac-icon wapi-icon">W</div>
+                <span class="ac-name">${item.name}</span>
+                <span class="ac-detail">${item.detail}</span>
+            </div>`;
+        });
+    }
+
+    dropdown.innerHTML = html;
+    dropdown.classList.add('visible');
+    dropdown._items = items;
+}
+
+function selectAutocompleteItem(type, idx) {
+    const dropdown = document.getElementById('ac-dropdown');
+    const items = dropdown._items || [];
+    const filtered = items.filter(i => i.type === type);
+    const item = filtered[idx];
+    if (!item) return;
+
+    hideAutocomplete();
+    document.getElementById('city-in').value = item.name;
+
+    if (item.type === 'anm') {
+        selectedAnmStation = item.feature;
+        currentCoords = { lat: item.lat, lon: item.lon };
+        if (!providers.wapi) {
+            updateWeatherANMOnly();
+        } else {
+            updateWeather();
+        }
+    } else {
+        selectedAnmStation = null;
+        updateWeather();
+    }
+}
+
+document.addEventListener('click', function(e) {
+    const searchBox = document.querySelector('.header-actions');
+    if (!searchBox.contains(e.target)) {
+        hideAutocomplete();
+    }
+});
+
+/* ================================================================
+   FETCH ANM DATA (with cache)
+================================================================ */
+async function fetchANMData() {
+    const now = Date.now();
+    if (anmCache && (now - anmCacheTime) < ANM_CACHE_TTL) {
+        return anmCache;
+    }
+    try {
+        const res = await fetch(ANM_PROXY + "?t=" + now);
+        if (res.ok) {
+            anmCache = await res.json();
+            anmCacheTime = now;
+            return anmCache;
+        }
+    } catch(e) {
+        console.warn('ANM fetch error:', e);
+    }
+    return anmCache;
+}
+
+/* ================================================================
+   LEAFLET MAP + RAINVIEWER
+================================================================ */
+let map             = null;
+let radarLayers     = [];
+let currentFrame    = 0;
+let animTimer       = null;
+let isPlaying       = false;
+let radarFrames     = [];
+let activeLayerType = 'radar';
+let cityMarker      = null;
+let baseTileLayer   = null;
+
+function initMap() {
+    if (map) return;
+    map = L.map('radar-map', {
+        center: [currentCoords.lat, currentCoords.lon],
+        zoom: 7, zoomControl: true, attributionControl: true
+    });
+    baseTileLayer = L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { attribution: '© OSM', maxZoom: 18, opacity: 0.85 }
+    ).addTo(map);
+    cityMarker = L.circleMarker([currentCoords.lat, currentCoords.lon], {
+        radius: 7, color: '#4f46e5', fillColor: '#818cf8',
+        fillOpacity: 0.9, weight: 2
+    }).addTo(map);
+    loadRainViewerFrames();
+}
+
+async function loadRainViewerFrames() {
+    try {
+        document.getElementById('radar-layer-info').innerText = t('radar_loading');
+        const res  = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+        const data = await res.json();
+
+        if (animTimer) { clearInterval(animTimer); animTimer = null; }
+        isPlaying = false;
+        const playIcon = document.getElementById('play-icon');
+        if (playIcon) playIcon.className = 'fas fa-play';
+
+        radarLayers.forEach(l => map.removeLayer(l));
+        radarLayers  = [];
+        radarFrames  = [];
+        currentFrame = 0;
+
+        const frames = activeLayerType === 'radar'
+            ? [...(data.radar.past || []), ...(data.radar.nowcast || [])]
+            : (data.satellite.infrared || []);
+
+        if (!frames.length) { showToast(t('toast_no_radar'), 'error'); return; }
+
+        radarFrames = frames;
+        frames.forEach((frame) => {
+            const colorScheme = activeLayerType === 'radar' ? 2 : 0;
+            const tileUrl = `${data.host}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/1_1.png`;
+            const layer = L.tileLayer(tileUrl, {
+                opacity: 0, tileSize: 256, zIndex: 10,
+                attribution: 'RainViewer',
+                errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
+            });
+            layer.addTo(map);
+            radarLayers.push(layer);
+        });
+
+        showFrame(frames.length - 1);
+        document.getElementById('radar-layer-info').innerText =
+            activeLayerType === 'radar' ? t('radar_rain') : t('radar_sat_ir');
+        showToast(t('toast_radar_loaded'), 'success');
+    } catch(e) {
+        console.error(e);
+        document.getElementById('radar-layer-info').innerText = t('radar_error');
+        showToast(t('toast_radar_error'), 'error');
+    }
+}
+
+function showFrame(index) {
+    if (!radarLayers.length) return;
+    index = (index + radarLayers.length) % radarLayers.length;
+    if (currentFrame !== index && radarLayers[currentFrame]) {
+        radarLayers[currentFrame].setOpacity(0);
+    }
+    currentFrame = index;
+    radarLayers[currentFrame].setOpacity(activeLayerType === 'radar' ? 0.6 : 0.7);
+    const ts  = radarFrames[currentFrame].time * 1000;
+    const dt  = new Date(ts);
+    const hm  = dt.toLocaleTimeString('ro-RO', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('radar-time').innerText = hm;
+    const pct = ((index + 1) / radarLayers.length) * 100;
+    document.getElementById('timeline-fill').style.width = pct + '%';
+}
+
+function togglePlay() {
+    isPlaying = !isPlaying;
+    document.getElementById('play-icon').className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+    if (isPlaying) {
+        animTimer = setInterval(() => showFrame(currentFrame + 1), 600);
+    } else {
+        clearInterval(animTimer);
+    }
+}
+
+function timelineClick(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct  = (e.clientX - rect.left) / rect.width;
+    const idx  = Math.floor(pct * radarLayers.length);
+    showFrame(Math.max(0, Math.min(radarLayers.length - 1, idx)));
+}
+
+function setRadarLayer(type, btn) {
+    activeLayerType = type;
+    document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadRainViewerFrames();
+}
+
+function updateMapCenter() {
+    if (!map) return;
+    map.setView([currentCoords.lat, currentCoords.lon], 7, { animate: true });
+    if (cityMarker) cityMarker.setLatLng([currentCoords.lat, currentCoords.lon]);
+    loadRainViewerFrames();
+}
+
+/* ================================================================
+   RADAR TABS — Leaflet | Windy
+================================================================ */
+function showRadarTab(type, btn) {
+    document.querySelectorAll('.radar-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const mapWrap    = document.getElementById('map-wrapper');
+    const windyFrame = document.getElementById('windy-frame');
+    if (type === 'leaflet') {
+        mapWrap.style.display    = 'block';
+        windyFrame.style.display = 'none';
+        setTimeout(() => { if(map) map.invalidateSize(); }, 100);
+    } else if (type === 'windy') {
+        mapWrap.style.display    = 'none';
+        windyFrame.style.display = 'block';
+        const { lat, lon } = currentCoords;
+        document.getElementById('windy-iframe').src =
+            `https://embed.windy.com/embed.html?type=map&location=coordinates` +
+            `&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h` +
+            `&zoom=8&overlay=radar&product=radar&level=surface` +
+            `&lat=${lat}&lon=${lon}`;
+    }
+}
+
+/* ================================================================
+   THEME
+================================================================ */
+function toggleTheme() {
+    isDark = !isDark;
+    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-icon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    localStorage.setItem('hub_theme', isDark ? 'dark' : 'light');
+    if (map && baseTileLayer) {
+        map.removeLayer(baseTileLayer);
+        const tileUrl = isDark
+            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        baseTileLayer = L.tileLayer(tileUrl, { attribution:'© OSM/Carto', maxZoom:18, opacity:0.85 }).addTo(map);
+        if (cityMarker) { cityMarker.remove(); cityMarker.addTo(map); }
+    }
+}
+
+/* ================================================================
+   TOAST
+================================================================ */
+function showToast(msg, type = 'info') {
+    const icons = { success:'fa-check-circle', error:'fa-triangle-exclamation', info:'fa-circle-info' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 3200);
+}
+
+/* ================================================================
+   GEOLOCALIZARE
+================================================================ */
+function geoLocate() {
+    if (!navigator.geolocation) { showToast(t('toast_geo_not_supported'),'error'); return; }
+    showToast(t('toast_detecting_loc'),'info');
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            currentCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            document.getElementById('city-in').value = `${currentCoords.lat},${currentCoords.lon}`;
+            selectedAnmStation = null;
+            updateWeather();
+        },
+        () => showToast(t('toast_geo_denied'),'error')
+    );
+}
+
+/* ================================================================
+   HELPERS
+================================================================ */
+function uvLabel(uv) {
+    if (uv <= 2)  return { text: t('uv_low'),        color:'#4ade80' };
+    if (uv <= 5)  return { text: t('uv_moderate'),    color:'#facc15' };
+    if (uv <= 7)  return { text: t('uv_high'),        color:'#fb923c' };
+    if (uv <= 10) return { text: t('uv_very_high'),   color:'#f87171' };
+    return               { text: t('uv_extreme'),      color:'#c084fc' };
+}
+function aqiLabel(idx) {
+    const labels = ['--', t('aqi_good'), t('aqi_moderate'), t('aqi_unhealthy_sens'), t('aqi_unhealthy'), t('aqi_very_unhealthy')];
+    const cls    = ['','aqi-1','aqi-2','aqi-3','aqi-4','aqi-5'];
+    return { text: labels[idx]||'--', cls: cls[idx]||'' };
+}
+function getWeatherIcon(condText, isDay) {
+    const c = (condText||'').toLowerCase();
+    // Furtună / Thunder
+    if (c.includes('furtun')||c.includes('thunder')||c.includes('tormenta')) return { cls:'fa-cloud-bolt',         col:'#7c3aed' };
+    // Ninsoare / Snow
+    if (c.includes('ninsoare')||c.includes('nins')||c.includes('snow')||c.includes('blizzard')||c.includes('lapoviță')||c.includes('lapovita')) return { cls:'fa-snowflake', col:'#93c5fd' };
+    // Polei / Sleet
+    if (c.includes('polei')||c.includes('sleet')||c.includes('ice pellets')||c.includes('măzăriche')) return { cls:'fa-cloud-sleet', col:'#67e8f9' };
+    // Burniță / Drizzle
+    if (c.includes('burni')||c.includes('drizzle')||c.includes('mizzle')||c.includes('burnită')) return { cls:'fa-cloud-rain', col:'#60a5fa' };
+    // Ploaie / Rain — include "ploai", "ploi", "ploaie", "averse", "precip"
+    if (c.includes('ploaie')||c.includes('ploai')||c.includes('ploi')||c.includes('rain')||c.includes('shower')||c.includes('averse')||c.includes('precip')) return { cls:'fa-cloud-showers-heavy', col:'#3b82f6' };
+    // Ceață / Fog
+    if (c.includes('ceață')||c.includes('ceata')||c.includes('fog')||c.includes('mist')||c.includes('haze')) return { cls:'fa-smog', col:'#9ca3af' };
+    // Noros / Cloudy — include "înnorat", "noros", "parțial" BEFORE generic "nor"
+    if (c.includes('înnorat')||c.includes('innorat')||c.includes('noros')||c.includes('cloudy')||c.includes('overcast')||c.includes('parțial')||c.includes('partial')||c.includes('nor')||c.includes('cloud')) return { cls: isDay?'fa-cloud-sun':'fa-cloud-moon', col:'#94a3b8' };
+    // Senin / Clear
+    if (c.includes('senin')||c.includes('clear')||c.includes('sunny')||c.includes('insorit')||c.includes('însorit')) return isDay ? { cls:'fa-sun', col:'#f59e0b' } : { cls:'fa-moon', col:'#c4b5fd' };
+    return isDay ? { cls:'fa-sun', col:'#f59e0b' } : { cls:'fa-moon', col:'#c4b5fd' };
+}
+function dayName(d) { return t('days_short')[new Date(d).getDay()]; }
+
+function to24h(str) {
+    if (!str) return '--';
+    const m = str.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!m) return str;
+    let h = parseInt(m[1], 10);
+    const min = m[2];
+    const ap = m[3].toUpperCase();
+    if (ap === 'AM' && h === 12) h = 0;
+    if (ap === 'PM' && h !== 12) h += 12;
+    return h.toString().padStart(2, '0') + ':' + min;
+}
+
+function cleanAnmText(str) {
+    if (!str) return '';
+    return str.replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
+}
+
+function getClosestStation(targetLat, targetLon, features) {
+    let closest = null;
+    let minDist = Infinity;
+    features.forEach(f => {
+        if (f.geometry && f.geometry.coordinates) {
+            const stLon = f.geometry.coordinates[0];
+            const stLat = f.geometry.coordinates[1];
+            const dist  = Math.sqrt(Math.pow(stLon - targetLon, 2) + Math.pow(stLat - targetLat, 2));
+            if (dist < minDist) { minDist = dist; closest = f; }
+        }
+    });
+    return minDist < 0.35 ? closest : null;
+}
+
+function findStationByName(query, features) {
+    if (!features || !features.length) return null;
+    const q = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    let match = features.find(f => {
+        const name = (f.properties.nume || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return name === q;
+    });
+    if (match) return match;
+    match = features.find(f => {
+        const name = (f.properties.nume || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return name.includes(q) || q.includes(name);
+    });
+    return match;
+}
+
+/* ================================================================
+   PARSEAZĂ VÂNT ANM — Extragere viteză + direcție din text
+   Format ANM: "1.8 m/s, directia : VSV"
+   Returnează: { speedMs, speedKmh, direction }
+================================================================ */
+function parseAnmWind(vantRaw) {
+    if (!vantRaw || vantRaw === 'indisponibil') {
+        return { speedMs: null, speedKmh: null, direction: null };
+    }
+    // Extrage viteza (primul număr înainte de "m/s")
+    const speedMatch = vantRaw.match(/([\d.]+)\s*m\/s/i);
+    // Extrage direcția (ultimul cuvânt de litere mari, după ":" sau "directia")
+    const dirMatch = vantRaw.match(/(?:directia\s*[:\s]+)([A-ZĂÎȘȚ]+)/i)
+                  || vantRaw.match(/:\s*([A-ZĂÎȘȚ]+)\s*$/i)
+                  || vantRaw.match(/\b([A-Z]{2,4})\b/);
+
+    const speedMs  = speedMatch ? parseFloat(speedMatch[1]) : null;
+    const direction = dirMatch ? dirMatch[1].toUpperCase() : null;
+
+    return {
+        speedMs:  speedMs,
+        speedKmh: speedMs !== null ? parseFloat((speedMs * 3.6).toFixed(1)) : null,
+        direction: direction
+    };
+}
+
+/* ================================================================
+   PARSEAZĂ PRESIUNE ANM — Extragere valoare + trend din text
+   Format ANM: "970.5 mb, in scadere"
+   Returnează: { value, unit, trend, display }
+================================================================ */
+function parseAnmPressure(presiunetext) {
+    if (!presiunetext || presiunetext === 'indisponibil') {
+        return { value: null, unit: null, trend: null, display: 'N/A' };
+    }
+    const numMatch = presiunetext.match(/([\d.]+)/);
+    const value = numMatch ? parseFloat(numMatch[1]) : null;
+    const unit = presiunetext.match(/(mb|hPa)/i) ? (presiunetext.match(/(mb|hPa)/i)[1]).toLowerCase() : 'mb';
+
+    let trend = '';
+    const txt = presiunetext.toLowerCase();
+    if (txt.includes('scadere') || txt.includes('scădere')) trend = '↓';
+    else if (txt.includes('crestere') || txt.includes('creștere')) trend = '↑';
+    else if (txt.includes('stabil')) trend = '→';
+
+    const mmHg = value !== null ? (value * 0.75006).toFixed(0) : null;
+    const display = value !== null
+        ? `${value} ${unit} (${mmHg} mmHg) ${trend}`
+        : cleanAnmText(presiunetext);
+
+    return { value, unit, trend, mmHg, display };
+}
+
+/* ================================================================
+   VERIFICĂ disponibilitate câmp ANM
+================================================================ */
+function anmVal(field) {
+    if (!field) return null;
+    const clean = String(field).trim().toLowerCase();
+    return (clean === 'indisponibil' || clean === '' || clean === '-') ? null : field;
+}
+
+/* ================================================================
+   GRAFIC ORAR SVG
+================================================================ */
+function drawHourlyChart(hours) {
+    const svg  = document.getElementById('hourly-svg');
+    const lbls = document.getElementById('hourly-labels');
+    const W=460, H=90, pad=20;
+    const temps = hours.map(h => h.temp_c);
+    const minT  = Math.min(...temps)-2, maxT = Math.max(...temps)+2;
+    const xStep = (W-pad*2)/(temps.length-1);
+    const ptArr = temps.map((t,i) => ({
+        x: pad+i*xStep,
+        y: H-pad-((t-minT)/(maxT-minT))*(H-pad*2)
+    }));
+    let d = `M${ptArr[0].x},${ptArr[0].y}`;
+    for(let i=1;i<ptArr.length;i++){
+        const cp=(ptArr[i-1].x+ptArr[i].x)/2;
+        d+=` C${cp},${ptArr[i-1].y} ${cp},${ptArr[i].y} ${ptArr[i].x},${ptArr[i].y}`;
+    }
+    const areaD = d+` L${ptArr[ptArr.length-1].x},${H} L${ptArr[0].x},${H} Z`;
+    svg.innerHTML=`
+        <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.02"/>
+        </linearGradient></defs>
+        <path d="${areaD}" fill="url(#cg)"/>
+        <path d="${d}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/>
+        ${ptArr.map((p,i)=>`
+            <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--card)" stroke="var(--primary)" stroke-width="2"/>
+            <text x="${p.x}" y="${p.y-8}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--text)">${temps[i].toFixed(0)}°</text>
+        `).join('')}`;
+    lbls.innerHTML = hours.map(h=>`<span>${h.time.slice(11,16)}</span>`).join('');
+}
+
+/* ================================================================
+   FORECAST 5 ZILE
+================================================================ */
+function renderForecast(days) {
+    document.getElementById('forecast-scroll').innerHTML = days.map((d,i)=>{
+        const ico = getWeatherIcon(d.day.condition.text, true);
+        return `<div class="forecast-card ${i===0?'today':''}">
+            <div class="fc-day">${i===0 ? t('today') : dayName(d.date)}</div>
+            <div class="fc-icon"><i class="fas ${ico.cls}" style="color:${ico.col}"></i></div>
+            <div class="fc-max">${d.day.maxtemp_c.toFixed(0)}°</div>
+            <div class="fc-min">${d.day.mintemp_c.toFixed(0)}°</div>
+            <div class="fc-rain"><i class="fas fa-droplet"></i> ${d.day.daily_chance_of_rain}%</div>
+        </div>`;
+    }).join('');
+}
+
+/* ================================================================
+   BACKGROUND DINAMIC
+================================================================ */
+function applyDynamicBg(condText, isDay) {
+    const c = (condText||'').toLowerCase();
+    let start, end;
+    if (!isDay)                                               { start='#0f172a'; end='#1e3a5f'; }
+    else if (c.includes('furtun')||c.includes('thunder'))     { start='#1e1b4b'; end='#312e81'; }
+    else if (c.includes('ploaie')||c.includes('ploai')||c.includes('ploi')||c.includes('rain')||c.includes('shower')||c.includes('averse')||c.includes('precip')) { start='#1e3a5f'; end='#2d4a7a'; }
+    else if (c.includes('ninsoare')||c.includes('nins')||c.includes('snow')||c.includes('blizzard')) { start='#e2e8f0'; end='#cbd5e1'; }
+    else if (c.includes('ceață')||c.includes('ceata')||c.includes('fog')||c.includes('mist')) { start='#cbd5e1'; end='#94a3b8'; }
+    else if (c.includes('nor')||c.includes('înnorat')||c.includes('noros')||c.includes('cloud')||c.includes('overcast')||c.includes('parțial')) { start='#dbeafe'; end='#bfdbfe'; }
+    else                                                       { start='#e0f7fa'; end='#b3e5fc'; }
+    if (!isDark) document.body.style.background = `linear-gradient(135deg,${start} 0%,${end} 100%)`;
+}
+
+/* ================================================================
+   ANM-ONLY MODE — Când WeatherAPI este dezactivat
+================================================================ */
+async function updateWeatherANMOnly() {
+    const loader  = document.getElementById('loader');
+    const content = document.getElementById('main-content');
+    loader.style.display  = 'block';
+    content.style.opacity = '0.25';
+
+    try {
+        let p = null;
+
+        if (selectedAnmStation) {
+            p = selectedAnmStation.properties;
+            currentCoords = {
+                lat: selectedAnmStation.geometry.coordinates[1],
+                lon: selectedAnmStation.geometry.coordinates[0]
+            };
+        } else {
+            const cityInput = document.getElementById('city-in').value.trim()
+                || localStorage.getItem('hub_last_city') || "Targu Neamt";
+
+            const anmData = await fetchANMData();
+            if (anmData && anmData.features) {
+                let station = findStationByName(cityInput, anmData.features);
+                if (!station) {
+                    station = getClosestStation(currentCoords.lat, currentCoords.lon, anmData.features);
+                }
+                if (station) {
+                    p = station.properties;
+                    currentCoords = {
+                        lat: station.geometry.coordinates[1],
+                        lon: station.geometry.coordinates[0]
+                    };
+                    selectedAnmStation = station;
+                }
+            }
+        }
+
+        if (!p) {
+            showToast(t('not_found'), 'error');
+            loader.style.display = 'none';
+            content.style.opacity = '1';
+            return;
+        }
+
+        if (!map) { initMap(); }
+        else       { updateMapCenter(); }
+
+        localStorage.setItem('hub_last_city', cleanAnmText(p.nume));
+
+        /* ── Descriere vreme: prioritate descriere/timp → fenomen_e → default ── */
+        const condText = cleanAnmText(p.descriere || p.timp || anmVal(p.fenomen_e) || 'Date stație ANM');
+        const anmCond = condText.toLowerCase();
+        const isDayAnm = new Date().getHours() >= 6 && new Date().getHours() < 21;
+        applyDynamicBg(anmCond, isDayAnm);
+
+        document.getElementById('city-title').innerText = cleanAnmText(p.nume);
+        document.getElementById('sync-info').innerText =
+            `ANM: ${cleanAnmText(p.nume)} | ${t('smart_updated_at')}: ${cleanAnmText(p.actualizat || 'N/A')}`;
+
+        const mainTemp = p.tempe ? parseFloat(p.tempe).toFixed(1) : '--';
+        document.getElementById('main-temp').innerText = mainTemp + '°C';
+        document.getElementById('temp-feel').innerText = t('feels_like') + ': N/A ' + t('anm_only_note');
+        document.getElementById('main-desc').innerText = condText;
+
+        const ico = getWeatherIcon(condText, isDayAnm);
+        document.getElementById('big-icon').innerHTML = `<i class="fas ${ico.cls}" style="color:${ico.col}"></i>`;
+
+        document.getElementById('smart-text').innerHTML =
+            `📍 <b>${cleanAnmText(p.nume)}</b> — ${t('smart_anm_station')} ` +
+            `${t('smart_updated_at')} <b>${cleanAnmText(p.actualizat || 'N/A')}</b>. ` +
+            t('smart_for_detail');
+
+        /* ── PARSEAZĂ VÂNT ANM ── */
+        const anmWind = parseAnmWind(p.vant);
+        const vWindMs  = anmWind.speedMs;
+        const vWindKmh = anmWind.speedKmh;
+        const vDirAnm  = anmWind.direction;
+
+        /* ── PARSEAZĂ PRESIUNE ANM ── */
+        const anmPressure = parseAnmPressure(p.presiunetext);
+
+        /* ── Date meteo detaliate ── */
+        const gridItems = [];
+
+        gridItems.push({ label: t('temp_actual'), val: `${mainTemp}°C`, src: 'ANM' });
+
+        if (anmVal(p.tempe_min) || anmVal(p.temp_min)) {
+            gridItems.push({ label: t('minima'), val: `${parseFloat(anmVal(p.tempe_min) || anmVal(p.temp_min)).toFixed(1)}°C`, src: 'ANM' });
+        } else {
+            gridItems.push({ label: t('min_max_today'), val: 'N/A', src: 'ANM' });
+        }
+
+        if (anmVal(p.tempe_max) || anmVal(p.temp_max)) {
+            gridItems.push({ label: t('maxima'), val: `${parseFloat(anmVal(p.tempe_max) || anmVal(p.temp_max)).toFixed(1)}°C`, src: 'ANM' });
+        } else {
+            gridItems.push({ label: t('tonight'), val: 'N/A', src: '—' });
+        }
+
+        gridItems.push({ label: t('feels_like'), val: 'N/A', src: '—' });
+
+        gridItems.push({
+            label: t('avg_wind'),
+            val: vWindKmh !== null
+                ? `${vWindKmh} km/h (${vWindMs.toFixed(1)} m/s)`
+                : (p.vant ? cleanAnmText(p.vant) : 'N/A'),
+            src: 'ANM'
+        });
+
+        gridItems.push({
+            label: t('wind_dir'),
+            val: vDirAnm || 'N/A',
+            src: 'ANM'
+        });
+
+        gridItems.push({
+            label: t('pressure'),
+            val: anmPressure.display,
+            src: 'ANM'
+        });
+
+        gridItems.push({
+            label: t('humidity'),
+            val: p.umezeala ? `${p.umezeala}%` : 'N/A',
+            src: 'ANM'
+        });
+
+        /* Nebulozitate — câmp ANM dedicat */
+        const nebVal = anmVal(p.nebulozitate);
+        gridItems.push({
+            label: t('nebulozitate'),
+            val: nebVal || 'N/A',
+            src: nebVal ? 'ANM' : '—'
+        });
+
+        /* Temp. apă — câmp ANM dedicat */
+        const tempApaVal = anmVal(p.tempapa);
+        gridItems.push({
+            label: t('temp_apa'),
+            val: tempApaVal ? `${parseFloat(tempApaVal).toFixed(1)}°C` : 'N/A',
+            src: tempApaVal ? 'ANM' : '—'
+        });
+
+        /* Zapadă — câmp ANM dedicat */
+        const zapadaVal = anmVal(p.zapada);
+        if (zapadaVal) {
+            gridItems.push({ label: t('strat_zapada'), val: cleanAnmText(zapadaVal), src: 'ANM' });
+        }
+
+        gridItems.push({ label: t('visibility'), val: 'N/A', src: '—' });
+        gridItems.push({ label: t('uv_index'), val: 'N/A', src: '—' });
+        gridItems.push({ label: t('aqi_label'), val: 'N/A', src: '—' });
+        gridItems.push({ label: t('rain_chance'), val: 'N/A', src: '—' });
+        gridItems.push({ label: t('sunrise'), val: 'N/A', src: '—' });
+        gridItems.push({ label: t('sunset'), val: 'N/A', src: '—' });
+
+        document.getElementById('full-grid').innerHTML = gridItems.map(item => `
+            <div class="data-item">
+                <span class="item-label">${item.label}</span>
+                <span class="item-val">${item.val}</span>
+                <span class="item-src">[${item.src}]</span>
+            </div>
+        `).join('');
+
+        /* ── Grafic orar + Prognoză + Radar: mereu active ── */
+        document.getElementById('hourly-section').style.display = 'block';
+        document.getElementById('forecast-section').style.display = 'block';
+        document.querySelector('.radar-section').style.display = 'block';
+
+        if (providers.mb) {
+            try {
+                const resM = await fetch(
+                    `https://my.meteoblue.com/packages/basic-1h` +
+                    `?lat=${currentCoords.lat}&lon=${currentCoords.lon}` +
+                    `&apikey=${M_KEY}&format=json`
+                );
+                if (resM.ok) {
+                    const dM = await resM.json();
+                    if (dM.data_1h && dM.data_1h.temperature) {
+                        const tempNoapte = dM.data_1h.temperature[23]
+                            ? dM.data_1h.temperature[23].toFixed(1)
+                            : '--';
+                        const tempNoapteItems = document.querySelectorAll('.data-item');
+                        tempNoapteItems.forEach(item => {
+                            const label = item.querySelector('.item-label');
+                            if (label && label.innerText === t('min_max_today')) {
+                                label.innerText = t('tonight_23');
+                                item.querySelector('.item-val').innerText = tempNoapte + '°C';
+                                item.querySelector('.item-src').innerText = '[METEOBLUE]';
+                            }
+                        });
+
+                        if (dM.data_1h.temperature && dM.data_1h.temperature.length >= 8) {
+                            const currentHour = new Date().getHours();
+                            const mbHours = [];
+                            for (let i = currentHour; i < currentHour + 8 && i < dM.data_1h.temperature.length; i++) {
+                                mbHours.push({
+                                    time: `${i.toString().padStart(2, '0')}:00`,
+                                    temp_c: dM.data_1h.temperature[i]
+                                });
+                            }
+                            if (mbHours.length >= 2) {
+                                drawHourlyChart(mbHours);
+                                document.getElementById('hourly-section').style.display = 'block';
+                                document.querySelector('#hourly-section .section-title').innerHTML =
+                                    '<i class="fas fa-chart-line"></i> ' + t('hourly_title_mb');
+                            }
+                        }
+
+                        showToast(t('toast_mb_added'), 'success');
+                    }
+                }
+            } catch(e) {
+                console.warn('Meteoblue error (ANM-only):', e);
+            }
+        }
+
+        showToast(`${cleanAnmText(p.nume)} — ${t('toast_anm_loaded')}`, 'success');
+
+        /* ── Widget-uri ANM-only ── */
+        drawWindCompass(vDirAnm || '--', vWindKmh || 0);
+        renderMoon();
+        startAutoRefresh();
+
+    } catch(e) {
+        console.error(e);
+        showToast(e.message, 'error');
+    } finally {
+        loader.style.display  = 'none';
+        content.style.opacity = '1';
+    }
+}
+
+/* ================================================================
+   MAIN UPDATE — Cu suport W-API + ANM + Meteoblue
+================================================================ */
+async function updateWeather() {
+    hideAutocomplete();
+
+    if (!providers.wapi) {
+        return updateWeatherANMOnly();
+    }
+
+    const cityInput = document.getElementById('city-in').value.trim()
+        || localStorage.getItem('hub_last_city') || "Targu Neamt";
+    const loader  = document.getElementById('loader');
+    const content = document.getElementById('main-content');
+    loader.style.display  = 'block';
+    content.style.opacity = '0.25';
+
+    try {
+        /* ── 1. WeatherAPI (obligatoriu — sursă primară) ── */
+        const wApiLang = currentLang === 'en' ? 'en' : 'ro';
+        const resW = await fetch(
+            `https://api.weatherapi.com/v1/forecast.json?key=${W_KEY}` +
+            `&q=${encodeURIComponent(cityInput)}&days=5&lang=${wApiLang}&aqi=yes`
+        );
+        if (!resW.ok) throw new Error('City not found or invalid API key');
+        const dW = await resW.json();
+
+        currentCoords = { lat: dW.location.lat, lon: dW.location.lon };
+        localStorage.setItem('hub_last_city', dW.location.name);
+
+        if (!map) { initMap(); }
+        else       { updateMapCenter(); }
+
+        /* ── 2. Meteoblue (opțional) ── */
+        let tempNoapte     = '--';
+        let mbHourlyData   = null;
+
+        if (providers.mb) {
+            try {
+                const resM = await fetch(
+                    `https://my.meteoblue.com/packages/basic-1h` +
+                    `?lat=${currentCoords.lat}&lon=${currentCoords.lon}` +
+                    `&apikey=${M_KEY}&format=json`
+                );
+                if (resM.ok) {
+                    const dM    = await resM.json();
+                    tempNoapte  = dM.data_1h.temperature[23].toFixed(1);
+                    mbHourlyData = dM.data_1h;
+                }
+            } catch(e) {
+                console.warn('Meteoblue error:', e);
+                showToast(t('toast_mb_unavailable'), 'info');
+            }
+        }
+
+        /* ── 3. ANM / Meteoromania (opțional) ── */
+        let p = null;
+
+        if (providers.anm) {
+            try {
+                const anmData = await fetchANMData();
+                if (anmData && anmData.features) {
+                    const station = getClosestStation(currentCoords.lat, currentCoords.lon, anmData.features);
+                    p = station ? station.properties : null;
+                }
+            } catch(e) {
+                console.warn('ANM error:', e);
+                showToast(t('toast_anm_unavailable'), 'info');
+            }
+        }
+
+        document.getElementById('hourly-section').style.display = 'block';
+        document.getElementById('forecast-section').style.display = 'block';
+        applyDynamicBg(dW.current.condition.text, dW.current.is_day);
+
+        document.getElementById('city-title').innerText = p ? cleanAnmText(p.nume) : dW.location.name;
+
+        const syncParts = [];
+        if (p)              syncParts.push(`ANM: ${cleanAnmText(p.nume)} | ${cleanAnmText(p.actualizat)}`);
+        else                syncParts.push(`W-API: ${new Date().toLocaleTimeString('ro-RO')}`);
+        if (!providers.anm) syncParts.push('ANM: OFF');
+        if (!providers.mb)  syncParts.push('Meteoblue: OFF');
+        document.getElementById('sync-info').innerText = syncParts.join(' • ');
+
+        const mainTemp = (p && providers.anm)
+            ? parseFloat(p.tempe).toFixed(1)
+            : dW.current.temp_c;
+        const tempSrc  = (p && providers.anm) ? 'ANM' : 'W-API';
+
+        document.getElementById('main-temp').innerText = mainTemp + '°C';
+        document.getElementById('temp-feel').innerText = t('feels_like') + ': ' + dW.current.feelslike_c + '°C [W-API]';
+        document.getElementById('main-desc').innerText = dW.current.condition.text;
+
+        const ico = getWeatherIcon(dW.current.condition.text, dW.current.is_day);
+        document.getElementById('big-icon').innerHTML = `<i class="fas ${ico.cls}" style="color:${ico.col}"></i>`;
+
+        const rainChance = dW.forecast.forecastday[0].day.daily_chance_of_rain;
+        const windWarn   = dW.current.wind_kph > 62 ? ' ⚠️ <b>' + t('wind_strong') + '</b>' : '';
+        document.getElementById('smart-text').innerHTML =
+            `📍 <b>${dW.location.name}, ${dW.location.country}</b> — ${dW.current.condition.text}. ` +
+            `${t('smart_precip')} <b>${rainChance}%</b>. ` +
+            `${t('smart_minmax')} <b>${dW.forecast.forecastday[0].day.mintemp_c}° / ${dW.forecast.forecastday[0].day.maxtemp_c}°C</b>.${windWarn}`;
+
+        /* ── Date meteo detaliate ── */
+        const aqiIdx    = dW.current.air_quality ? dW.current.air_quality['us-epa-index'] : 0;
+        const aqiInfo   = aqiLabel(aqiIdx);
+        const uvInfo    = uvLabel(dW.current.uv);
+
+        /* ── Vânt: PARSEAZĂ ANM cu funcția dedicată ── */
+        const anmWind  = (p && providers.anm) ? parseAnmWind(p.vant) : { speedMs: null, speedKmh: null, direction: null };
+        const hasAnmWind = anmWind.speedMs !== null;
+
+        // Viteză vânt
+        const vWindMs  = hasAnmWind ? anmWind.speedMs.toFixed(1) : (dW.current.wind_kph / 3.6).toFixed(1);
+        const vWindKmh = hasAnmWind ? anmWind.speedKmh.toFixed(1) : dW.current.wind_kph.toFixed(1);
+        const windSrc  = hasAnmWind ? 'ANM' : 'W-API';
+
+        // Direcție vânt: ANM sau W-API
+        const vDirAnm  = anmWind.direction;
+        const windDirDisplay = vDirAnm || dW.current.wind_dir;
+        const windDirSrc     = vDirAnm ? 'ANM' : 'W-API';
+
+        // Rafale: mereu W-API (ANM nu oferă rafale)
+        const vGustKph = dW.current.gust_kph;
+
+        // Presiune: ANM (presiunetext) sau W-API
+        let pressureMb, pressMmHg, pressTrend, pressSrc;
+        if (p && providers.anm) {
+            const anmPressure = parseAnmPressure(p.presiunetext);
+            if (anmPressure.value !== null) {
+                pressureMb = anmPressure.value;
+                pressMmHg  = anmPressure.mmHg;
+                pressTrend = anmPressure.trend;
+                pressSrc   = 'ANM';
+            } else {
+                pressureMb = dW.current.pressure_mb;
+                pressMmHg  = (pressureMb * 0.75006).toFixed(0);
+                pressTrend = '';
+                pressSrc   = 'W-API';
+            }
+        } else {
+            pressureMb = dW.current.pressure_mb;
+            pressMmHg  = (pressureMb * 0.75006).toFixed(0);
+            pressTrend = '';
+            pressSrc   = 'W-API';
+        }
+
+        // Umiditate: ANM sau W-API
+        const humidity     = (p && providers.anm) ? p.umezeala : dW.current.humidity;
+        const humiditySrc  = (p && providers.anm) ? 'ANM' : 'W-API';
+
+        // Temperatura noapte: Meteoblue sau W-API min
+        const tempNoapteSrc = providers.mb && tempNoapte !== '--' ? 'METEOBLUE' : 'W-API';
+        const tempNoapteVal = (providers.mb && tempNoapte !== '--')
+            ? tempNoapte
+            : dW.forecast.forecastday[0].day.mintemp_c.toFixed(1);
+
+        document.getElementById('full-grid').innerHTML = `
+            <div class="data-item">
+                <span class="item-label">${t('temp_actual')}</span>
+                <span class="item-val">${mainTemp}°C</span>
+                <span class="item-src">[${tempSrc}]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('min_max_today')}</span>
+                <span class="item-val">${dW.forecast.forecastday[0].day.mintemp_c}° / ${dW.forecast.forecastday[0].day.maxtemp_c}°C</span>
+                <span class="item-src">[W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('tonight_23')}</span>
+                <span class="item-val">${tempNoapteVal}°C</span>
+                <span class="item-src">[${tempNoapteSrc}]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('feels_like')}</span>
+                <span class="item-val">${dW.current.feelslike_c}°C</span>
+                <span class="item-src">[W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('avg_wind')}</span>
+                <span class="item-val">${vWindKmh} km/h (${vWindMs} m/s)</span>
+                <span class="item-src">[${windSrc}]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('dir_gusts')}</span>
+                <span class="item-val">${windDirDisplay} | ${vGustKph} km/h</span>
+                <span class="item-src">[Dir: ${windDirSrc} | Rafale: W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('pressure')}</span>
+                <span class="item-val">${pressureMb} mb (${pressMmHg} mmHg) ${pressTrend}</span>
+                <span class="item-src">[${pressSrc}]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('humidity')}</span>
+                <span class="item-val">${humidity}%</span>
+                <span class="item-src">[${humiditySrc}]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('visibility')}</span>
+                <span class="item-val">${dW.current.vis_km} km</span>
+                <span class="item-src">[W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('uv_index')}</span>
+                <span class="item-val" style="color:${uvInfo.color}">${dW.current.uv} — ${uvInfo.text}</span>
+                <span class="item-src">[W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('aqi_label')}</span>
+                <span class="item-val">US-EPA ${aqiIdx} <span class="aqi-badge ${aqiInfo.cls}">${aqiInfo.text}</span></span>
+                <span class="item-src">[W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('rain_chance')}</span>
+                <span class="item-val">${rainChance}%</span>
+                <div class="rain-bar-wrap"><div class="rain-bar-bg"><div class="rain-bar-fill" style="width:${rainChance}%"></div></div></div>
+                <span class="item-src">[W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('sunrise')}</span>
+                <span class="item-val">🌅 ${to24h(dW.forecast.forecastday[0].astro.sunrise)}</span>
+                <span class="item-src">[W-API]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('sunset')}</span>
+                <span class="item-val">🌇 ${to24h(dW.forecast.forecastday[0].astro.sunset)}</span>
+                <span class="item-src">[W-API]</span>
+            </div>
+        `;
+
+        /* ── Grafic orar — combină azi + mâine pentru mereu 8 ore ── */
+        document.querySelector('#hourly-section .section-title').innerHTML =
+            '<i class="fas fa-chart-line"></i> ' + t('hourly_title');
+
+        const currentHour = new Date().getHours();
+        const todayHours  = dW.forecast.forecastday[0].hour;
+        let next8 = todayHours.filter(h => parseInt(h.time.slice(11,13)) >= currentHour);
+        // Dacă nu avem 8 ore din azi, adăugăm de mâine
+        if (next8.length < 8 && dW.forecast.forecastday.length > 1) {
+            const needed = 8 - next8.length;
+            next8 = next8.concat(dW.forecast.forecastday[1].hour.slice(0, needed));
+        }
+        next8 = next8.slice(0, 8);
+        if (next8.length >= 2) drawHourlyChart(next8);
+
+        renderForecast(dW.forecast.forecastday);
+
+        /* ── Widget-uri noi ── */
+        drawWindCompass(windDirDisplay, parseFloat(vWindKmh));
+        drawSunArc(dW.forecast.forecastday[0].astro.sunrise, dW.forecast.forecastday[0].astro.sunset);
+        renderAqiDetail(dW.current.air_quality);
+        renderMoon(dW.forecast.forecastday[0].astro);
+        renderComfort(dW);
+
+        /* ── Auto-refresh ── */
+        startAutoRefresh();
+
+        updateProviderStatus();
+
+        const activeSrcList = ['W-API ✓'];
+        if (providers.anm && p) activeSrcList.push('ANM ✓');
+        else if (providers.anm) activeSrcList.push('ANM (no station)');
+        if (providers.mb && tempNoapte !== '--') activeSrcList.push('Meteoblue ✓');
+        else if (providers.mb) activeSrcList.push('Meteoblue (err)');
+
+        showToast(`${dW.location.name} — ${activeSrcList.join(', ')}`, 'success');
+
+    } catch(e) {
+        console.error(e);
+        showToast(e.message, 'error');
+    } finally {
+        loader.style.display  = 'none';
+        content.style.opacity = '1';
+    }
+}
+
+/* ================================================================
+   BUSOLA VANT ANIMATA — SVG
+================================================================ */
+const WIND_DIRS = {
+    'N':0,'NNE':22.5,'NE':45,'ENE':67.5,'E':90,'ESE':112.5,
+    'SE':135,'SSE':157.5,'S':180,'SSV':202.5,'SV':225,'VSV':247.5,
+    'V':270,'VNV':292.5,'NV':315,'NNV':337.5
+};
+function drawWindCompass(dirText, speedKmh) {
+    const svg = document.getElementById('wind-compass-svg');
+    const cx=80, cy=80, r=65;
+    const deg = WIND_DIRS[dirText] !== undefined ? WIND_DIRS[dirText] : 0;
+    // Convertește grade vânt (meteorologic, FROM) în grade SVG (rotație acelor de ceasornic de la N)
+    const svgAngle = deg;
+    const rad = (svgAngle - 90) * Math.PI / 180;
+    const tipX = cx + r * 0.7 * Math.cos(rad);
+    const tipY = cy + r * 0.7 * Math.sin(rad);
+    const tailX = cx - r * 0.25 * Math.cos(rad);
+    const tailY = cy - r * 0.25 * Math.sin(rad);
+    const arrowColor = speedKmh > 62 ? '#dc2626' : speedKmh > 40 ? '#f59e0b' : 'var(--primary)';
+
+    svg.innerHTML = `
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--grid)" stroke-width="2"/>
+        <circle cx="${cx}" cy="${cy}" r="${r*0.15}" fill="var(--primary)" opacity="0.15"/>
+        <!-- Cardinal points -->
+        <text x="${cx}" y="18" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">N</text>
+        <text x="${cx}" y="${cy+r+12}" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">S</text>
+        <text x="${r+12}" y="${cy+3}" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">E</text>
+        <text x="${cx-r-8}" y="${cy+3}" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">V</text>
+        <!-- Tick marks -->
+        ${[0,45,90,135,180,225,270,315].map(a => {
+            const r2 = (a-90)*Math.PI/180;
+            return `<line x1="${cx+r*0.88*Math.cos(r2)}" y1="${cy+r*0.88*Math.sin(r2)}" x2="${cx+r*Math.cos(r2)}" y2="${cy+r*Math.sin(r2)}" stroke="var(--muted)" stroke-width="1" opacity="0.3"/>`;
+        }).join('')}
+        <!-- Arrow -->
+        <line x1="${tailX}" y1="${tailY}" x2="${tipX}" y2="${tipY}" stroke="${arrowColor}" stroke-width="3" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="360 ${cx} ${cy}" dur="60s" repeatCount="indefinite"/>
+        </line>
+        <circle cx="${tipX}" cy="${tipY}" r="5" fill="${arrowColor}">
+            <animateTransform attributeName="transform" type="rotate" from="0 ${cx} ${cy}" to="360 ${cx} ${cy}" dur="60s" repeatCount="indefinite"/>
+        </circle>
+        <!-- Direction label -->
+        <text x="${cx}" y="${cy+r+24}" text-anchor="middle" font-size="10" font-weight="800" fill="var(--primary)">${dirText||'--'}</text>
+    `;
+    document.getElementById('wind-speed-big').innerHTML = `${speedKmh||'--'} <span>km/h</span>`;
+}
+
+/* ================================================================
+   ARC SOARE — SVG cu poziție curentă
+================================================================ */
+function drawSunArc(sunriseStr, sunsetStr) {
+    const svg = document.getElementById('sun-arc-svg');
+    const el = document.getElementById('sun-times');
+    const sunrise = parseTimeToMinutes(sunriseStr);
+    const sunset  = parseTimeToMinutes(sunsetStr);
+    const now     = new Date().getHours() * 60 + new Date().getMinutes();
+
+    const W=200, H=100, cx=100, baseY=90, arcR=70;
+    // Progres soare: 0=răsărit, 1=apus
+    let progress = 0;
+    if (now <= sunrise) progress = 0;
+    else if (now >= sunset) progress = 1;
+    else progress = (now - sunrise) / (sunset - sunrise);
+
+    const angle = Math.PI * (1 - progress); // π → 0 (stânga→dreapta)
+    const sunX = cx - arcR * Math.cos(angle);
+    const sunY = baseY - arcR * Math.sin(angle);
+
+    const isDay = now >= sunrise && now <= sunset;
+    const sunColor = isDay ? '#f59e0b' : '#94a3b8';
+    const fillColor = isDay
+        ? (progress < 0.3 || progress > 0.7 ? '#fde68a' : '#fbbf24')
+        : '#475569';
+
+    // Arc path
+    const arcStartX = cx - arcR, arcStartY = baseY;
+    const arcEndX = cx + arcR, arcEndY = baseY;
+    const arcPath = `M ${arcStartX} ${arcStartY} A ${arcR} ${arcR} 0 0 1 ${arcEndX} ${arcEndY}`;
+
+    // Filled arc (traseu parcurs)
+    let filledPath = '';
+    if (isDay) {
+        const fAngle = Math.PI * (1 - progress);
+        const fSunX = cx - arcR * Math.cos(fAngle);
+        const fSunY = baseY - arcR * Math.sin(fAngle);
+        filledPath = `M ${arcStartX} ${arcStartY} A ${arcR} ${arcR} 0 0 1 ${fSunX} ${fSunY} L ${fSunX} ${baseY} Z`;
+    }
+
+    svg.innerHTML = `
+        <defs>
+            <linearGradient id="sg" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"/>
+                <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.3"/>
+            </linearGradient>
+        </defs>
+        <line x1="${cx-arcR-5}" y1="${baseY}" x2="${cx+arcR+5}" y2="${baseY}" stroke="var(--grid)" stroke-width="1.5" stroke-dasharray="3"/>
+        <path d="${arcPath}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3" opacity="0.3"/>
+        ${isDay ? `<path d="${filledPath}" fill="url(#sg)" opacity="0.4"/>` : ''}
+        ${isDay ? `<circle cx="${sunX}" cy="${sunY}" r="8" fill="${fillColor}" filter="drop-shadow(0 0 6px ${sunColor})">
+            <animate attributeName="r" values="7;9;7" dur="3s" repeatCount="indefinite"/>
+        </circle>` : ''}
+        <text x="${cx-arcR}" y="${baseY+12}" text-anchor="middle" font-size="7" font-weight="700" fill="var(--muted)">${to24h(sunriseStr)}</text>
+        <text x="${cx+arcR}" y="${baseY+12}" text-anchor="middle" font-size="7" font-weight="700" fill="var(--muted)">${to24h(sunsetStr)}</text>
+    `;
+    el.innerHTML = `<span>${to24h(sunriseStr)}</span> | <span>${to24h(sunsetStr)}</span>`;
+}
+function parseTimeToMinutes(str) {
+    const m = str.match(/(\d{1,2}):(\d{2})/);
+    if (!m) return 0;
+    let h = parseInt(m[1]), min = parseInt(m[2]);
+    if (str.match(/PM/i) && h !== 12) h += 12;
+    if (str.match(/AM/i) && h === 12) h = 0;
+    return h * 60 + min;
+}
+
+/* ================================================================
+   AQI DETALIAT — Toți poluanții
+================================================================ */
+function renderAqiDetail(aq) {
+    const grid = document.getElementById('aqi-detail-grid');
+    if (!aq) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:0.72rem;font-weight:600;padding:8px">Data AQI unavailable</div>'; return; }
+    const pollutants = [
+        { key: 'pm2_5', label: 'PM2.5', unit: 'µg/m³', max: 35 },
+        { key: 'pm10',  label: 'PM10',  unit: 'µg/m³', max: 50 },
+        { key: 'o3',    label: 'O\u2083',  unit: 'µg/m³', max: 120 },
+        { key: 'no2',   label: 'NO\u2082', unit: 'µg/m³', max: 40 },
+        { key: 'so2',   label: 'SO\u2082', unit: 'µg/m³', max: 20 },
+        { key: 'co',    label: 'CO',     unit: 'µg/m³', max: 10000 },
+    ];
+    grid.innerHTML = pollutants.map(p => {
+        const val = aq[p.key];
+        if (val === undefined || val === null) return '';
+        const num = parseFloat(val);
+        const ratio = Math.min(num / p.max, 1);
+        let color = '#22c55e';
+        if (ratio > 0.5) color = '#f59e0b';
+        if (ratio > 0.75) color = '#ef4444';
+        return `<div class="aqi-item">
+            <div class="aqi-item-label">${p.label}</div>
+            <div class="aqi-item-val" style="color:${color}">${p.key==='co' ? num.toFixed(0) : num.toFixed(1)}</div>
+            <div class="aqi-item-unit">${p.unit}</div>
+        </div>`;
+    }).join('');
+}
+
+/* ================================================================
+   FAZA LUNII
+================================================================ */
+function getMoonPhase() {
+    const now = new Date();
+    const year = now.getFullYear(), month = now.getMonth() + 1, day = now.getDate();
+    // Algoritm simplificat bazat pe ciclul sinodic ~29.53 zile
+    let c = 0, e = 0, jd = 0, b = 0;
+    if (month < 3) { c = year - 1; e = month + 12; } else { c = year; e = month; }
+    jd = Math.floor(365.25 * (c + 4716)) + Math.floor(30.6001 * (e + 1)) + day - 1524.5;
+    const daysSinceNew = jd - 2451549.5;
+    const newMoons = daysSinceNew / 29.53058867;
+    const phase = newMoons - Math.floor(newMoons); // 0-1
+    const age = phase * 29.53; // 0-29.53
+
+    let name, icon;
+    if (age < 1.85)      { name = 'Luna Noua';       icon = '🌑'; }
+    else if (age < 5.55)  { name = 'Semiluna crescatoare'; icon = '🌒'; }
+    else if (age < 9.25)  { name = 'Primul Patrar';  icon = '🌓'; }
+    else if (age < 12.95) { name = 'Luna.Convexa';    icon = '🌔'; }
+    else if (age < 16.65) { name = 'Luna Plina';       icon = '🌕'; }
+    else if (age < 20.35) { name = 'Luna Convexa descreasca'; icon = '🌖'; }
+    else if (age < 24.05) { name = 'Ultimul Patrar';  icon = '🌗'; }
+    else if (age < 27.75) { name = 'Semiluna descreasca'; icon = '🌘'; }
+    else                  { name = 'Luna Noua';       icon = '🌑'; }
+
+    const illumination = Math.round((1 - Math.cos(2 * Math.PI * phase)) / 2 * 100);
+
+    return { name, icon, illumination, age: age.toFixed(1) };
+}
+function renderMoon(astroData) {
+    let name, icon, illumination, age, source;
+
+    if (astroData) {
+        /* ── Date reale din WeatherAPI ── */
+        const phaseEN = (astroData.moon_phase || '').trim();
+        const phaseMapRO = {
+            'New Moon':        'Luna Nouă',  'Waxing Crescent': 'Semilună Crescătoare',
+            'First Quarter':   'Primul Pătrar', 'Waxing Gibbous': 'Lună Convexă',
+            'Full Moon':       'Lună Plină', 'Waning Gibbous':  'Lună Convexă Descrescătoare',
+            'Last Quarter':    'Ultimul Pătrar', 'Waning Crescent': 'Semilună Descrescătoare'
+        };
+        const phaseMapEN = {
+            'New Moon':        'New Moon',  'Waxing Crescent': 'Waxing Crescent',
+            'First Quarter':   'First Quarter', 'Waxing Gibbous': 'Waxing Gibbous',
+            'Full Moon':       'Full Moon', 'Waning Gibbous':  'Waning Gibbous',
+            'Last Quarter':    'Last Quarter', 'Waning Crescent': 'Waning Crescent'
+        };
+        const iconMap = {
+            'New Moon':'🌑', 'Waxing Crescent':'🌒', 'First Quarter':'🌓',
+            'Waxing Gibbous':'🌔', 'Full Moon':'🌕', 'Waning Gibbous':'🌖',
+            'Last Quarter':'🌗', 'Waning Crescent':'🌘'
+        };
+        name = currentLang === 'en' ? (phaseMapEN[phaseEN] || phaseEN) : (phaseMapRO[phaseEN] || phaseEN);
+        icon = iconMap[phaseEN] || '🌕';
+        illumination = astroData.moon_illumination != null ? Math.round(astroData.moon_illumination) : null;
+        age = null;
+        source = 'W-API';
+    } else {
+        /* ── Fallback: calcul local ── */
+        const moon = getMoonPhase();
+        name = moon.name;
+        icon = moon.icon;
+        illumination = moon.illumination;
+        age = moon.age;
+        source = 'Calcul';
+    }
+
+    let extra = '';
+    if (astroData) {
+        const rise = astroData.moonrise ? to24h(astroData.moonrise) : null;
+        const set  = astroData.moonset  ? to24h(astroData.moonset)  : null;
+        if (rise && set) {
+            const riseLabel = currentLang === 'en' ? 'Rise' : 'Răsărit';
+            const setLabel  = currentLang === 'en' ? 'Set'  : 'Apus';
+            extra = `<div class="moon-illum">${riseLabel}: ${rise} | ${setLabel}: ${set}</div>`;
+        }
+    }
+
+    document.getElementById('moon-display').innerHTML = `
+        <div class="moon-icon">${icon}</div>
+        <div class="moon-info">
+            <div class="moon-name">${name} ${illumination !== null ? illumination + '%' : ''}</div>
+            ${age ? `<div class="moon-illum">Iluminare: ${illumination}% | Vârsta: ${age} zile</div>` : ''}
+            ${extra}
+            <div class="moon-illum" style="opacity:0.5;font-size:0.5rem;">[${source}]</div>
+        </div>
+    `;
+}
+
+/* ================================================================
+   CONFORT TERMIC — Dew Point + feels like + text
+================================================================ */
+function renderComfort(dW) {
+    const el = document.getElementById('comfort-info');
+    const temp = dW.current.temp_c;
+    const feels = dW.current.feelslike_c;
+    const dew = dW.current.dewpoint_c;
+    const hum = dW.current.humidity;
+    const wind = dW.current.wind_kph;
+
+    // Calcul index de confort simplificat
+    let comfortText = '', comfortCls = 'comfort-good';
+    if (temp >= 18 && temp <= 26 && hum < 70 && wind < 20) {
+        comfortText = t('comfort_good');
+        comfortCls = 'comfort-good';
+    } else if (temp < 0 || temp > 35 || hum > 85) {
+        comfortText = temp < 0 ? t('comfort_cold') : t('comfort_hot');
+        comfortCls = 'comfort-bad';
+    } else if (feels < temp - 5 || feels > temp + 5) {
+        comfortText = feels < temp ? t('comfort_cold_feel') : t('comfort_hot_feel');
+        comfortCls = 'comfort-ok';
+    } else {
+        comfortText = t('comfort_ok');
+        comfortCls = 'comfort-ok';
+    }
+
+    const windDiscomfortLabel = wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
+
+    el.innerHTML = `
+        <div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dew !== undefined ? dew.toFixed(1) + '°C' : 'N/A'}</span></div>
+        <div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feels}°C</span></div>
+        <div class="comfort-row"><span class="comfort-label">${t('wind_discomfort')}</span><span class="comfort-val">${windDiscomfortLabel}</span></div>
+        <div class="comfort-text ${comfortCls}">${comfortText}</div>
+    `;
+}
+
+/* ================================================================
+   AUTO REFRESH + COUNTDOWN
+================================================================ */
+const REFRESH_INTERVAL = 600; // 10 minute în secunde
+let refreshTimer = null;
+let refreshCountdown = REFRESH_INTERVAL;
+
+function startAutoRefresh() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshCountdown = REFRESH_INTERVAL;
+    refreshTimer = setInterval(() => {
+        refreshCountdown--;
+        updateRefreshBadge();
+        if (refreshCountdown <= 0) {
+            refreshCountdown = REFRESH_INTERVAL;
+            updateWeather();
+        }
+    }, 1000);
+}
+
+function updateRefreshBadge() {
+    const m = Math.floor(refreshCountdown / 60);
+    const s = refreshCountdown % 60;
+    const el = document.getElementById('refresh-badge');
+    if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+(function init() {
+    const savedTheme = localStorage.getItem('hub_theme');
+    if (savedTheme === 'dark') {
+        isDark = true;
+        document.body.setAttribute('data-theme','dark');
+        document.getElementById('theme-icon').className = 'fas fa-sun';
+    }
+
+    /* Apply saved language */
+    currentLang = localStorage.getItem('hub_lang') || 'ro';
+    applyStaticTranslations();
+    updateProviderStatus();
+
+    const lastCity = localStorage.getItem('hub_last_city');
+    if (lastCity) document.getElementById('city-in').value = lastCity;
     updateWeather();
+})();
 </script>
 </body>
 </html>
