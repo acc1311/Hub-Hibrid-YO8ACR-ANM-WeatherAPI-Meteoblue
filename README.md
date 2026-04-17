@@ -1,38 +1,51 @@
-# 🌦️ Prognoză Meteo Dinamică - Târgu Neamț
+
 
 > ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)  sau 🔗[Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
 
----
+# 🌤️ Hub Hibrid PRO - Dashboard Meteo Multi-Sursă
 
-O aplicație web (widget) modernă și minimalistă care oferă date meteorologice în timp real pentru orașul Târgu Neamț. Proiectul utilizează un model hibrid de colectare a datelor pentru a asigura o precizie maximă.
+**Hub Hibrid PRO** este o aplicație web meteo ușoară (single-file), dezvoltată pentru a oferi cea mai precisă prognoză și stare a vremii, combinând date de la furnizori globali cu stațiile meteorologice locale din România (ANM).
 
-### 📸 Prezentare Vizuală
-<p align="center">
-  <img src="mod%20zi.png" alt="Vremea Targu Neamt Light Mode" width="200">
-  <img src="mod%20nocturn.png" alt="Vremea Targu Neamt Dark Mode" width="200">
-</p>
+Aplicația rezolvă problema erorilor de localizare (ex: confuzia între orașe cu nume similare precum *Târgu Neamț* și *Târgu Jiu*) printr-un sistem de mapare și filtrare strictă.
 
-## 🚀 Caracteristici principale
+## ✨ Funcționalități Principale
 
-* **Model Hibrid de Date:** Combină citirile în timp real de la stațiile **ANM** (prin hub-ul YO8ACR) cu prognoze predictive de la **WeatherAPI** și **Meteoblue**.
-* **Logică Evolutivă:** Textul prognozei nu este static. Acesta se adaptează în funcție de probabilitatea de precipitații și momentul zilei.
-* **Design Adaptiv:** Interfață modernă cu suport pentru **Dark Mode** și **Light Mode**.
-* **Sincronizare Automată:** Datele se actualizează automat la fiecare 10 minute.
-* **Mobile Friendly:** Optimizat pentru a fi adăugat pe ecranul principal al telefonului ca WebApp.
+* 🔍 **Smart Match (Filtrare Inteligentă):** Sistem avansat de potrivire a locației care caută exact stația ANM relevantă pentru orașul introdus.
+* 📊 **Sistem Hibrid de Date:** Agregă date în timp real din 3 surse diferite pentru a construi un profil meteo complet.
+* 🌗 **Temă Dark / Light:** Interfață modernă cu suport nativ pentru modul întunecat (comutare instantanee).
+* 📱 **Design Responsiv:** UI de tip „card” optimizat perfect pentru ecranele telefoanelor mobile, dar și pentru desktop.
+* 🤖 **Smart Summary:** Generare de text dinamic cu rezumatul vremii și șansele de precipitații.
 
-## 📊 Surse de Date (Hub Hibrid)
+## 📡 Surse de Date (API-uri integrate)
 
-Aplicația centralizează informații din următoarele surse:
-1. **ANM (Administrația Națională de Meteorologie):** Temperatură curentă, umiditate, presiune și vânt (via `vremea-tg-neamt.yo8acr.workers.dev`).
-2. **WeatherAPI:** Condiții meteo detaliate, nori, indice UV și șanse de precipitații.
-3. **Meteoblue:** Estimări ale temperaturii pentru noaptea curentă.
+Aplicația face cereri asincrone către următoarele servicii:
+1.  **WeatherAPI (W-API):** Sursa globală principală (prognoză zilnică, min/max, UV, vizibilitate, șanse de ploaie).
+2.  **Meteoblue:** Folosit specific pentru calculul temperaturii exacte pe timp de noapte.
+3.  **ANM (prin Proxy Cloudflare):** Preia date hiper-locale de la stațiile oficiale ale Administrației Naționale de Meteorologie din România (vânt, presiune atmosferică, umiditate, temperatura la sol).
 
-## 🖥️ Tehnologii Utilizate
+## 🚀 Cum se instalează / folosește
 
-* **HTML5 & CSS3:** Structură și stilizare.
-* **JavaScript (Vanilla):** Logică Fetch API și manipulare DOM.
-* **FontAwesome:** Iconițe meteo.
-* **Cloudflare Workers:** Backend-ul pentru colectarea datelor ANM.
+Proiectul este un `vanilla` complet (fără framework-uri, fără build-steps). Totul rulează direct din browser.
+
+1.  Clonează repository-ul:
+    ```bash
+    git clone [https://github.com/numele-tau/hub-hibrid-pro.git](https://github.com/numele-tau/hub-hibrid-pro.git)
+    ```
+2.  Deschide fișierul `index.html` în orice browser modern (Chrome, Safari, Firefox, Edge).
+3.  Introdu numele unui oraș în bara de căutare și apasă Enter (sau pe lupă).
+
+## 🛠️ Detalii Tehnice pentru Dezvoltatori
+
+* **Tehnologii:** HTML5, CSS3 (CSS Variables, Flexbox, Grid), JavaScript (ES6, Fetch API, Async/Await).
+* **Iconițe:** FontAwesome 6.
+* **Logica de Mapare:** În cod există o constantă `CITY_MAP` care poate fi extinsă. Aceasta leagă numele uzual al unui oraș de numele exact al stației ANM pentru a preveni rezultatele false (ex: `"SINAIA": "SINAIA 1500"`).
+
+### Notă privind securitatea (API Keys)
+Acest proiect conține chei API încorporate în codul de front-end pentru demonstrație. Pentru utilizarea în producție la scară largă, se recomandă mutarea cheilor (`W_KEY`, `M_KEY`) pe un server backend (Node.js, PHP, Python etc.) pentru a le proteja.
+
+## 📄 Licență
+
+Acest proiect este open-source și disponibil sub licența [MIT](LICENSE).
 
 ## 🤝 Contribuții
 
