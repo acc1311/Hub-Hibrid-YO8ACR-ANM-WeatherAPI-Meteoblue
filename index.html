@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; child-src 'self' https: blob:; frame-src https://embed.windy.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; connect-src 'self' https:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; child-src 'self' https: blob:; frame-src https://embed.windy.com https://radar.wo-cloud.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; connect-src 'self' https:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:;">
     <title>Hub Hibrid PRO + Radar vreme</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -270,13 +270,13 @@
         .radar-time-label { font-size: 0.62rem; font-weight: 700; color: #fff; min-width: 38px; text-align: right; }
         .radar-layer-info { font-size: 0.58rem; color: rgba(255,255,255,0.6); font-weight: 700; }
 
-        /* Windy iframe fallback */
-        .windy-frame {
+        /* Windy + MeteoRadar iframe */
+        .windy-frame, .meteo-radar-frame {
             border-radius: 20px; overflow: hidden; height: 320px;
             border: 2px solid var(--grid); display: none;
             position: relative;
         }
-        .windy-frame iframe { width: 100%; height: 100%; border: none; }
+        .windy-frame iframe, .meteo-radar-frame iframe { width: 100%; height: 100%; border: none; }
         .windy-logo-cover {
             position: absolute; bottom: 8px; left: 8px; z-index: 500;
             background: var(--card); border-radius: 8px;
@@ -537,6 +537,7 @@
                 <span class="section-title"><i class="fas fa-cloud-showers-heavy"></i> <span data-i18n="radar_title">Radar Ploi Live</span></span>
                 <div class="radar-tabs">
                     <button class="radar-tab active" onclick="showRadarTab('leaflet', this)" data-i18n="radar_tab_animated">🌧️ Radar Animat</button>
+                    <button class="radar-tab"        onclick="showRadarTab('meteo',   this)" data-i18n="radar_tab_meteo">🌐 Radar RO</button>
                     <button class="radar-tab"        onclick="showRadarTab('windy',   this)" data-i18n="radar_tab_windy">💨 Windy</button>
                 </div>
             </div>
@@ -560,13 +561,18 @@
                 </div>
             </div>
 
+            <div class="meteo-radar-frame" id="meteo-radar-frame">
+                <iframe id="meteo-radar-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="no-referrer"></iframe>
+                <div class="windy-logo-cover">🌐 MeteoRadar.ro</div>
+            </div>
+
             <div class="windy-frame" id="windy-frame">
                 <iframe id="windy-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="no-referrer"></iframe>
                 <div class="windy-logo-cover">💨 Windy</div>
             </div>
         </div>
 
-        <div class="footer-tag" id="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro — ANM + W-API + Meteoblue + Radar ploi + Windy</div>
+        <div class="footer-tag" id="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro — ANM + W-API + Meteoblue + Radar ploi + MeteoRadar + Windy</div>
         <button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> <span data-i18n="update_btn">Actualizează Datele</span></button>
 
     </div>
@@ -598,6 +604,7 @@ const LANG = {
         forecast_title: 'Prognoză 5 Zile',
         radar_title: 'Radar Ploi Live',
         radar_tab_animated: '🌧️ Radar Animat',
+        radar_tab_meteo: '🌐 Radar RO',
         radar_tab_windy: '💨 Windy',
         update_btn: 'Actualizează Datele',
         footer_text: 'Hub Hibrid Pro — ',
@@ -697,6 +704,7 @@ const LANG = {
         forecast_title: '5-Day Forecast',
         radar_title: 'Live Rain Radar',
         radar_tab_animated: '🌧️ Animated Radar',
+        radar_tab_meteo: '🌐 Radar RO',
         radar_tab_windy: '💨 Windy',
         update_btn: 'Refresh Data',
         footer_text: 'Hub Hibrid Pro — ',
@@ -1181,14 +1189,25 @@ function updateMapCenter() {
 function showRadarTab(type, btn) {
     document.querySelectorAll('.radar-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
-    const mapWrap    = document.getElementById('map-wrapper');
-    const windyFrame = document.getElementById('windy-frame');
+    const mapWrap     = document.getElementById('map-wrapper');
+    const windyFrame  = document.getElementById('windy-frame');
+    const meteoFrame  = document.getElementById('meteo-radar-frame');
+
+    /* Hide all iframes first */
+    mapWrap.style.display    = 'none';
+    windyFrame.style.display = 'none';
+    meteoFrame.style.display = 'none';
+
     if (type === 'leaflet') {
-        mapWrap.style.display    = 'block';
-        windyFrame.style.display = 'none';
+        mapWrap.style.display = 'block';
         setTimeout(() => { if(map) map.invalidateSize(); }, 100);
+    } else if (type === 'meteo') {
+        meteoFrame.style.display = 'block';
+        document.getElementById('meteo-radar-iframe').src =
+            `https://radar.wo-cloud.com/pwa/?bounds=49,20,41,30` +
+            `&tz=UTC&tf=HH:mm&windunit=kmh&lang=ro-RO` +
+            `&safeAreaTop=true&safeAreaBottom=true&desktop=true&fadeTop=false`;
     } else if (type === 'windy') {
-        mapWrap.style.display    = 'none';
         windyFrame.style.display = 'block';
         const { lat, lon } = currentCoords;
         document.getElementById('windy-iframe').src =
@@ -1261,24 +1280,27 @@ function aqiLabel(idx) {
     const cls    = ['','aqi-1','aqi-2','aqi-3','aqi-4','aqi-5'];
     return { text: labels[idx]||'--', cls: cls[idx]||'' };
 }
+
 function getWeatherIcon(condText, isDay) {
-    const c = (condText||'').toLowerCase();
+    const raw = (condText||'').toLowerCase();
+    /* Normalize: strip diacritics for reliable matching */
+    const c = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     // Furtună / Thunder
     if (c.includes('furtun')||c.includes('thunder')||c.includes('tormenta')) return { cls:'fa-cloud-bolt',         col:'#7c3aed' };
     // Ninsoare / Snow
-    if (c.includes('ninsoare')||c.includes('nins')||c.includes('snow')||c.includes('blizzard')||c.includes('lapoviță')||c.includes('lapovita')) return { cls:'fa-snowflake', col:'#93c5fd' };
+    if (c.includes('ninsoare')||c.includes('nins')||c.includes('snow')||c.includes('blizzard')||c.includes('lapovita')||c.includes('lapovite')) return { cls:'fa-snowflake', col:'#93c5fd' };
     // Polei / Sleet
-    if (c.includes('polei')||c.includes('sleet')||c.includes('ice pellets')||c.includes('măzăriche')) return { cls:'fa-cloud-sleet', col:'#67e8f9' };
+    if (c.includes('polei')||c.includes('sleet')||c.includes('ice pellets')||c.includes('mazare')||c.includes('mazari')) return { cls:'fa-cloud-sleet', col:'#67e8f9' };
     // Burniță / Drizzle
-    if (c.includes('burni')||c.includes('drizzle')||c.includes('mizzle')||c.includes('burnită')) return { cls:'fa-cloud-rain', col:'#60a5fa' };
-    // Ploaie / Rain — include "ploai", "ploi", "ploaie", "averse", "precip"
-    if (c.includes('ploaie')||c.includes('ploai')||c.includes('ploi')||c.includes('rain')||c.includes('shower')||c.includes('averse')||c.includes('precip')) return { cls:'fa-cloud-showers-heavy', col:'#3b82f6' };
+    if (c.includes('burni')||c.includes('drizzle')||c.includes('mizzle')) return { cls:'fa-cloud-rain', col:'#60a5fa' };
+    // Ploaie / Rain — match both "ploaie", "ploai", "ploi", "ploua", "precip", "averse"
+    if (c.includes('ploaie')||c.includes('ploai')||c.includes('ploi')||c.includes('ploua')||c.includes('rain')||c.includes('shower')||c.includes('averse')||c.includes('precip')) return { cls:'fa-cloud-showers-heavy', col:'#3b82f6' };
     // Ceață / Fog
-    if (c.includes('ceață')||c.includes('ceata')||c.includes('fog')||c.includes('mist')||c.includes('haze')) return { cls:'fa-smog', col:'#9ca3af' };
-    // Noros / Cloudy — include "înnorat", "noros", "parțial" BEFORE generic "nor"
-    if (c.includes('înnorat')||c.includes('innorat')||c.includes('noros')||c.includes('cloudy')||c.includes('overcast')||c.includes('parțial')||c.includes('partial')||c.includes('nor')||c.includes('cloud')) return { cls: isDay?'fa-cloud-sun':'fa-cloud-moon', col:'#94a3b8' };
+    if (c.includes('ceata')||c.includes('fog')||c.includes('mist')||c.includes('haze')) return { cls:'fa-smog', col:'#9ca3af' };
+    // Înnorat / Noros / Parțial — specific patterns BEFORE generic "nor"
+    if (c.includes('innorat')||c.includes('noros')||c.includes('cloudy')||c.includes('overcast')||c.includes('partial')||c.includes('nor')||c.includes('cloud')) return { cls: isDay?'fa-cloud-sun':'fa-cloud-moon', col:'#94a3b8' };
     // Senin / Clear
-    if (c.includes('senin')||c.includes('clear')||c.includes('sunny')||c.includes('insorit')||c.includes('însorit')) return isDay ? { cls:'fa-sun', col:'#f59e0b' } : { cls:'fa-moon', col:'#c4b5fd' };
+    if (c.includes('senin')||c.includes('clear')||c.includes('sunny')||c.includes('insorit')) return isDay ? { cls:'fa-sun', col:'#f59e0b' } : { cls:'fa-moon', col:'#c4b5fd' };
     return isDay ? { cls:'fa-sun', col:'#f59e0b' } : { cls:'fa-moon', col:'#c4b5fd' };
 }
 function dayName(d) { return t('days_short')[new Date(d).getDay()]; }
@@ -1445,14 +1467,16 @@ function renderForecast(days) {
    BACKGROUND DINAMIC
 ================================================================ */
 function applyDynamicBg(condText, isDay) {
-    const c = (condText||'').toLowerCase();
+    const raw = (condText||'').toLowerCase();
+    /* Normalize: strip diacritics for reliable matching */
+    const c = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     let start, end;
     if (!isDay)                                               { start='#0f172a'; end='#1e3a5f'; }
     else if (c.includes('furtun')||c.includes('thunder'))     { start='#1e1b4b'; end='#312e81'; }
-    else if (c.includes('ploaie')||c.includes('ploai')||c.includes('ploi')||c.includes('rain')||c.includes('shower')||c.includes('averse')||c.includes('precip')) { start='#1e3a5f'; end='#2d4a7a'; }
+    else if (c.includes('ploaie')||c.includes('ploai')||c.includes('ploi')||c.includes('ploua')||c.includes('rain')||c.includes('shower')||c.includes('averse')||c.includes('precip')) { start='#1e3a5f'; end='#2d4a7a'; }
     else if (c.includes('ninsoare')||c.includes('nins')||c.includes('snow')||c.includes('blizzard')) { start='#e2e8f0'; end='#cbd5e1'; }
-    else if (c.includes('ceață')||c.includes('ceata')||c.includes('fog')||c.includes('mist')) { start='#cbd5e1'; end='#94a3b8'; }
-    else if (c.includes('nor')||c.includes('înnorat')||c.includes('noros')||c.includes('cloud')||c.includes('overcast')||c.includes('parțial')) { start='#dbeafe'; end='#bfdbfe'; }
+    else if (c.includes('ceata')||c.includes('fog')||c.includes('mist')) { start='#cbd5e1'; end='#94a3b8'; }
+    else if (c.includes('nor')||c.includes('innorat')||c.includes('noros')||c.includes('cloud')||c.includes('overcast')||c.includes('partial')) { start='#dbeafe'; end='#bfdbfe'; }
     else                                                       { start='#e0f7fa'; end='#b3e5fc'; }
     if (!isDark) document.body.style.background = `linear-gradient(135deg,${start} 0%,${end} 100%)`;
 }
