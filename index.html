@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub Hibrid PRO - Versiunea Completă</title>
+    <title>Hub Hibrid PRO - Versiunea Finală</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -18,34 +18,26 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; transition: 0.3s; }
         .card { background: var(--card); border-radius: 32px; padding: 25px; width: 100%; max-width: 440px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); text-align: center; position: relative; }
-        
         .header-actions { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
         .search-box { flex: 1; display: flex; gap: 5px; background: var(--grid); border-radius: 16px; padding: 5px 10px; border: 2px solid var(--grid); }
         .search-box input { border: none; background: transparent; color: var(--text); padding: 10px; outline: none; width: 100%; font-weight: 600; }
         .btn-action { background: var(--primary); color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-action:hover { opacity: 0.9; }
         .btn-theme { background: var(--grid); color: #f59e0b; }
-
         .city-name { color: var(--primary); font-size: 1.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; letter-spacing: -0.5px; }
         .time-sync { font-size: 0.7rem; color: var(--muted); margin-bottom: 15px; }
         .temp-main { font-size: 5.5rem; font-weight: 800; color: var(--primary); margin: 0; line-height: 1; letter-spacing: -2px; }
         .weather-icon { font-size: 5rem; margin: 15px 0; height: 100px; display: flex; align-items: center; justify-content: center; }
         .condition-text { font-weight: 700; font-size: 1.2rem; margin-bottom: 20px; text-transform: capitalize; }
-        
         .forecast-banner { background: var(--info-box); border-left: 5px solid var(--primary); padding: 15px; border-radius: 14px; margin-bottom: 20px; font-size: 0.9rem; text-align: left; line-height: 1.5; }
-
         .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; background: var(--grid); padding: 20px; border-radius: 22px; margin-bottom: 15px; }
-        .data-grid div { display: flex; flex-direction: column; gap: 2px; }
+        .data-grid div { display: flex; flex-direction: column; gap: 2px; min-height: 55px; justify-content: center; }
         .item-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; font-weight: 800; }
-        .item-val { font-weight: 700; font-size: 0.9rem; }
+        .item-val { font-weight: 700; font-size: 0.82rem; line-height: 1.2; }
         .item-src { font-size: 0.5rem; color: var(--source-tag); font-weight: 700; }
-        
         .source-footer { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
         [data-theme="dark"] .source-footer { background: #064e3b; color: #34d399; }
-
         .btn-update { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 800; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        .btn-update:hover { opacity: 0.9; }
-        
         #loader { display: none; margin: 30px 0; }
         #main-content { transition: opacity 0.3s; }
     </style>
@@ -69,17 +61,10 @@
         <div id="big-icon" class="weather-icon"></div>
         <div id="main-temp" class="temp-main">--</div>
         <div id="main-desc" class="condition-text">--</div>
-        
         <div class="forecast-banner" id="smart-text">--</div>
         <div class="data-grid" id="full-grid"></div>
-
-        <div class="source-footer">
-            <i class="fas fa-microchip"></i> HUB HIBRID PRO: ANM + W-API + METEOBLUE
-        </div>
-
-        <button class="btn-update" onclick="updateWeather()">
-            <i class="fas fa-sync-alt"></i> Actualizează datele
-        </button>
+        <div class="source-footer"><i class="fas fa-microchip"></i> HUB HIBRID PRO: ANM + W-API + METEOBLUE</div>
+        <button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> Actualizează datele</button>
     </div>
 </div>
 
@@ -88,20 +73,22 @@
     const M_KEY = "dTx4DkKZerufXShl";
     const ANM_PROXY = "https://vremea-tg-neamt.yo8acr.workers.dev/";
 
-    // LISTĂ FIXĂ PENTRU EVITAREA CONFUZIILOR
-    const CITY_MAP = {
-        "TARGU NEAMT": "TARGU NEAMT",
-        "TARGU JIU": "TARGU JIU",
-        "TARGU MURES": "TARGU MURES",
-        "PIATRA NEAMT": "PIATRA NEAMT",
-        "SINAIA": "SINAIA 1500"
-    };
+    const CITY_MAP = { "TARGU NEAMT": "TARGU NEAMT", "TARGU JIU": "TARGU JIU", "TARGU MURES": "TARGU MURES", "PIATRA NEAMT": "PIATRA NEAMT", "SINAIA": "SINAIA 1500" };
 
     function toggleTheme() {
         const b = document.body;
         const isDark = b.getAttribute('data-theme') === 'dark';
         b.setAttribute('data-theme', isDark ? 'light' : 'dark');
         document.getElementById('t-btn').innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+    }
+
+    function formatTo24h(timeStr) {
+        if (!timeStr) return "--:--";
+        let [time, modifier] = timeStr.split(' ');
+        let [hours, minutes] = time.split(':');
+        if (hours === '12') hours = '00';
+        if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+        return `${hours.toString().padStart(2, '0')}:${minutes}`;
     }
 
     function cleanStr(s) {
@@ -119,36 +106,30 @@
         loader.style.display = "block";
 
         try {
-            // 1. Fetch WeatherAPI
             const rW = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${W_KEY}&q=${inputRaw}&days=1&lang=ro`);
             const dW = await rW.json();
-            if(dW.error) throw new Error("Locație negăsită în baza globală.");
+            if(dW.error) throw new Error("Locație negăsită.");
 
             const {lat, lon} = dW.location;
             const cur = dW.current, loc = dW.location, fDay = dW.forecast.forecastday[0];
 
-            // 2. Fetch Meteoblue pentru noapte
             let tNoapte = fDay.hour[23].temp_c; 
             try {
                 const rM = await fetch(`https://my.meteoblue.com/packages/basic-1h?lat=${lat}&lon=${lon}&apikey=${M_KEY}&format=json`);
                 const dM = await rM.json();
                 tNoapte = dM.data_1h.temperature[23].toFixed(1);
-            } catch(e) { console.log("Meteoblue fallback la W-API"); }
+            } catch(e) { console.log("Meteoblue offline"); }
 
-            // 3. Fetch ANM
             const rA = await fetch(ANM_PROXY + "?t=" + Date.now());
             const jA = await rA.json();
             
-            // 4. Logica de Match Strict
             const targetStation = CITY_MAP[cleanInput] || cleanStr(loc.name);
             let station = jA.features.find(f => cleanStr(f.properties.nume) === targetStation);
             
-            // Fallback sigur (fără a amesteca Neamț cu Jiu)
             if(!station) {
                 station = jA.features.find(f => {
                     const sName = cleanStr(f.properties.nume);
                     if (cleanInput.includes("NEAMT") && sName.includes("JIU")) return false;
-                    if (cleanInput.includes("JIU") && sName.includes("NEAMT")) return false;
                     return sName.includes(targetStation) || targetStation.includes(sName);
                 });
             }
@@ -156,48 +137,49 @@
             const p = station ? station.properties : null;
             const src = p ? "[ANM]" : "[W-API]";
 
-            // Dacă găsim stație ANM, forțăm titlul să fie numele stației, altfel lăsăm WeatherAPI
-            const finalCityName = p ? p.nume : loc.name;
-            
-            // Formatare date ANM / W-API
+            // LOGICA VÂNT UNITĂ
+            let windSpeedMs = p ? parseFloat(p.vant) : (cur.wind_kph/3.6).toFixed(1);
+            let windSpeedKmh = (windSpeedMs * 3.6).toFixed(1);
+            let windDirFinal = cur.wind_dir;
+            if (p && p.vant) {
+                const matchDir = p.vant.match(/[A-ZĂÂÎȘȚ]+$/i);
+                if (matchDir) windDirFinal = matchDir[0].toUpperCase();
+            }
+
+            const sunrise24 = formatTo24h(fDay.astro.sunrise);
+            const sunset24 = formatTo24h(fDay.astro.sunset);
             const actTemp = p ? parseFloat(p.tempe).toFixed(1) : cur.temp_c;
-            const windMs = p ? parseFloat(p.vant.split(' ')[0]) : (cur.wind_kph/3.6).toFixed(1);
             const presMb = p ? parseFloat(p.presiunetext) : cur.pressure_mb;
             const presMm = Math.round(presMb * 0.750062);
-            const humidity = p ? p.umezeala : cur.humidity;
-            const windDir = p ? (p.vant.split(':')[1] || cur.wind_dir).trim() : cur.wind_dir;
 
-            // Update UI
-            document.getElementById('city-title').innerText = finalCityName;
+            document.getElementById('city-title').innerText = p ? p.nume : loc.name;
             document.getElementById('main-temp').innerText = actTemp + "°C";
             document.getElementById('main-desc').innerText = cur.condition.text;
-            
-            document.getElementById('smart-text').innerHTML = `Starea vremii în <strong>${finalCityName}</strong>: ${cur.condition.text.toLowerCase()}. Șanse ploaie: ${fDay.day.daily_chance_of_rain}%.`;
+            document.getElementById('smart-text').innerHTML = `Vremea în <strong>${p ? p.nume : loc.name}</strong>: ${cur.condition.text.toLowerCase()}. Șanse ploaie: ${fDay.day.daily_chance_of_rain}%.`;
 
+            // GRILĂ REORGANIZATĂ
             document.getElementById('full-grid').innerHTML = `
                 <div><span class="item-label">Min / Max Azi</span><span class="item-val">${fDay.day.mintemp_c}° / ${fDay.day.maxtemp_c}°C</span><span class="item-src">[W-API]</span></div>
                 <div><span class="item-label">La Noapte</span><span class="item-val">${tNoapte}°C</span><span class="item-src">[METEOBLUE]</span></div>
-                <div><span class="item-label">Vânt Mediu</span><span class="item-val">${(windMs * 3.6).toFixed(1)} km/h (${windMs} m/s)</span><span class="item-src">${src}</span></div>
-                <div><span class="item-label">Rafale & Dir</span><span class="item-val">${cur.gust_kph} km/h | ${windDir}</span><span class="item-src">[W-API + ANM]</span></div>
+                
+                <div><span class="item-label">Vânt Mediu & Dir</span><span class="item-val">${windSpeedKmh} km/h (${windSpeedMs} m/s) ${windDirFinal}</span><span class="item-src">${src}</span></div>
+                <div><span class="item-label">Rafale Maxime</span><span class="item-val">${cur.gust_kph} km/h</span><span class="item-src">[W-API]</span></div>
+                
+                <div><span class="item-label">Răsărit Soare</span><span class="item-val">${sunrise24}</span><span class="item-src">[W-API]</span></div>
+                <div><span class="item-label">Apus Soare</span><span class="item-val">${sunset24}</span><span class="item-src">[W-API]</span></div>
+                
                 <div><span class="item-label">Presiune</span><span class="item-val">${presMb} mb (${presMm} mmHg)</span><span class="item-src">${src}</span></div>
-                <div><span class="item-label">Umiditate</span><span class="item-val">${humidity}%</span><span class="item-src">${src}</span></div>
-                <div><span class="item-label">Vizibilitate</span><span class="item-val">${cur.vis_km} km</span><span class="item-src">[W-API]</span></div>
-                <div><span class="item-label">Indice UV</span><span class="item-val">${fDay.day.uv}</span><span class="item-src">[W-API]</span></div>
+                <div><span class="item-label">Umiditate</span><span class="item-val">${p ? p.umezeala : cur.humidity}%</span><span class="item-src">${src}</span></div>
             `;
 
-            // Curățare text ANM (eliminare &nbsp;)
-            const syncText = p ? `Stație ANM: ${p.nume} | ${p.actualizat.replace(/&nbsp;/g, ' ')}` : `Sursă: WeatherAPI Global | ${new Date().toLocaleTimeString('ro-RO')}`;
+            const syncText = p ? `Stație ANM: ${p.nume} | ${p.actualizat.replace(/&nbsp;/g, ' ')}` : `Sursă: WeatherAPI | ${new Date().toLocaleTimeString('ro-RO')}`;
             document.getElementById('sync-info').innerText = syncText;
             
-            // Iconiță dinamică
             const isDay = cur.is_day === 1;
             const d = cur.condition.text.toLowerCase();
             let icon = isDay ? "fa-sun" : "fa-moon", color = isDay ? "#f59e0b" : "#cbd5e1";
-
-            if(d.includes("ploaie") || d.includes("ploi") || d.includes("burni")) { icon = "fa-cloud-showers-heavy"; color = "#3b82f6"; }
-            else if(d.includes("nor") || d.includes("parțial")) { icon = isDay ? "fa-cloud-sun" : "fa-cloud-moon"; color = "#64748b"; }
-            else if(d.includes("zăpadă") || d.includes("ninsoare")) { icon = "fa-snowflake"; color = "#93c5fd"; }
-            else if(d.includes("fulger") || d.includes("furtună")) { icon = "fa-bolt"; color = "#eab308"; }
+            if(d.includes("ploaie") || d.includes("ploi")) { icon = "fa-cloud-showers-heavy"; color = "#3b82f6"; }
+            else if(d.includes("nor")) { icon = isDay ? "fa-cloud-sun" : "fa-cloud-moon"; color = "#64748b"; }
             
             document.getElementById('big-icon').innerHTML = `<i class="fas ${icon}" style="color: ${color}"></i>`;
 
@@ -208,8 +190,6 @@
             main.style.opacity = "1"; 
         }
     }
-    
-    // Încarcă datele automat la pornire
     updateWeather();
 </script>
 </body>
