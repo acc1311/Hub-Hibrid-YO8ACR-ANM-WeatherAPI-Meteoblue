@@ -136,7 +136,7 @@
                 : `Soarele va răsări la ora <strong>${formatTime(astro.sunrise)}</strong>.`;
 
             document.getElementById('ai-forecast').innerHTML = 
-                `Cerul este <strong>${cond.toLowerCase()}</strong> (${cur.cloud}% acoperire). ${dinamicaText} ${sunInfo}`;
+                `Starea vremii: <strong>${cond.toLowerCase()}</strong> (${cur.cloud}% acoperire). ${dinamicaText} ${sunInfo}`;
 
             // Grid Tehnic
             const vitezMs = parseFloat(p.vant.split(' ')[0]) || 0;
