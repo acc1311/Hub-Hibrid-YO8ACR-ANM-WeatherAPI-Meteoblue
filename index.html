@@ -3,43 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub Hibrid PRO - Versiunea Completă cu Radar</title>
+    <title>Hub Hibrid PRO - Versiunea Completă</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #1d4ed8; --bg: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-            --card: #ffffff; --text: #0f172a; --muted: #475569; --grid: #f1f5f9;
-            --info-box: rgba(59, 130, 246, 0.08); --source-tag: #64748b;
+            --primary: #4f46e5; --bg: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            --card: #ffffff; --text: #1e293b; --muted: #64748b; --grid: #f1f5f9;
+            --info-box: #eff6ff;
         }
         [data-theme="dark"] {
-            --primary: #60a5fa; --bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            --primary: #818cf8; --bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             --card: #1e293b; --text: #f8fafc; --muted: #94a3b8; --grid: #334155;
-            --info-box: rgba(96, 165, 250, 0.1);
+            --info-box: rgba(129, 140, 248, 0.1);
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; transition: 0.3s; }
-        .card { background: var(--card); border-radius: 32px; padding: 25px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); text-align: center; position: relative; }
-        .header-actions { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
-        .search-box { flex: 1; display: flex; gap: 5px; background: var(--grid); border-radius: 16px; padding: 5px 10px; border: 2px solid var(--grid); }
+        .card { background: var(--card); border-radius: 32px; padding: 25px; width: 100%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }
+        
+        /* Header & Search */
+        .header-actions { display: flex; gap: 8px; margin-bottom: 20px; }
+        .search-box { flex: 1; display: flex; background: var(--grid); border-radius: 16px; padding: 5px 10px; }
         .search-box input { border: none; background: transparent; color: var(--text); padding: 10px; outline: none; width: 100%; font-weight: 600; }
-        .btn-action { background: var(--primary); color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-theme { background: var(--grid); color: #f59e0b; }
-        .city-name { color: var(--primary); font-size: 1.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
-        .time-sync { font-size: 0.7rem; color: var(--muted); margin-bottom: 15px; }
-        .temp-main { font-size: 5.5rem; font-weight: 800; color: var(--primary); margin: 0; line-height: 1; letter-spacing: -2px; }
-        .weather-icon { font-size: 5rem; margin: 15px 0; height: 100px; display: flex; align-items: center; justify-content: center; }
-        .condition-text { font-weight: 700; font-size: 1.2rem; margin-bottom: 20px; text-transform: capitalize; }
-        .forecast-banner { background: var(--info-box); border-left: 5px solid var(--primary); padding: 15px; border-radius: 14px; margin-bottom: 20px; font-size: 0.9rem; text-align: left; }
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; background: var(--grid); padding: 20px; border-radius: 22px; margin-bottom: 15px; }
-        .data-grid div { display: flex; flex-direction: column; gap: 2px; min-height: 50px; justify-content: center; }
-        .item-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; font-weight: 800; }
-        .item-val { font-weight: 700; font-size: 0.85rem; }
-        .item-src { font-size: 0.5rem; color: var(--source-tag); font-weight: 700; }
-        .map-container { border-radius: 22px; overflow: hidden; margin-bottom: 15px; height: 320px; background: var(--grid); border: 2px solid var(--grid); position: relative; }
-        .map-label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; z-index: 10; pointer-events: none; }
-        .source-footer { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #dcfce7; color: #166534; padding: 8px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
-        [data-theme="dark"] .source-footer { background: #064e3b; color: #34d399; }
-        .btn-update { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 800; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        #loader { display: none; margin: 30px 0; }
+        .btn-action { background: var(--primary); color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Main Display */
+        .city-name { color: var(--primary); font-size: 1.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; text-align: center; }
+        .time-sync { font-size: 0.65rem; color: var(--muted); margin-bottom: 15px; text-align: center; font-weight: 600; }
+        .weather-main { text-align: center; margin-bottom: 20px; }
+        .temp-main { font-size: 5.5rem; font-weight: 800; color: var(--primary); margin: 0; line-height: 1; letter-spacing: -3px; }
+        .condition-text { font-weight: 700; font-size: 1.2rem; margin-top: 10px; text-transform: capitalize; }
+
+        /* Smart Banner */
+        .smart-banner { background: var(--info-box); border-radius: 16px; padding: 15px; margin-bottom: 20px; font-size: 0.85rem; line-height: 1.4; border-left: 4px solid var(--primary); }
+
+        /* Data Grid - 10 Itemuri */
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--grid); padding: 20px; border-radius: 24px; margin-bottom: 20px; }
+        .data-item { display: flex; flex-direction: column; min-height: 45px; }
+        .item-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+        .item-val { font-weight: 700; font-size: 0.85rem; margin-top: 2px; }
+        .item-src { font-size: 0.5rem; color: var(--muted); font-weight: 700; opacity: 0.6; }
+
+        /* Radar Controls */
+        .radar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 5px; }
+        .radar-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+        .radar-tabs { display: flex; gap: 4px; background: var(--grid); padding: 3px; border-radius: 10px; }
+        .radar-tab { padding: 5px 10px; border-radius: 7px; font-size: 0.65rem; font-weight: 700; border: none; cursor: pointer; background: transparent; color: var(--muted); }
+        .radar-tab.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .map-container { border-radius: 24px; overflow: hidden; height: 320px; background: var(--grid); border: 2px solid var(--grid); }
+        
+        .footer-tag { text-align: center; font-size: 0.7rem; font-weight: 800; color: #166534; background: #dcfce7; padding: 8px; border-radius: 15px; margin: 15px 0; text-transform: uppercase; }
+        [data-theme="dark"] .footer-tag { background: #064e3b; color: #4ade80; }
+        .btn-update { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn-update:active { transform: scale(0.98); }
+        #loader { display: none; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
@@ -47,31 +63,42 @@
 <div class="card">
     <div class="header-actions">
         <div class="search-box">
-            <input type="text" id="city-in" placeholder="Ex: Târgu Neamț..." onkeypress="if(event.key==='Enter') updateWeather()">
+            <input type="text" id="city-in" placeholder="Caută oraș (Ex: Târgu Neamț)..." onkeypress="if(event.key==='Enter') updateWeather()">
             <button class="btn-action" onclick="updateWeather()"><i class="fas fa-search"></i></button>
         </div>
-        <button class="btn-action btn-theme" onclick="toggleTheme()" id="t-btn"><i class="fas fa-moon"></i></button>
+        <button class="btn-action" style="background: var(--grid); color: #f59e0b;" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
     </div>
 
-    <div id="loader"><i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary);"></i></div>
+    <div id="loader"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--primary);"></i></div>
 
     <div id="main-content">
         <div id="city-title" class="city-name">--</div>
         <div id="sync-info" class="time-sync">--</div>
-        <div id="big-icon" class="weather-icon"></div>
-        <div id="main-temp" class="temp-main">--</div>
-        <div id="main-desc" class="condition-text">--</div>
-        <div class="forecast-banner" id="smart-text">--</div>
         
-        <div class="data-grid" id="full-grid"></div>
-
-        <div class="map-container">
-            <div class="map-label"><i class="fas fa-satellite-dish"></i> MeteoRadar Live (wo-cloud)</div>
-            <iframe id="radar-iframe" width="100%" height="100%" frameborder="0" style="border:0" allowfullscreen></iframe>
+        <div class="weather-main">
+            <div id="big-icon" style="font-size: 4.5rem; margin-bottom: 10px;"></div>
+            <div id="main-temp" class="temp-main">--</div>
+            <div id="main-desc" class="condition-text">--</div>
         </div>
 
-        <div class="source-footer"><i class="fas fa-microchip"></i> HUB HIBRID PRO: ANM + W-API + METEOBLUE</div>
-        <button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> Actualizează datele</button>
+        <div class="smart-banner" id="smart-text">Se încarcă prognoza inteligentă...</div>
+        
+        <div class="data-grid" id="full-grid">
+            </div>
+
+        <div class="radar-header">
+            <span class="radar-title"><i class="fas fa-satellite-dish"></i> Radar Live</span>
+            <div class="radar-tabs">
+                <button class="radar-tab active" onclick="switchRadar('meteo', this)">MeteoRadar</button>
+                <button class="radar-tab" onclick="switchRadar('windy', this)">Windy</button>
+            </div>
+        </div>
+        <div class="map-container">
+            <iframe id="radar-iframe" width="100%" height="100%" frameborder="0" sandbox="allow-scripts allow-same-origin" style="border:0;"></iframe>
+        </div>
+
+        <div class="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro: ANM + W-API + Meteoblue</div>
+        <button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> Actualizează Datele</button>
     </div>
 </div>
 
@@ -79,117 +106,99 @@
     const W_KEY = "bdffdac051334f298e0175011261604";
     const M_KEY = "dTx4DkKZerufXShl";
     const ANM_PROXY = "https://vremea-tg-neamt.yo8acr.workers.dev/";
-
-    const CITY_MAP = { "TARGU NEAMT": "TARGU NEAMT", "TARGU JIU": "TARGU JIU", "TARGU MURES": "TARGU MURES", "PIATRA NEAMT": "PIATRA NEAMT", "SINAIA": "SINAIA 1500" };
+    
+    let currentCoords = { lat: 47.17, lon: 26.36 };
+    let currentMode = 'meteo';
 
     function toggleTheme() {
         const b = document.body;
         const isDark = b.getAttribute('data-theme') === 'dark';
         b.setAttribute('data-theme', isDark ? 'light' : 'dark');
-        document.getElementById('t-btn').innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+        document.getElementById('theme-icon').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
     }
 
-    function formatTo24h(timeStr) {
-        if (!timeStr) return "--:--";
-        let [time, modifier] = timeStr.split(' ');
-        let [hours, minutes] = time.split(':');
-        if (hours === '12') hours = '00';
-        if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
-        return `${hours.toString().padStart(2, '0')}:${minutes}`;
-    }
-
-    function cleanStr(s) {
-        if(!s) return "";
-        return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/-/g, " ").toUpperCase().trim();
+    function switchRadar(type, btn) {
+        currentMode = type;
+        document.querySelectorAll('.radar-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const iframe = document.getElementById('radar-iframe');
+        if(type === 'meteo') {
+            iframe.src = `https://radar.wo-cloud.com/pwa/?center=${currentCoords.lat},${currentCoords.lon}&zoom=8&tz=Europe/Bucharest&tf=HH:mm&lang=ro`;
+        } else {
+            iframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=8&overlay=radar&product=radar&level=surface&lat=${currentCoords.lat}&lon=${currentCoords.lon}`;
+        }
     }
 
     async function updateWeather() {
-        const inputRaw = document.getElementById('city-in').value.trim() || "Targu Neamt";
-        const cleanInput = cleanStr(inputRaw);
-        const main = document.getElementById('main-content');
+        const cityInput = document.getElementById('city-in').value || "Targu Neamt";
         const loader = document.getElementById('loader');
+        const content = document.getElementById('main-content');
 
-        main.style.opacity = "0.2";
         loader.style.display = "block";
+        content.style.opacity = "0.3";
 
         try {
-            const rW = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${W_KEY}&q=${inputRaw}&days=1&lang=ro`);
-            const dW = await rW.json();
-            if(dW.error) throw new Error("Locație negăsită.");
+            // 1. WeatherAPI Data
+            const resW = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${W_KEY}&q=${cityInput}&days=1&lang=ro`);
+            const dW = await resW.json();
+            
+            currentCoords = { lat: dW.location.lat, lon: dW.location.lon };
+            switchRadar(currentMode, document.querySelector('.radar-tab.active'));
 
-            const {lat, lon} = dW.location;
-            const cur = dW.current, loc = dW.location, fDay = dW.forecast.forecastday[0];
-
-            // Sursă Radar dinamică bazată pe coordonate
-            document.getElementById('radar-iframe').src = `https://radar.wo-cloud.com/pwa/?center=${lat},${lon}&zoom=8&tz=Europe/Bucharest&tf=HH:mm&lang=ro`;
-
-            let tNoapte = fDay.hour[23].temp_c; 
+            // 2. Meteoblue (pentru "La Noapte")
+            let tempNoapte = "--";
             try {
-                const rM = await fetch(`https://my.meteoblue.com/packages/basic-1h?lat=${lat}&lon=${lon}&apikey=${M_KEY}&format=json`);
-                const dM = await rM.json();
-                tNoapte = dM.data_1h.temperature[23].toFixed(1);
-            } catch(e) { console.log("Meteoblue offline"); }
+                const resM = await fetch(`https://my.meteoblue.com/packages/basic-1h?lat=${currentCoords.lat}&lon=${currentCoords.lon}&apikey=${M_KEY}&format=json`);
+                const dM = await resM.json();
+                tempNoapte = dM.data_1h.temperature[23].toFixed(1);
+            } catch(e) {}
 
-            const rA = await fetch(ANM_PROXY + "?t=" + Date.now());
-            const jA = await rA.json();
-            
-            const targetStation = CITY_MAP[cleanInput] || cleanStr(loc.name);
-            let station = jA.features.find(f => cleanStr(f.properties.nume) === targetStation);
-            
-            if(!station) {
-                station = jA.features.find(f => {
-                    const sName = cleanStr(f.properties.nume);
-                    return sName.includes(targetStation) || targetStation.includes(sName);
-                });
-            }
-            
+            // 3. ANM Proxy
+            const resA = await fetch(ANM_PROXY + "?t=" + Date.now());
+            const jA = await resA.json();
+            const cityNameClean = dW.location.name.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const station = jA.features.find(f => f.properties.nume.toUpperCase().includes(cityNameClean.split(' ')[0]));
             const p = station ? station.properties : null;
-            const src = p ? "[ANM]" : "[W-API]";
 
-            // Logică Vânt unită
-            let windMs = p ? parseFloat(p.vant) : (cur.wind_kph/3.6).toFixed(1);
-            let windKmh = (windMs * 3.6).toFixed(1);
-            let windDir = cur.wind_dir;
-            if (p && p.vant) {
-                const matchDir = p.vant.match(/[A-ZĂÂÎȘȚ]+$/i);
-                if (matchDir) windDir = matchDir[0].toUpperCase();
-            }
+            // UI Updates
+            document.getElementById('city-title').innerText = p ? p.nume : dW.location.name;
+            document.getElementById('main-temp').innerText = (p ? parseFloat(p.tempe).toFixed(1) : dW.current.temp_c) + "°C";
+            document.getElementById('main-desc').innerText = dW.current.condition.text;
+            document.getElementById('sync-info').innerText = p ? `Stație ANM: ${p.nume} | ${p.actualizat}` : `Sursă: W-API | ${new Date().toLocaleTimeString('ro-RO')}`;
+            
+            // Smart Banner
+            document.getElementById('smart-text').innerHTML = `Starea vremii în <b>${dW.location.name}</b>: ${dW.current.condition.text.toLowerCase()}. Șanse de precipitații: ${dW.forecast.forecastday[0].day.daily_chance_of_rain}%.`;
 
-            const sunrise24 = formatTo24h(fDay.astro.sunrise);
-            const sunset24 = formatTo24h(fDay.astro.sunset);
-
-            document.getElementById('city-title').innerText = p ? p.nume : loc.name;
-            document.getElementById('main-temp').innerText = (p ? parseFloat(p.tempe).toFixed(1) : cur.temp_c) + "°C";
-            document.getElementById('main-desc').innerText = cur.condition.text;
-            document.getElementById('smart-text').innerHTML = `Vremea în <strong>${p ? p.nume : loc.name}</strong>: ${cur.condition.text.toLowerCase()}. Șanse ploaie: ${fDay.day.daily_chance_of_rain}%.`;
+            // Grid Complet (10 itemuri)
+            const vWindMs = p ? parseFloat(p.vant) : (dW.current.wind_kph/3.6).toFixed(1);
+            const vWindKmh = (vWindMs * 3.6).toFixed(1);
+            const pressMmHg = (dW.current.pressure_mb * 0.75006).toFixed(0);
 
             document.getElementById('full-grid').innerHTML = `
-                <div><span class="item-label">Min / Max Azi</span><span class="item-val">${fDay.day.mintemp_c}° / ${fDay.day.maxtemp_c}°C</span><span class="item-src">[W-API]</span></div>
-                <div><span class="item-label">La Noapte</span><span class="item-val">${tNoapte}°C</span><span class="item-src">[METEOBLUE]</span></div>
-                <div><span class="item-label">Vânt & Direcție</span><span class="item-val">${windKmh} km/h (${windMs} m/s) ${windDir}</span><span class="item-src">${src}</span></div>
-                <div><span class="item-label">Rafale Maxime</span><span class="item-val">${cur.gust_kph} km/h</span><span class="item-src">[W-API]</span></div>
-                <div><span class="item-label">Răsărit (24h)</span><span class="item-val">${sunrise24}</span><span class="item-src">[W-API]</span></div>
-                <div><span class="item-label">Apus (24h)</span><span class="item-val">${sunset24}</span><span class="item-src">[W-API]</span></div>
-                <div><span class="item-label">Presiune</span><span class="item-val">${p ? p.presiunetext : cur.pressure_mb} mb</span><span class="item-src">${src}</span></div>
-                <div><span class="item-label">Umiditate</span><span class="item-val">${p ? p.umezeala : cur.humidity}%</span><span class="item-src">${src}</span></div>
+                <div class="data-item"><span class="item-label">Min / Max Azi</span><span class="item-val">${dW.forecast.forecastday[0].day.mintemp_c}° / ${dW.forecast.forecastday[0].day.maxtemp_c}°C</span><span class="item-src">[W-API]</span></div>
+                <div class="data-item"><span class="item-label">La Noapte</span><span class="item-val">${tempNoapte}°C</span><span class="item-src">[METEOBLUE]</span></div>
+                <div class="data-item"><span class="item-label">Vânt Mediu</span><span class="item-val">${vWindKmh} km/h (${vWindMs} m/s)</span><span class="item-src">${p?'[ANM]':'[W-API]'}</span></div>
+                <div class="data-item"><span class="item-label">Direcție & Rafale</span><span class="item-val">${dW.current.wind_dir} | ${dW.current.gust_kph} km/h</span><span class="item-src">[W-API]</span></div>
+                <div class="data-item"><span class="item-label">Presiune</span><span class="item-val">${dW.current.pressure_mb} mb (${pressMmHg} mmHg)</span><span class="item-src">${p?'[ANM]':'[W-API]'}</span></div>
+                <div class="data-item"><span class="item-label">Umiditate</span><span class="item-val">${p ? p.umezeala : dW.current.humidity}%</span><span class="item-src">${p?'[ANM]':'[W-API]'}</span></div>
+                <div class="data-item"><span class="item-label">Vizibilitate</span><span class="item-val">${dW.current.vis_km} km</span><span class="item-src">[W-API]</span></div>
+                <div class="data-item"><span class="item-label">Indice UV</span><span class="item-val">${dW.current.uv} (Scăzut)</span><span class="item-src">[W-API]</span></div>
+                <div class="data-item"><span class="item-label">Răsărit Soare</span><span class="item-val">${dW.forecast.forecastday[0].astro.sunrise}</span><span class="item-src">[W-API]</span></div>
+                <div class="data-item"><span class="item-label">Apus Soare</span><span class="item-val">${dW.forecast.forecastday[0].astro.sunset}</span><span class="item-src">[W-API]</span></div>
             `;
 
-            document.getElementById('sync-info').innerText = p ? `Stație: ${p.nume} | ${p.actualizat.replace(/&nbsp;/g, ' ')}` : `Sursă: W-API | ${new Date().toLocaleTimeString('ro-RO')}`;
-            
-            const isDay = cur.is_day === 1;
-            const d = cur.condition.text.toLowerCase();
-            let icon = isDay ? "fa-sun" : "fa-moon", color = isDay ? "#f59e0b" : "#cbd5e1";
-            if(d.includes("ploaie")) { icon = "fa-cloud-showers-heavy"; color = "#3b82f6"; }
-            else if(d.includes("nor")) { icon = isDay ? "fa-cloud-sun" : "fa-cloud-moon"; color = "#64748b"; }
-            document.getElementById('big-icon').innerHTML = `<i class="fas ${icon}" style="color: ${color}"></i>`;
+            // Icon Dinamic
+            const cond = dW.current.condition.text.toLowerCase();
+            let iconClass = dW.current.is_day ? "fa-sun" : "fa-moon";
+            let iconColor = dW.current.is_day ? "#f59e0b" : "#94a3b8";
+            if(cond.includes("ploaie")) { iconClass = "fa-cloud-showers-heavy"; iconColor = "#3b82f6"; }
+            else if(cond.includes("nor")) { iconClass = dW.current.is_day ? "fa-cloud-sun" : "fa-cloud-moon"; }
+            document.getElementById('big-icon').innerHTML = `<i class="fas ${iconClass}" style="color: ${iconColor}"></i>`;
 
-        } catch(e) { 
-            alert("Eroare: " + e.message); 
-        } finally { 
-            loader.style.display = "none"; 
-            main.style.opacity = "1"; 
-        }
+        } catch(e) { console.error(e); }
+        finally { loader.style.display = "none"; content.style.opacity = "1"; }
     }
+
     updateWeather();
 </script>
 </body>
