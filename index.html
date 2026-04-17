@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; child-src 'self' https: blob:; frame-src https://embed.windy.com https://radar.wo-cloud.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; connect-src 'self' https:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; child-src 'self' https: blob:; frame-src https://embed.windy.com https://radar.wo-cloud.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://www.meteoradar.ro; connect-src 'self' https:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:;">
     <title>Hub Hibrid PRO + Radar vreme</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -272,7 +272,7 @@
 
         /* Windy + MeteoRadar iframe */
         .windy-frame, .meteo-radar-frame {
-            border-radius: 20px; overflow: hidden; height: 320px;
+            border-radius: 20px; height: 320px;
             border: 2px solid var(--grid); display: none;
             position: relative;
         }
@@ -283,6 +283,28 @@
             padding: 2px 10px; font-size: 0.6rem; font-weight: 800;
             color: var(--muted); pointer-events: none;
             backdrop-filter: blur(4px);
+        }
+        /* Fullscreen styles */
+        .radar-fs-btn {
+            position: absolute; top: 8px; left: 8px; z-index: 2000;
+            background: rgba(15,23,42,0.75); color: #fff; border: none;
+            width: 30px; height: 30px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; backdrop-filter: blur(4px);
+            transition: background 0.2s, opacity 0.2s; opacity: 0.7;
+        }
+        .radar-fs-btn:hover { opacity: 1; background: var(--primary); }
+        .meteo-radar-frame:fullscreen,
+        .windy-frame:fullscreen,
+        .map-wrapper:fullscreen {
+            border-radius: 0; border: none !important;
+            width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; z-index: 10000;
+        }
+        .meteo-radar-frame:fullscreen iframe,
+        .windy-frame:fullscreen iframe,
+        .map-wrapper:fullscreen #radar-map {
+            width: 100vw; height: 100vh;
         }
 
         /* Radar layer buttons */
@@ -416,10 +438,127 @@
         .refresh-badge i { font-size: 0.5rem; }
         .refresh-badge.countdown { color: var(--primary); }
 
+        /* ═══════════════════════════════════════════════════════════
+           RESPONSIVE — adaptează pe orice dispozitiv și display
+           ═══════════════════════════════════════════════════════════ */
+
+        /* TABLET (≤768px) */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .card { max-width: 100%; border-radius: 24px; padding: 20px; }
+            .temp-main { font-size: 4.8rem; }
+            .city-name { font-size: 1.5rem; }
+            .big-icon-wrap { font-size: 3.8rem; }
+            .map-wrapper, .windy-frame, .meteo-radar-frame { height: 280px; }
+            .radar-header { flex-direction: column; align-items: flex-start; }
+            .radar-tabs { width: 100%; }
+        }
+
+        /* MOBILE MARE (≤520px) */
+        @media (max-width: 520px) {
+            body { padding: 8px; }
+            .card { padding: 16px; border-radius: 20px; }
+            .temp-main { font-size: 4rem; letter-spacing: -2px; }
+            .city-name { font-size: 1.3rem; letter-spacing: 0.5px; }
+            .big-icon-wrap { font-size: 3.2rem; }
+            .weather-main { margin-bottom: 14px; }
+            .data-grid { padding: 12px; gap: 10px; border-radius: 18px; }
+            .widgets-row { gap: 8px; margin-bottom: 14px; }
+            .widget-card { padding: 10px; border-radius: 16px; }
+            .map-wrapper, .windy-frame, .meteo-radar-frame { height: 250px; }
+            .provider-selector { padding: 8px 10px; gap: 6px; }
+            .ps-chip { padding: 5px 8px; font-size: 0.6rem; }
+            .header-actions { gap: 5px; }
+            .btn-action { width: 38px; height: 38px; border-radius: 11px; }
+            .smart-banner { padding: 10px 12px; font-size: 0.78rem; margin-bottom: 14px; }
+            .forecast-card { min-width: 65px; padding: 8px 10px; }
+            .aqi-detail-panel { padding: 10px; }
+            .aqi-detail-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .hourly-chart-wrap { padding: 10px; margin-bottom: 14px; }
+        }
+
+        /* MOBILE MIC (≤400px) */
         @media (max-width: 400px) {
-            .card { padding: 18px; border-radius: 24px; }
-            .temp-main { font-size: 4.5rem; }
-            .aqi-detail-grid { grid-template-columns: repeat(2, 1fr); }
+            .card { padding: 14px; border-radius: 18px; }
+            .temp-main { font-size: 3.5rem; }
+            .city-name { font-size: 1.15rem; }
+            .big-icon-wrap { font-size: 2.8rem; margin-bottom: 6px; }
+            .condition-text { font-size: 1rem; }
+            .data-grid { padding: 10px; gap: 8px; }
+            .item-val { font-size: 0.78rem; }
+            .map-wrapper, .windy-frame, .meteo-radar-frame { height: 220px; }
+            .radar-tab { font-size: 0.55rem; padding: 4px 7px; }
+            .radar-controls { padding: 6px 8px; gap: 6px; }
+            .radar-play-btn { width: 28px; height: 28px; }
+            .wind-compass-svg { width: 110px; height: 110px; }
+            #wind-compass-svg { width: 110px; height: 110px; }
+            .sun-arc-svg { width: 160px; }
+            .section-title { font-size: 0.6rem; }
+            .footer-tag { font-size: 0.6rem; padding: 6px; }
+            .btn-update { padding: 14px; font-size: 0.8rem; }
+        }
+
+        /* MOBILE FOARTE MIC (≤340px) */
+        @media (max-width: 340px) {
+            body { padding: 4px; }
+            .card { padding: 12px; border-radius: 14px; }
+            .temp-main { font-size: 3rem; }
+            .big-icon-wrap { font-size: 2.4rem; }
+            .header-actions { gap: 3px; }
+            .btn-action { width: 34px; height: 34px; font-size: 0.85rem; }
+            .map-wrapper, .windy-frame, .meteo-radar-frame { height: 180px; }
+            .widgets-row { flex-direction: column; gap: 8px; }
+        }
+
+        /* LARGE SCREEN (≥900px) */
+        @media (min-width: 900px) {
+            .card { max-width: 560px; }
+            .map-wrapper, .windy-frame, .meteo-radar-frame { height: 380px; }
+        }
+
+        /* XL SCREEN (≥1200px) */
+        @media (min-width: 1200px) {
+            .card { max-width: 600px; }
+            .temp-main { font-size: 6rem; }
+            .map-wrapper, .windy-frame, .meteo-radar-frame { height: 420px; }
+        }
+
+        /* SHORT VIEWPORT (landscape phones, short screens) */
+        @media (max-height: 500px) {
+            .map-wrapper, .windy-frame, .meteo-radar-frame { height: 200px; }
+            .big-icon-wrap { font-size: 2.8rem; margin-bottom: 4px; }
+            .weather-main { margin-bottom: 10px; }
+            .smart-banner { padding: 8px 10px; margin-bottom: 10px; }
+        }
+
+        /* HIGH DPI — sharper fonts */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        }
+
+        /* SAFE AREA — notch phones */
+        @supports (padding-top: env(safe-area-inset-top)) {
+            body {
+                padding-top: max(10px, env(safe-area-inset-top));
+                padding-bottom: max(10px, env(safe-area-inset-bottom));
+                padding-left: max(10px, env(safe-area-inset-left));
+                padding-right: max(10px, env(safe-area-inset-right));
+            }
+        }
+
+        /* TOUCH OPTIMIZATION */
+        @media (hover: none) and (pointer: coarse) {
+            .btn-action, .radar-tab, .ps-chip, .layer-btn, .forecast-card {
+                min-height: 44px; min-width: 44px;
+            }
+            .radar-tab { padding: 8px 12px; }
+        }
+
+        /* PRINT */
+        @media print {
+            body { background: white; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #ddd; }
+            .btn-action, .btn-update, .radar-section, .toast-container { display: none; }
         }
     </style>
 </head>
@@ -526,9 +665,9 @@
             <div class="hourly-labels" id="hourly-labels"></div>
         </div>
 
-        <!-- 5-DAY FORECAST — shown only when W-API active -->
+        <!-- 6-DAY FORECAST — shown only when W-API active -->
         <div class="forecast-wrap" id="forecast-section">
-            <div class="section-title"><i class="fas fa-calendar-days"></i> <span data-i18n="forecast_title">Prognoză 5 Zile</span></div>
+            <div class="section-title"><i class="fas fa-calendar-days"></i> <span data-i18n="forecast_title">Prognoză 6 Zile</span></div>
             <div class="forecast-scroll" id="forecast-scroll"></div>
         </div>
 
@@ -562,13 +701,15 @@
             </div>
 
             <div class="meteo-radar-frame" id="meteo-radar-frame">
-                <iframe id="meteo-radar-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="no-referrer"></iframe>
-                <div class="windy-logo-cover">🌐 MeteoRadar.ro</div>
+                <iframe id="meteo-radar-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" allowfullscreen referrerpolicy="no-referrer"></iframe>
+                <!-- Overlay to hide wo-cloud fullscreen toggle + share button (top-left of iframe) -->
+                <div class="wo-overlay-block" style="position:absolute;top:0;left:0;width:76px;height:36px;z-index:1500;background:transparent;pointer-events:auto;cursor:default;"></div>
+                <button class="radar-fs-btn" onclick="toggleRadarFullscreen('meteo-radar-frame')" title="Fullscreen"><i class="fas fa-expand"></i></button>
             </div>
 
             <div class="windy-frame" id="windy-frame">
-                <iframe id="windy-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="no-referrer"></iframe>
-                <div class="windy-logo-cover">💨 Windy</div>
+                <iframe id="windy-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" allowfullscreen referrerpolicy="no-referrer"></iframe>
+                <button class="radar-fs-btn" onclick="toggleRadarFullscreen('windy-frame')" title="Fullscreen"><i class="fas fa-expand"></i></button>
             </div>
         </div>
 
@@ -601,7 +742,7 @@ const LANG = {
         moon_title: 'Faza Lunii',
         comfort_title: 'Confort Termic',
         hourly_title: 'Temperaturi Orare (8h)',
-        forecast_title: 'Prognoză 5 Zile',
+        forecast_title: 'Prognoză 6 Zile',
         radar_title: 'Radar Ploi Live',
         radar_tab_animated: '🌧️ Radar Animat',
         radar_tab_meteo: '🌐 Radar RO',
@@ -701,7 +842,7 @@ const LANG = {
         moon_title: 'Moon Phase',
         comfort_title: 'Thermal Comfort',
         hourly_title: 'Hourly Temperatures (8h)',
-        forecast_title: '5-Day Forecast',
+        forecast_title: '6-Day Forecast',
         radar_title: 'Live Rain Radar',
         radar_tab_animated: '🌧️ Animated Radar',
         radar_tab_meteo: '🌐 Radar RO',
@@ -1193,6 +1334,11 @@ function showRadarTab(type, btn) {
     const windyFrame  = document.getElementById('windy-frame');
     const meteoFrame  = document.getElementById('meteo-radar-frame');
 
+    /* Exit fullscreen if active */
+    if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+    }
+
     /* Hide all iframes first */
     mapWrap.style.display    = 'none';
     windyFrame.style.display = 'none';
@@ -1217,6 +1363,23 @@ function showRadarTab(type, btn) {
             `&lat=${lat}&lon=${lon}`;
     }
 }
+
+function toggleRadarFullscreen(elemId) {
+    const el = document.getElementById(elemId);
+    if (!el) return;
+    if (!document.fullscreenElement) {
+        el.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen().catch(() => {});
+    }
+}
+
+/* Update fullscreen button icon on fullscreen change */
+document.addEventListener('fullscreenchange', () => {
+    document.querySelectorAll('.radar-fs-btn i').forEach(icon => {
+        icon.className = document.fullscreenElement ? 'fas fa-compress' : 'fas fa-expand';
+    });
+});
 
 /* ================================================================
    THEME
@@ -1252,7 +1415,11 @@ function showToast(msg, type = 'info') {
    GEOLOCALIZARE
 ================================================================ */
 function geoLocate() {
-    if (!navigator.geolocation) { showToast(t('toast_geo_not_supported'),'error'); return; }
+    if (!navigator.geolocation) {
+        /* Browser doesn't support geolocation — fallback to IP geolocation */
+        geoLocateByIP();
+        return;
+    }
     showToast(t('toast_detecting_loc'),'info');
     navigator.geolocation.getCurrentPosition(
         pos => {
@@ -1261,8 +1428,29 @@ function geoLocate() {
             selectedAnmStation = null;
             updateWeather();
         },
-        () => showToast(t('toast_geo_denied'),'error')
+        () => {
+            /* User denied or geolocation failed — fallback to IP */
+            geoLocateByIP();
+        }
     );
+}
+
+async function geoLocateByIP() {
+    showToast(t('toast_detecting_loc'),'info');
+    try {
+        const resp = await fetch(`https://api.weatherapi.com/v1/ip.json?key=${W_KEY}&q=auto:ip`);
+        const data = await resp.json();
+        if (data.lat && data.lon) {
+            currentCoords = { lat: data.lat, lon: data.lon };
+            document.getElementById('city-in').value = `${data.city || data.region || ''},${currentCoords.lat},${currentCoords.lon}`;
+            selectedAnmStation = null;
+            updateWeather();
+        } else {
+            showToast(t('toast_geo_denied'),'error');
+        }
+    } catch (e) {
+        showToast(t('toast_geo_denied'),'error');
+    }
 }
 
 /* ================================================================
@@ -1737,7 +1925,7 @@ async function updateWeather() {
         const wApiLang = currentLang === 'en' ? 'en' : 'ro';
         const resW = await fetch(
             `https://api.weatherapi.com/v1/forecast.json?key=${W_KEY}` +
-            `&q=${encodeURIComponent(cityInput)}&days=5&lang=${wApiLang}&aqi=yes`
+            `&q=${encodeURIComponent(cityInput)}&days=6&lang=${wApiLang}&aqi=yes`
         );
         if (!resW.ok) throw new Error('City not found or invalid API key');
         const dW = await resW.json();
@@ -2309,8 +2497,13 @@ function updateRefreshBadge() {
     updateProviderStatus();
 
     const lastCity = localStorage.getItem('hub_last_city');
-    if (lastCity) document.getElementById('city-in').value = lastCity;
-    updateWeather();
+    if (lastCity) {
+        document.getElementById('city-in').value = lastCity;
+        updateWeather();
+    } else {
+        /* First visit — auto-detect location */
+        geoLocate();
+    }
 })();
 </script>
 </body>
