@@ -44,13 +44,7 @@ body.bg-cloudy       { background: linear-gradient(160deg,#94a3b8,#64748b,#47556
 body.bg-fog          { background: linear-gradient(160deg,#cbd5e1,#e2e8f0,#f1f5f9) !important; }
 body.bg-dawn         { background: linear-gradient(160deg,#fde68a,#fb923c,#f97316) !important; }
 body.bg-dusk         { background: linear-gradient(160deg,#fb923c,#c2410c,#7c3aed) !important; }
-/* ── °C/°F TOGGLE ── */
-.btn-unit {
-background: var(--grid); color: var(--text);
-font-size: 0.65rem; font-weight: 800; letter-spacing: 0.5px;
-border: 1.5px solid transparent; transition: all 0.2s;
-}
-.btn-unit:hover { border-color: var(--primary); color: var(--primary); }
+
 /* ── SHARE BUTTON ── */
 .btn-share { background: #0ea5e9; color: white; }
 /* ── UV GAUGE ── */
@@ -823,7 +817,6 @@ onfocus="onSearchFocus()"
 onkeypress="if(event.key==='Enter') updateWeather()">
 </div>
 
-<button class="btn-action btn-unit" onclick="toggleUnit()" title="Toggle °C/°F" id="btn-unit">°F</button>
 <button class="btn-action btn-share" onclick="shareWeather()" title="Distribuie vremea"><i class="fas fa-share-nodes"></i></button>
 <button class="btn-action btn-theme" onclick="toggleTheme()" title="Schimbă tema"><i class="fas fa-moon" id="theme-icon"></i></button>
 <button class="btn-action btn-lang"  onclick="toggleLang()"  title="Switch language" id="btn-lang">RO</button>
@@ -910,11 +903,7 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <!-- HOURLY CHART — shown only when data available -->
 <div class="hourly-chart-wrap" id="hourly-section">
 <div class="section-title"><i class="fas fa-chart-line"></i> <span data-i18n="hourly_title" id="hourly-title-label">Temperaturi Orare (8h)</span></div>
-<div class="hourly-tabs">
-<button class="hourly-tab active" onclick="setHourlyView('8h', this)">8h</button>
-<button class="hourly-tab" onclick="setHourlyView('24h', this)">24h</button>
-<button class="hourly-tab" onclick="setHourlyView('precip', this)">🌧️ Precipitații</button>
-</div>
+
 <svg id="hourly-svg" viewBox="0 0 460 90" preserveAspectRatio="none"></svg>
 <div class="hourly-labels" id="hourly-labels"></div>
 </div>
