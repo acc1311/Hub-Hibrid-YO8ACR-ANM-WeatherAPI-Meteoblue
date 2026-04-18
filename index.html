@@ -137,6 +137,7 @@
         .ps-chip.active            { opacity: 1; border-color: var(--primary); color: var(--primary); }
         .ps-chip.active.c-anm      { border-color: #059669; color: #059669; }
         .ps-chip.active.c-mb       { border-color: #2563eb; color: #2563eb; }
+        .ps-chip.active.c-om       { border-color: #7c3aed; color: #7c3aed; }
         .ps-dot {
             width: 7px; height: 7px; border-radius: 50%;
             background: currentColor; flex-shrink: 0;
@@ -601,6 +602,9 @@
             <button class="ps-chip active c-mb" id="chip-mb" onclick="toggleProvider('mb', this)" title="Meteoblue — temperaturi orare, prognoză noapte">
                 <span class="ps-dot"></span> Meteoblue
             </button>
+            <button class="ps-chip active c-om" id="chip-om" onclick="toggleProvider('om', this)" title="Open-Meteo ICON-EU + ECMWF — precizie maximă România">
+                <span class="ps-dot"></span> Open-Meteo
+            </button>
         </div>
         <span class="ps-status" id="ps-status">Toate sursele active</span>
     </div>
@@ -787,6 +791,8 @@ const LANG = {
         toast_no_radar: 'Nu există date radar disponibile',
         toast_mb_unavailable: 'Meteoblue indisponibil — fallback W-API',
         toast_anm_unavailable: 'ANM indisponibil — fallback W-API',
+        toast_om_added: 'Open-Meteo ICON-EU+ECMWF: date adăugate ✓',
+        toast_om_unavailable: 'Open-Meteo indisponibil — fallback W-API',
         toast_loading_radar: 'Se încarcă...',
         toast_detecting_loc: 'Se detectează locația...',
         toast_geo_not_supported: 'Geolocalizarea nu este suportată',
@@ -887,6 +893,8 @@ const LANG = {
         toast_no_radar: 'No radar data available',
         toast_mb_unavailable: 'Meteoblue unavailable — W-API fallback',
         toast_anm_unavailable: 'ANM unavailable — W-API fallback',
+        toast_om_added: 'Open-Meteo ICON-EU+ECMWF: data added ✓',
+        toast_om_unavailable: 'Open-Meteo unavailable — W-API fallback',
         toast_loading_radar: 'Loading...',
         toast_detecting_loc: 'Detecting location...',
         toast_geo_not_supported: 'Geolocation not supported',
@@ -983,7 +991,7 @@ let selectedAnmStation = null;
 /* ================================================================
    PROVIDER STATE
 ================================================================ */
-const providers = { wapi: true, anm: true, mb: true };
+const providers = { wapi: true, anm: true, mb: true, om: true };
 
 function toggleProvider(key, btn) {
     if (providers[key]) {
@@ -1012,7 +1020,7 @@ function toggleProvider(key, btn) {
 }
 
 function updateProviderStatus() {
-    const names = { wapi: 'WeatherAPI', anm: 'ANM', mb: 'Meteoblue' };
+    const names = { wapi: 'WeatherAPI', anm: 'ANM', mb: 'Meteoblue', om: 'Open-Meteo' };
     const on  = Object.entries(providers).filter(([,v]) => v).map(([k]) => names[k]);
     const off = Object.entries(providers).filter(([,v]) => !v).map(([k]) => names[k]);
     const el  = document.getElementById('ps-status');
@@ -1033,6 +1041,7 @@ function updateProviderStatus() {
     if (providers.wapi) active.push('W-API');
     if (providers.anm)  active.push('ANM');
     if (providers.mb)   active.push('Meteoblue');
+    if (providers.om)   active.push('Open-Meteo');
     active.push(currentLang === 'ro' ? 'Radar ploi' : 'Rain Radar');
     document.getElementById('footer-tag').innerHTML =
         '<i class="fas fa-check-circle"></i> ' + t('footer_text') + active.join(' + ');
@@ -1602,6 +1611,169 @@ function anmVal(field) {
 }
 
 /* ================================================================
+   OPEN-METEO — ICON-EU + ECMWF (precizie maximă România)
+   Endpoint gratuit, fără cheie API, date la 1h rezoluție
+================================================================ */
+
+/* WMO weather interpretation codes → text RO/EN */
+const OM_WMO_MAP = {
+    0:  { ro: 'Senin', en: 'Clear sky' },
+    1:  { ro: 'Parțial senin', en: 'Mainly clear' },
+    2:  { ro: 'Parțial noros', en: 'Partly cloudy' },
+    3:  { ro: 'Acoperit', en: 'Overcast' },
+    45: { ro: 'Ceață', en: 'Fog' },
+    48: { ro: 'Ceață cu chiciură', en: 'Icy fog' },
+    51: { ro: 'Burniță ușoară', en: 'Light drizzle' },
+    53: { ro: 'Burniță moderată', en: 'Moderate drizzle' },
+    55: { ro: 'Burniță intensă', en: 'Dense drizzle' },
+    61: { ro: 'Ploaie ușoară', en: 'Light rain' },
+    63: { ro: 'Ploaie moderată', en: 'Moderate rain' },
+    65: { ro: 'Ploaie intensă', en: 'Heavy rain' },
+    71: { ro: 'Ninsoare ușoară', en: 'Light snow' },
+    73: { ro: 'Ninsoare moderată', en: 'Moderate snow' },
+    75: { ro: 'Ninsoare intensă', en: 'Heavy snow' },
+    77: { ro: 'Granule de zăpadă', en: 'Snow grains' },
+    80: { ro: 'Averse ușoare', en: 'Light showers' },
+    81: { ro: 'Averse moderate', en: 'Moderate showers' },
+    82: { ro: 'Averse violente', en: 'Violent showers' },
+    85: { ro: 'Averse de zăpadă', en: 'Snow showers' },
+    86: { ro: 'Averse intense de zăpadă', en: 'Heavy snow showers' },
+    95: { ro: 'Furtună', en: 'Thunderstorm' },
+    96: { ro: 'Furtună cu grindină', en: 'Thunderstorm + hail' },
+    99: { ro: 'Furtună severă cu grindină', en: 'Severe thunderstorm' }
+};
+
+function omWmoText(code) {
+    const entry = OM_WMO_MAP[code];
+    if (!entry) return currentLang === 'ro' ? 'Condiție necunoscută' : 'Unknown condition';
+    return currentLang === 'ro' ? entry.ro : entry.en;
+}
+
+/**
+ * Fetch Open-Meteo cu modele ICON-EU (date principale) + ECMWF (UV)
+ * Returnează obiect { current, hourly, daily, nowIdx, tonight23Idx } sau null
+ */
+async function fetchOpenMeteo(lat, lon) {
+    try {
+        const latS = parseFloat(lat).toFixed(4);
+        const lonS = parseFloat(lon).toFixed(4);
+
+        // ── Request 1: ICON-EU — date meteo principale (3km rezoluție EU) ──
+        const paramsIconEu = new URLSearchParams({
+            latitude:  latS,
+            longitude: lonS,
+            models:    'icon_eu',
+            current:   'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,precipitation,cloud_cover,visibility,is_day',
+            hourly:    'temperature_2m,relative_humidity_2m,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,snow_depth',
+            daily:     'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset,wind_speed_10m_max,wind_gusts_10m_max',
+            wind_speed_unit:    'kmh',
+            temperature_unit:   'celsius',
+            precipitation_unit: 'mm',
+            timezone:           'Europe/Bucharest',
+            forecast_days:      7,
+            forecast_hours:     48
+        });
+
+        const resIconEu = await fetch(`https://api.open-meteo.com/v1/forecast?${paramsIconEu}`);
+        if (!resIconEu.ok) throw new Error(`Open-Meteo ICON-EU HTTP ${resIconEu.status}`);
+        const dataIconEu = await resIconEu.json();
+
+        // ── Request 2: ECMWF — UV Index (disponibil în ECMWF, nu ICON-EU) ──
+        let uvIndexHourly = null;
+        let uvIndexMax = null;
+        try {
+            const paramsEcmwf = new URLSearchParams({
+                latitude:  latS,
+                longitude: lonS,
+                models:    'ecmwf_ifs025',
+                hourly:    'uv_index',
+                daily:     'uv_index_max',
+                timezone:  'Europe/Bucharest',
+                forecast_days:  7,
+                forecast_hours: 48
+            });
+            const resEcmwf = await fetch(`https://api.open-meteo.com/v1/forecast?${paramsEcmwf}`);
+            if (resEcmwf.ok) {
+                const dataEcmwf = await resEcmwf.json();
+                uvIndexHourly = dataEcmwf.hourly ? dataEcmwf.hourly.uv_index : null;
+                uvIndexMax    = dataEcmwf.daily  ? dataEcmwf.daily.uv_index_max : null;
+            }
+        } catch(e2) {
+            console.warn('Open-Meteo ECMWF UV error (non-critical):', e2);
+        }
+
+        // ── Calculează indecșii temporali ──
+        const computeIdx = (timeArr, targetHour) => {
+            if (!timeArr) return 0;
+            const now = new Date();
+            const h = targetHour !== undefined ? targetHour : now.getHours();
+            const prefix = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + 'T' +
+                String(h).padStart(2, '0');
+            let idx = timeArr.findIndex(t => t.startsWith(prefix));
+            if (idx < 0) {
+                // fallback: primul slot al zilei curente
+                const day = prefix.slice(0, 10);
+                idx = timeArr.findIndex(t => t.startsWith(day));
+            }
+            return idx >= 0 ? idx : 0;
+        };
+
+        const hourlyTime    = dataIconEu.hourly ? dataIconEu.hourly.time : null;
+        const nowIdx        = computeIdx(hourlyTime);
+        const tonight23Idx  = computeIdx(hourlyTime, 23);
+
+        // ── Injectează UV Index hourly în hourly ICON-EU ──
+        if (dataIconEu.hourly && uvIndexHourly) {
+            dataIconEu.hourly.uv_index = uvIndexHourly;
+        }
+        if (dataIconEu.daily && uvIndexMax) {
+            dataIconEu.daily.uv_index_max = uvIndexMax;
+        }
+
+        return {
+            raw:          dataIconEu,
+            current:      dataIconEu.current,
+            hourly:       dataIconEu.hourly,
+            daily:        dataIconEu.daily,
+            nowIdx:       nowIdx,
+            tonight23Idx: tonight23Idx
+        };
+
+    } catch(e) {
+        console.warn('Open-Meteo fetch error:', e);
+        return null;
+    }
+}
+
+/**
+ * Construiește textul sursă pentru un câmp OM
+ * @param {string} model - 'ICON-EU', 'ECMWF' sau 'OM'
+ */
+function omSrc(model) {
+    return `OM/${model || 'ICON-EU'}`;
+}
+
+/**
+ * Convertește grade meteorologice (0-360) în text direcție cardinală
+ */
+function degToCompass(deg) {
+    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE',
+                  'S','SSV','SV','VSV','V','VNV','NV','NNV'];
+    return dirs[Math.round(deg / 22.5) % 16];
+}
+
+/**
+ * Calculează punctul de rouă (formula Magnus simplificată)
+ */
+function calcDewPoint(tempC, humidity) {
+    const a = 17.27, b = 237.7;
+    const alpha = ((a * tempC) / (b + tempC)) + Math.log(humidity / 100);
+    return parseFloat(((b * alpha) / (a - alpha)).toFixed(1));
+}
+
+/* ================================================================
    GRAFIC ORAR SVG
 ================================================================ */
 function drawHourlyChart(hours) {
@@ -1647,6 +1819,36 @@ function renderForecast(days) {
             <div class="fc-max">${d.day.maxtemp_c.toFixed(0)}°</div>
             <div class="fc-min">${d.day.mintemp_c.toFixed(0)}°</div>
             <div class="fc-rain"><i class="fas fa-droplet"></i> ${d.day.daily_chance_of_rain}%</div>
+        </div>`;
+    }).join('');
+}
+
+/* ================================================================
+   FORECAST 7 ZILE — Open-Meteo (folosit în modul ANM-only sau
+   când W-API este dezactivat)
+================================================================ */
+function renderForecastOM(days) {
+    // Folosim data locală (nu UTC) pentru a detecta corect ziua de azi
+    const now = new Date();
+    const todayLocal = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+    document.getElementById('forecast-section').querySelector('.section-title').innerHTML =
+        '<i class="fas fa-calendar-days"></i> Prognoză 7 Zile [Open-Meteo ICON-EU]';
+    document.getElementById('forecast-scroll').innerHTML = days.slice(0, 7).map((d, i) => {
+        const isToday = d.date === todayLocal;
+        const condText = omWmoText(d.weather_code);
+        const ico = getWeatherIcon(condText, true);
+        const rainProb = d.rain_prob != null ? d.rain_prob : 0;
+        const dayLabel = isToday
+            ? t('today')
+            : dayName(d.date + 'T00:00');
+        return `<div class="forecast-card ${isToday ? 'today' : ''}">
+            <div class="fc-day">${dayLabel}</div>
+            <div class="fc-icon"><i class="fas ${ico.cls}" style="color:${ico.col}"></i></div>
+            <div class="fc-max">${d.maxtemp_c != null ? d.maxtemp_c.toFixed(0) : '--'}°</div>
+            <div class="fc-min">${d.mintemp_c != null ? d.mintemp_c.toFixed(0) : '--'}°</div>
+            <div class="fc-rain"><i class="fas fa-droplet"></i> ${rainProb}%</div>
         </div>`;
     }).join('');
 }
@@ -1752,24 +1954,81 @@ async function updateWeatherANMOnly() {
         /* ── PARSEAZĂ PRESIUNE ANM ── */
         const anmPressure = parseAnmPressure(p.presiunetext);
 
-        /* ── Date meteo detaliate ── */
+        /* ── Fetch Open-Meteo ÎNAINTE de a construi grila ──
+           Astfel datele OM sunt integrate direct, fără patching post-render */
+        let omDataANM = null;
+        if (providers.om) {
+            omDataANM = await fetchOpenMeteo(currentCoords.lat, currentCoords.lon);
+            if (!omDataANM) showToast(t('toast_om_unavailable'), 'info');
+        }
+
+        /* Shortcut-uri OM pentru uz în gridItems */
+        const omC   = omDataANM ? omDataANM.current  : null;
+        const omH   = omDataANM ? omDataANM.hourly   : null;
+        const omD   = omDataANM ? omDataANM.daily    : null;
+        const omNow = omDataANM ? omDataANM.nowIdx   : 0;
+        const omT23 = omDataANM ? omDataANM.tonight23Idx : -1;
+
+        /* Indexul zilei de azi în daily OM */
+        const todayDateStr = (() => {
+            const n = new Date();
+            return n.getFullYear() + '-' +
+                String(n.getMonth()+1).padStart(2,'0') + '-' +
+                String(n.getDate()).padStart(2,'0');
+        })();
+        const omDIdx = (omD && omD.time)
+            ? Math.max(0, omD.time.findIndex(d => d === todayDateStr))
+            : 0;
+
+        /* Helper: valoare OM cu fallback */
+        const omVal = (arr, idx) => (arr && idx >= 0 && arr[idx] != null) ? arr[idx] : null;
+
+        /* Date OM curente */
+        const omFeelsLike  = omC  ? omC.apparent_temperature : null;
+        const omVisKm      = omC  ? (omC.visibility != null ? (omC.visibility/1000).toFixed(1) : null) : null;
+        const omCloudCover = omC  ? omC.cloud_cover : null;
+        const omPressure   = (omC && omC.surface_pressure != null && anmPressure.value === null)
+                             ? omC.surface_pressure : null;
+        const omUvNow      = omVal(omH ? omH.uv_index : null, omNow);
+        const omRainProb   = omVal(omH ? omH.precipitation_probability : null, omNow);
+        const omTonightT   = omVal(omH ? omH.temperature_2m : null, omT23);
+        const omTodayMin   = omD  ? omVal(omD.temperature_2m_min, omDIdx) : null;
+        const omTodayMax   = omD  ? omVal(omD.temperature_2m_max, omDIdx) : null;
+        const omSunrise    = (omD && omD.sunrise && omD.sunrise[omDIdx]) ? omD.sunrise[omDIdx].slice(11,16) : null;
+        const omSunset     = (omD && omD.sunset  && omD.sunset[omDIdx])  ? omD.sunset[omDIdx].slice(11,16)  : null;
+
+        /* ── Date meteo detaliate — grila construită cu date OM integrate ── */
         const gridItems = [];
 
         gridItems.push({ label: t('temp_actual'), val: `${mainTemp}°C`, src: 'ANM' });
 
+        /* Min/Max: ANM dacă are, altfel OM */
         if (anmVal(p.tempe_min) || anmVal(p.temp_min)) {
-            gridItems.push({ label: t('minima'), val: `${parseFloat(anmVal(p.tempe_min) || anmVal(p.temp_min)).toFixed(1)}°C`, src: 'ANM' });
+            gridItems.push({ label: t('minima'),
+                val: `${parseFloat(anmVal(p.tempe_min)||anmVal(p.temp_min)).toFixed(1)}°C`, src: 'ANM' });
+        } else if (omTodayMin !== null && omTodayMax !== null) {
+            gridItems.push({ label: t('min_max_today'),
+                val: `${omTodayMin.toFixed(1)}° / ${omTodayMax.toFixed(1)}°C`, src: 'OM/ICON-EU' });
         } else {
             gridItems.push({ label: t('min_max_today'), val: 'N/A', src: 'ANM' });
         }
 
+        /* Maxima ANM sau La Noapte OM */
         if (anmVal(p.tempe_max) || anmVal(p.temp_max)) {
-            gridItems.push({ label: t('maxima'), val: `${parseFloat(anmVal(p.tempe_max) || anmVal(p.temp_max)).toFixed(1)}°C`, src: 'ANM' });
+            gridItems.push({ label: t('maxima'),
+                val: `${parseFloat(anmVal(p.tempe_max)||anmVal(p.temp_max)).toFixed(1)}°C`, src: 'ANM' });
+        } else if (omTonightT !== null) {
+            gridItems.push({ label: t('tonight_23'), val: `${omTonightT.toFixed(1)}°C`, src: 'OM/ICON-EU' });
         } else {
             gridItems.push({ label: t('tonight'), val: 'N/A', src: '—' });
         }
 
-        gridItems.push({ label: t('feels_like'), val: 'N/A', src: '—' });
+        /* Resimțit: OM întotdeauna (ANM nu oferă) */
+        gridItems.push({
+            label: t('feels_like'),
+            val:   omFeelsLike !== null ? `${omFeelsLike.toFixed(1)}°C` : 'N/A',
+            src:   omFeelsLike !== null ? 'OM/ICON-EU' : '—'
+        });
 
         gridItems.push({
             label: t('avg_wind'),
@@ -1779,57 +2038,88 @@ async function updateWeatherANMOnly() {
             src: 'ANM'
         });
 
-        gridItems.push({
-            label: t('wind_dir'),
-            val: vDirAnm || 'N/A',
-            src: 'ANM'
-        });
+        gridItems.push({ label: t('wind_dir'), val: vDirAnm || 'N/A', src: vDirAnm ? 'ANM' : '—' });
 
+        /* Presiune: ANM prioritar, OM fallback */
         gridItems.push({
             label: t('pressure'),
-            val: anmPressure.display,
-            src: 'ANM'
+            val: omPressure !== null
+                ? `${omPressure.toFixed(1)} mb (${(omPressure*0.75006).toFixed(0)} mmHg)`
+                : anmPressure.display,
+            src: omPressure !== null ? 'OM/ICON-EU' : 'ANM'
         });
 
         gridItems.push({
             label: t('humidity'),
             val: p.umezeala ? `${p.umezeala}%` : 'N/A',
-            src: 'ANM'
+            src: p.umezeala ? 'ANM' : '—'
         });
 
-        /* Nebulozitate — câmp ANM dedicat */
+        /* Nebulozitate: ANM text sau OM % */
         const nebVal = anmVal(p.nebulozitate);
         gridItems.push({
             label: t('nebulozitate'),
-            val: nebVal || 'N/A',
-            src: nebVal ? 'ANM' : '—'
+            val:   nebVal || (omCloudCover !== null ? `${omCloudCover}%` : 'N/A'),
+            src:   nebVal ? 'ANM' : (omCloudCover !== null ? 'OM/ICON-EU' : '—')
         });
 
-        /* Temp. apă — câmp ANM dedicat */
+        /* Temp. apă */
         const tempApaVal = anmVal(p.tempapa);
         gridItems.push({
             label: t('temp_apa'),
-            val: tempApaVal ? `${parseFloat(tempApaVal).toFixed(1)}°C` : 'N/A',
-            src: tempApaVal ? 'ANM' : '—'
+            val:   tempApaVal ? `${parseFloat(tempApaVal).toFixed(1)}°C` : 'N/A',
+            src:   tempApaVal ? 'ANM' : '—'
         });
 
-        /* Zapadă — câmp ANM dedicat */
+        /* Zăpadă ANM */
         const zapadaVal = anmVal(p.zapada);
         if (zapadaVal) {
             gridItems.push({ label: t('strat_zapada'), val: cleanAnmText(zapadaVal), src: 'ANM' });
         }
 
-        gridItems.push({ label: t('visibility'), val: 'N/A', src: '—' });
-        gridItems.push({ label: t('uv_index'), val: 'N/A', src: '—' });
+        /* Vizibilitate: OM */
+        gridItems.push({
+            label: t('visibility'),
+            val:   omVisKm !== null ? `${omVisKm} km` : 'N/A',
+            src:   omVisKm !== null ? 'OM/ICON-EU' : '—'
+        });
+
+        /* UV Index: OM/ECMWF */
+        const omUvInfo = omUvNow !== null ? uvLabel(omUvNow) : null;
+        gridItems.push({
+            label: t('uv_index'),
+            val:   omUvInfo ? `${omUvNow.toFixed(1)} — ${omUvInfo.text}` : 'N/A',
+            src:   omUvInfo ? 'OM/ECMWF' : '—',
+            color: omUvInfo ? omUvInfo.color : null
+        });
+
         gridItems.push({ label: t('aqi_label'), val: 'N/A', src: '—' });
-        gridItems.push({ label: t('rain_chance'), val: 'N/A', src: '—' });
-        gridItems.push({ label: t('sunrise'), val: 'N/A', src: '—' });
-        gridItems.push({ label: t('sunset'), val: 'N/A', src: '—' });
+
+        /* Șanse precipitații: OM */
+        gridItems.push({
+            label:    t('rain_chance'),
+            val:      omRainProb !== null ? `${omRainProb}%` : 'N/A',
+            src:      omRainProb !== null ? 'OM/ICON-EU' : '—',
+            rainBar:  omRainProb
+        });
+
+        /* Răsărit / Apus: OM */
+        gridItems.push({
+            label: t('sunrise'),
+            val:   omSunrise ? `🌅 ${omSunrise}` : 'N/A',
+            src:   omSunrise ? 'OM/ICON-EU' : '—'
+        });
+        gridItems.push({
+            label: t('sunset'),
+            val:   omSunset ? `🌇 ${omSunset}` : 'N/A',
+            src:   omSunset ? 'OM/ICON-EU' : '—'
+        });
 
         document.getElementById('full-grid').innerHTML = gridItems.map(item => `
             <div class="data-item">
                 <span class="item-label">${item.label}</span>
-                <span class="item-val">${item.val}</span>
+                <span class="item-val" ${item.color ? `style="color:${item.color}"` : ''}>${item.val}</span>
+                ${item.rainBar != null ? `<div class="rain-bar-wrap"><div class="rain-bar-bg"><div class="rain-bar-fill" style="width:${item.rainBar}%"></div></div></div>` : ''}
                 <span class="item-src">[${item.src}]</span>
             </div>
         `).join('');
@@ -1838,6 +2128,10 @@ async function updateWeatherANMOnly() {
         document.getElementById('hourly-section').style.display = 'block';
         document.getElementById('forecast-section').style.display = 'block';
         document.querySelector('.radar-section').style.display = 'block';
+        /* Reset prognoză — ștergem datele vechi W-API dacă există */
+        document.getElementById('forecast-scroll').innerHTML = '';
+        document.getElementById('forecast-section').querySelector('.section-title').innerHTML =
+            '<i class="fas fa-calendar-days"></i> ' + t('forecast_title');
 
         if (providers.mb) {
             try {
@@ -1887,6 +2181,55 @@ async function updateWeatherANMOnly() {
             }
         }
 
+        /* ── Post-render OM: grafic orar, prognoză, sun arc, smart banner ── */
+        if (omDataANM && omDataANM.current) {
+            const omc2 = omDataANM.current;
+            const omi2 = omDataANM.nowIdx;
+            const omh2 = omDataANM.hourly;
+            const omd2 = omDataANM.daily;
+
+            /* Grafic orar OM (dacă Meteoblue nu e activ sau a eșuat) */
+            if (!providers.mb && omh2 && omh2.temperature_2m && omh2.time) {
+                const omHours = [];
+                for (let i = omi2; i < omi2 + 8 && i < omh2.temperature_2m.length; i++) {
+                    omHours.push({ time: omh2.time[i], temp_c: omh2.temperature_2m[i] });
+                }
+                if (omHours.length >= 2) {
+                    drawHourlyChart(omHours);
+                    document.querySelector('#hourly-section .section-title').innerHTML =
+                        '<i class="fas fa-chart-line"></i> Temperaturi Orare (8h) [Open-Meteo ICON-EU]';
+                }
+            }
+
+            /* Prognoză 7 zile */
+            if (omd2 && omd2.temperature_2m_max) {
+                const omDays = omd2.time.map((date, idx) => ({
+                    date,
+                    weather_code: omd2.weather_code ? omd2.weather_code[idx] : 0,
+                    maxtemp_c:    omd2.temperature_2m_max[idx],
+                    mintemp_c:    omd2.temperature_2m_min[idx],
+                    rain_prob:    omd2.precipitation_probability_max
+                        ? omd2.precipitation_probability_max[idx] : 0
+                }));
+                renderForecastOM(omDays);
+            }
+
+            /* Sun arc */
+            if (omSunrise && omSunset) {
+                drawSunArc(omSunrise, omSunset);
+            }
+
+            /* Smart banner cu date OM */
+            const omCondNow = omWmoText(omc2.weather_code);
+            document.getElementById('smart-text').innerHTML =
+                `📍 <b>${cleanAnmText(p.nume)}</b> — ${t('smart_anm_station')} ` +
+                `${t('smart_updated_at')} <b>${cleanAnmText(p.actualizat || 'N/A')}</b>. ` +
+                `Open-Meteo: <b>${omCondNow}</b>` +
+                (omRainProb !== null ? `. ${t('smart_precip')} <b>${omRainProb}%</b>` : '') + '.';
+
+            showToast(t('toast_om_added'), 'success');
+        }
+
         showToast(`${cleanAnmText(p.nume)} — ${t('toast_anm_loaded')}`, 'success');
 
         /* ── Widget-uri ANM-only ── */
@@ -1904,11 +2247,274 @@ async function updateWeatherANMOnly() {
 }
 
 /* ================================================================
-   MAIN UPDATE — Cu suport W-API + ANM + Meteoblue
+   OM-ONLY MODE — Când atât WeatherAPI cât și ANM sunt dezactivate
+   Open-Meteo ICON-EU + ECMWF devine sursă primară completă
+================================================================ */
+async function updateWeatherOMOnly() {
+    const loader  = document.getElementById('loader');
+    const content = document.getElementById('main-content');
+    loader.style.display  = 'block';
+    content.style.opacity = '0.25';
+
+    try {
+        /* Geoloc fallback: folosim coordonatele curente */
+        const cityInput = document.getElementById('city-in').value.trim()
+            || localStorage.getItem('hub_last_city') || 'Targu Neamt';
+
+        /* Dacă nu avem coordonate proaspete, încercăm geocoding via Open-Meteo geocoding API */
+        let lat = currentCoords.lat, lon = currentCoords.lon;
+        let locationName = cityInput;
+
+        try {
+            const geoRes = await fetch(
+                `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=ro&format=json`
+            );
+            if (geoRes.ok) {
+                const geoData = await geoRes.json();
+                if (geoData.results && geoData.results.length > 0) {
+                    const r = geoData.results[0];
+                    lat = r.latitude;
+                    lon = r.longitude;
+                    locationName = r.name + (r.admin1 ? ', ' + r.admin1 : '') + ', ' + r.country;
+                    currentCoords = { lat, lon };
+                }
+            }
+        } catch(e) {
+            console.warn('OM geocoding error:', e);
+        }
+
+        localStorage.setItem('hub_last_city', cityInput);
+
+        if (!map) { initMap(); }
+        else       { updateMapCenter(); }
+
+        const omData = await fetchOpenMeteo(lat, lon);
+        if (!omData || !omData.current) {
+            showToast(t('toast_om_unavailable'), 'error');
+            loader.style.display  = 'none';
+            content.style.opacity = '1';
+            return;
+        }
+
+        const omc = omData.current;
+        const omi = omData.nowIdx;
+        const omh = omData.hourly;
+        const omd = omData.daily;
+        const t23i = omData.tonight23Idx; // index pentru ora 23:00 azi
+
+        const condText  = omWmoText(omc.weather_code);
+        const isDay     = omc.is_day === 1;
+        const mainTemp  = omc.temperature_2m != null ? omc.temperature_2m.toFixed(1) : '--';
+        const feelsLike = omc.apparent_temperature != null ? omc.apparent_temperature.toFixed(1) : '--';
+        const windKph   = omc.wind_speed_10m != null ? omc.wind_speed_10m.toFixed(1) : '--';
+        const windMs    = omc.wind_speed_10m != null ? (omc.wind_speed_10m / 3.6).toFixed(1) : '--';
+        const gustKph   = omc.wind_gusts_10m != null ? omc.wind_gusts_10m.toFixed(1) : '--';
+        const windDir   = omc.wind_direction_10m != null
+            ? degToCompass(omc.wind_direction_10m) : '--';
+        const pressureMb   = omc.surface_pressure != null ? omc.surface_pressure.toFixed(1) : '--';
+        const pressureMmHg = omc.surface_pressure != null
+            ? (omc.surface_pressure * 0.75006).toFixed(0) : '--';
+        const humidity  = omc.relative_humidity_2m != null ? omc.relative_humidity_2m : '--';
+        const visKm     = omc.visibility != null ? (omc.visibility / 1000).toFixed(1) : '--';
+        const cloudCover = omc.cloud_cover != null ? omc.cloud_cover : '--';
+
+        // UV și precipitații din hourly la indexul orei curente (nu fix 0)
+        const omUvNow   = (omh && omh.uv_index && omi >= 0 && omh.uv_index[omi] != null)
+            ? omh.uv_index[omi] : null;
+        const omRainProb = (omh && omh.precipitation_probability && omi >= 0 && omh.precipitation_probability[omi] != null)
+            ? omh.precipitation_probability[omi] : null;
+
+        // Temperatura la ora 23:00 azi (La Noapte)
+        const tonightTemp = (omh && omh.temperature_2m && t23i >= 0 && omh.temperature_2m[t23i] != null)
+            ? omh.temperature_2m[t23i].toFixed(1) + '°C'
+            : '--';
+
+        // Min/Max: găsim indexul zilei de azi în daily (nu mereu 0)
+        const todayDateStr = (() => {
+            const now = new Date();
+            return now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+        })();
+        const dailyTodayIdx = (omd && omd.time)
+            ? omd.time.findIndex(d => d === todayDateStr)
+            : -1;
+        const dIdx = dailyTodayIdx >= 0 ? dailyTodayIdx : 0;
+
+        const todayMax = omd && omd.temperature_2m_max && omd.temperature_2m_max[dIdx] != null
+            ? omd.temperature_2m_max[dIdx].toFixed(1) : '--';
+        const todayMin = omd && omd.temperature_2m_min && omd.temperature_2m_min[dIdx] != null
+            ? omd.temperature_2m_min[dIdx].toFixed(1) : '--';
+        const srRaw = omd && omd.sunrise && omd.sunrise[dIdx] ? omd.sunrise[dIdx].slice(11, 16) : '--:--';
+        const ssRaw = omd && omd.sunset  && omd.sunset[dIdx]  ? omd.sunset[dIdx].slice(11, 16)  : '--:--';
+
+        applyDynamicBg(condText, isDay);
+
+        document.getElementById('city-title').innerText = locationName;
+        document.getElementById('sync-info').innerHTML =
+            `Open-Meteo ICON-EU | ${new Date().toLocaleTimeString('ro-RO')}` +
+            `<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 10:00</span>`;
+
+        document.getElementById('main-temp').innerText  = mainTemp + '°C';
+        document.getElementById('temp-feel').innerText  = t('feels_like') + ': ' + feelsLike + '°C [OM/ICON-EU]';
+        document.getElementById('main-desc').innerText  = condText;
+
+        const ico = getWeatherIcon(condText, isDay);
+        document.getElementById('big-icon').innerHTML =
+            `<i class="fas ${ico.cls}" style="color:${ico.col}"></i>`;
+
+        const windWarn = parseFloat(windKph) > 62 ? ' ⚠️ <b>' + t('wind_strong') + '</b>' : '';
+        document.getElementById('smart-text').innerHTML =
+            `📍 <b>${locationName}</b> — ${condText}. ` +
+            (omRainProb != null ? `${t('smart_precip')} <b>${omRainProb}%</b>. ` : '') +
+            `${t('smart_minmax')} <b>${todayMin}° / ${todayMax}°C</b>.${windWarn}`;
+
+        const uvInfo = omUvNow !== null ? uvLabel(omUvNow) : { text: 'N/A', color: 'var(--muted)' };
+
+        document.getElementById('full-grid').innerHTML = `
+            <div class="data-item">
+                <span class="item-label">${t('temp_actual')}</span>
+                <span class="item-val">${mainTemp}°C</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('min_max_today')}</span>
+                <span class="item-val">${todayMin}° / ${todayMax}°C</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('tonight_23')}</span>
+                <span class="item-val">${tonightTemp}</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('feels_like')}</span>
+                <span class="item-val">${feelsLike}°C</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('avg_wind')}</span>
+                <span class="item-val">${windKph} km/h (${windMs} m/s)</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('dir_gusts')}</span>
+                <span class="item-val">${windDir} | ${gustKph} km/h</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('pressure')}</span>
+                <span class="item-val">${pressureMb} mb (${pressureMmHg} mmHg)</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('humidity')}</span>
+                <span class="item-val">${humidity}%</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('visibility')}</span>
+                <span class="item-val">${visKm} km</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('uv_index')}</span>
+                <span class="item-val" style="color:${uvInfo.color}">${omUvNow !== null ? omUvNow.toFixed(1) + ' — ' + uvInfo.text : 'N/A'}</span>
+                <span class="item-src">[OM/ECMWF]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('nebulozitate')}</span>
+                <span class="item-val">${cloudCover}%</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('rain_chance')}</span>
+                <span class="item-val">${omRainProb != null ? omRainProb + '%' : 'N/A'}</span>
+                ${omRainProb != null ? `<div class="rain-bar-wrap"><div class="rain-bar-bg"><div class="rain-bar-fill" style="width:${omRainProb}%"></div></div></div>` : ''}
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('sunrise')}</span>
+                <span class="item-val">🌅 ${srRaw}</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+            <div class="data-item">
+                <span class="item-label">${t('sunset')}</span>
+                <span class="item-val">🌇 ${ssRaw}</span>
+                <span class="item-src">[OM/ICON-EU]</span>
+            </div>
+        `;
+
+        document.getElementById('hourly-section').style.display  = 'block';
+        document.getElementById('forecast-section').style.display = 'block';
+        document.querySelector('.radar-section').style.display    = 'block';
+
+        /* Grafic orar */
+        if (omh && omh.temperature_2m && omh.time) {
+            const omHours = [];
+            for (let i = omi; i < omi + 8 && i < omh.temperature_2m.length; i++) {
+                omHours.push({ time: omh.time[i], temp_c: omh.temperature_2m[i] });
+            }
+            if (omHours.length >= 2) {
+                drawHourlyChart(omHours);
+                document.querySelector('#hourly-section .section-title').innerHTML =
+                    '<i class="fas fa-chart-line"></i> Temperaturi Orare (8h) [Open-Meteo ICON-EU]';
+            }
+        }
+
+        /* Prognoză 7 zile */
+        if (omd && omd.temperature_2m_max) {
+            const omDays = omd.time.map((date, idx) => ({
+                date,
+                weather_code: omd.weather_code ? omd.weather_code[idx] : 0,
+                maxtemp_c:    omd.temperature_2m_max[idx],
+                mintemp_c:    omd.temperature_2m_min[idx],
+                rain_prob:    omd.precipitation_probability_max
+                    ? omd.precipitation_probability_max[idx] : 0
+            }));
+            renderForecastOM(omDays);
+        }
+
+        /* Widgets */
+        drawWindCompass(windDir, parseFloat(windKph));
+        if (srRaw !== '--:--') drawSunArc(srRaw, ssRaw);
+        renderMoon();
+        renderAqiDetail(null); // AQI nu e disponibil din OM gratuit
+
+        /* Confort termic simulat cu datele OM */
+        const fakeWeatherForComfort = {
+            current: {
+                temp_c:       parseFloat(mainTemp),
+                feelslike_c:  parseFloat(feelsLike),
+                dewpoint_c:   calcDewPoint(parseFloat(mainTemp), typeof humidity === 'number' ? humidity : parseFloat(humidity)),
+                humidity:     typeof humidity === 'number' ? humidity : parseFloat(humidity),
+                wind_kph:     parseFloat(windKph)
+            }
+        };
+        renderComfort(fakeWeatherForComfort);
+
+        startAutoRefresh();
+        updateProviderStatus();
+        showToast(`${locationName} — Open-Meteo ICON-EU ✓`, 'success');
+
+    } catch(e) {
+        console.error(e);
+        showToast(e.message, 'error');
+    } finally {
+        loader.style.display  = 'none';
+        content.style.opacity = '1';
+    }
+}
+
+/* ================================================================
+   MAIN UPDATE — Cu suport W-API + ANM + Meteoblue + Open-Meteo
 ================================================================ */
 async function updateWeather() {
     hideAutocomplete();
 
+    if (!providers.wapi && !providers.anm && providers.om) {
+        return updateWeatherOMOnly();
+    }
     if (!providers.wapi) {
         return updateWeatherANMOnly();
     }
@@ -1955,6 +2561,15 @@ async function updateWeather() {
             } catch(e) {
                 console.warn('Meteoblue error:', e);
                 showToast(t('toast_mb_unavailable'), 'info');
+            }
+        }
+
+        /* ── 2b. Open-Meteo ICON-EU + ECMWF (opțional) ── */
+        let omData = null;
+        if (providers.om) {
+            omData = await fetchOpenMeteo(currentCoords.lat, currentCoords.lon);
+            if (!omData) {
+                showToast(t('toast_om_unavailable'), 'info');
             }
         }
 
@@ -2151,6 +2766,119 @@ async function updateWeather() {
 
         renderForecast(dW.forecast.forecastday);
 
+        /* ── Open-Meteo: îmbogățire date cu ICON-EU + ECMWF ── */
+        if (providers.om && omData && omData.current) {
+            const omc = omData.current;
+            const omi = omData.nowIdx;
+            const omh = omData.hourly;
+            const omd = omData.daily;
+
+            /* Presiune atmosferică — ECMWF/ICON-EU mai precisă */
+            if (omc.surface_pressure != null) {
+                const omPressureMb = omc.surface_pressure.toFixed(1);
+                const omPressureMmHg = (omc.surface_pressure * 0.75006).toFixed(0);
+                const pressureItems = document.querySelectorAll('.data-item');
+                pressureItems.forEach(item => {
+                    const lbl = item.querySelector('.item-label');
+                    if (lbl && lbl.textContent === t('pressure')) {
+                        item.querySelector('.item-val').textContent = `${omPressureMb} mb (${omPressureMmHg} mmHg)`;
+                        item.querySelector('.item-src').textContent = `[${omSrc('ICON-EU')}]`;
+                    }
+                });
+            }
+
+            /* Vizibilitate — OM oferă date mai frecvente */
+            if (omc.visibility != null) {
+                const omVisKm = (omc.visibility / 1000).toFixed(1);
+                const visItems = document.querySelectorAll('.data-item');
+                visItems.forEach(item => {
+                    const lbl = item.querySelector('.item-label');
+                    if (lbl && lbl.textContent === t('visibility')) {
+                        item.querySelector('.item-val').textContent = `${omVisKm} km`;
+                        item.querySelector('.item-src').textContent = `[${omSrc('ICON-EU')}]`;
+                    }
+                });
+            }
+
+            /* UV Index din hourly OM — ECMWF mai precis pentru România */
+            const omUvNow = (omh && omh.uv_index && omh.uv_index[omi] != null)
+                ? omh.uv_index[omi]
+                : null;
+            if (omUvNow !== null) {
+                const omUvInfo = uvLabel(omUvNow);
+                const uvItems = document.querySelectorAll('.data-item');
+                uvItems.forEach(item => {
+                    const lbl = item.querySelector('.item-label');
+                    if (lbl && lbl.textContent === t('uv_index')) {
+                        item.querySelector('.item-val').innerHTML =
+                            `<span style="color:${omUvInfo.color}">${omUvNow.toFixed(1)} — ${omUvInfo.text}</span>`;
+                        item.querySelector('.item-src').textContent = `[${omSrc('ECMWF')}]`;
+                    }
+                });
+            }
+
+            /* Șanse precipitații din hourly OM */
+            const omRainProb = (omh && omh.precipitation_probability && omh.precipitation_probability[omi] != null)
+                ? omh.precipitation_probability[omi]
+                : null;
+            if (omRainProb !== null) {
+                const rainItems = document.querySelectorAll('.data-item');
+                rainItems.forEach(item => {
+                    const lbl = item.querySelector('.item-label');
+                    if (lbl && lbl.textContent === t('rain_chance')) {
+                        item.querySelector('.item-val').textContent = `${omRainProb}%`;
+                        item.querySelector('.item-src').textContent = `[${omSrc('ICON-EU')}]`;
+                        const barFill = item.querySelector('.rain-bar-fill');
+                        if (barFill) barFill.style.width = omRainProb + '%';
+                    }
+                });
+            }
+
+            /* Strat zăpadă din hourly OM — dacă există */
+            if (omh && omh.snow_depth && omh.snow_depth[omi] != null && omh.snow_depth[omi] > 0) {
+                const snowCm = (omh.snow_depth[omi] * 100).toFixed(1);
+                /* Caută item existent sau adaugă */
+                let found = false;
+                document.querySelectorAll('.data-item').forEach(item => {
+                    const lbl = item.querySelector('.item-label');
+                    if (lbl && lbl.textContent === t('strat_zapada')) {
+                        item.querySelector('.item-val').textContent = `${snowCm} cm`;
+                        item.querySelector('.item-src').textContent = `[${omSrc('ICON-EU')}]`;
+                        found = true;
+                    }
+                });
+                if (!found) {
+                    const grid = document.getElementById('full-grid');
+                    const div = document.createElement('div');
+                    div.className = 'data-item';
+                    div.innerHTML = `
+                        <span class="item-label">${t('strat_zapada')}</span>
+                        <span class="item-val">${snowCm} cm</span>
+                        <span class="item-src">[${omSrc('ICON-EU')}]</span>`;
+                    grid.appendChild(div);
+                }
+            }
+
+            /* Grafic orar OM — 8 ore, rezoluție 1h ICON-EU */
+            if (!providers.mb && omh && omh.temperature_2m && omh.time) {
+                const currentHourOM = new Date().getHours();
+                const omHours = [];
+                for (let i = omi; i < omi + 8 && i < omh.temperature_2m.length; i++) {
+                    omHours.push({
+                        time: omh.time[i],
+                        temp_c: omh.temperature_2m[i]
+                    });
+                }
+                if (omHours.length >= 2) {
+                    drawHourlyChart(omHours);
+                    document.querySelector('#hourly-section .section-title').innerHTML =
+                        '<i class="fas fa-chart-line"></i> Temperaturi Orare (8h) [Open-Meteo ICON-EU]';
+                }
+            }
+
+            showToast(t('toast_om_added'), 'success');
+        }
+
         /* ── Widget-uri noi ── */
         drawWindCompass(windDirDisplay, parseFloat(vWindKmh));
         drawSunArc(dW.forecast.forecastday[0].astro.sunrise, dW.forecast.forecastday[0].astro.sunset);
@@ -2168,6 +2896,8 @@ async function updateWeather() {
         else if (providers.anm) activeSrcList.push('ANM (no station)');
         if (providers.mb && tempNoapte !== '--') activeSrcList.push('Meteoblue ✓');
         else if (providers.mb) activeSrcList.push('Meteoblue (err)');
+        if (providers.om && omData) activeSrcList.push('Open-Meteo ✓');
+        else if (providers.om) activeSrcList.push('Open-Meteo (err)');
 
         showToast(`${dW.location.name} — ${activeSrcList.join(', ')}`, 'success');
 
