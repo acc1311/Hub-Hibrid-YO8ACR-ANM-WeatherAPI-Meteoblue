@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; child-src 'self' https: blob:; frame-src https://embed.windy.com https://radar.wo-cloud.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://www.meteoradar.ro; connect-src 'self' https:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:;">
-<title>Hub Hibrid PRO + Radar vreme</title>
+<title>Hub Meteo PRO — Radar & Prognoză România</title>
+<meta name="description" content="Aplicație meteo profesională cu radar live, prognoză 10 zile ICON-EU + ECMWF, date ANM, AQI și mai mult.">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meteo PRO">
+<link rel="manifest" href="data:application/json,{%22name%22:%22Hub%20Meteo%20PRO%22,%22short_name%22:%22Meteo%20PRO%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%234f46e5%22,%22theme_color%22:%22%234f46e5%22}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -21,6 +27,159 @@
 --bg-start: #0f172a; --bg-end: #1e293b;
 --card: #1e293bee; --text: #f8fafc; --muted: #94a3b8;
 --grid: #334155; --info-box: rgba(129,140,248,0.1);
+}
+/* ── WEATHER PARTICLE CANVAS ── */
+#weather-canvas {
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+pointer-events: none; z-index: 0; opacity: 0.55;
+transition: opacity 1s ease;
+}
+/* ── DYNAMIC BACKGROUND GRADIENTS ── */
+body.bg-clear-day    { background: linear-gradient(160deg,#fde68a,#fed7aa,#bae6fd) !important; }
+body.bg-clear-night  { background: linear-gradient(160deg,#0f172a,#1e1b4b,#0c2a4a) !important; }
+body.bg-rain         { background: linear-gradient(160deg,#1e3a5f,#2d4a6b,#334155) !important; }
+body.bg-snow         { background: linear-gradient(160deg,#dbeafe,#e0f2fe,#f0f9ff) !important; }
+body.bg-storm        { background: linear-gradient(160deg,#1a1a2e,#16213e,#0f3460) !important; }
+body.bg-cloudy       { background: linear-gradient(160deg,#94a3b8,#64748b,#475569) !important; }
+body.bg-fog          { background: linear-gradient(160deg,#cbd5e1,#e2e8f0,#f1f5f9) !important; }
+body.bg-dawn         { background: linear-gradient(160deg,#fde68a,#fb923c,#f97316) !important; }
+body.bg-dusk         { background: linear-gradient(160deg,#fb923c,#c2410c,#7c3aed) !important; }
+/* ── °C/°F TOGGLE ── */
+.btn-unit {
+background: var(--grid); color: var(--text);
+font-size: 0.65rem; font-weight: 800; letter-spacing: 0.5px;
+border: 1.5px solid transparent; transition: all 0.2s;
+}
+.btn-unit:hover { border-color: var(--primary); color: var(--primary); }
+/* ── SHARE BUTTON ── */
+.btn-share { background: #0ea5e9; color: white; }
+/* ── UV GAUGE ── */
+.uv-gauge-wrap {
+background: var(--grid); border-radius: 20px;
+padding: 14px; margin-bottom: 18px;
+}
+.uv-gauge-wrap .section-title { margin-bottom: 10px; }
+#uv-gauge-svg { display: block; margin: 0 auto; }
+.uv-gauge-val {
+text-align: center; font-size: 1.6rem; font-weight: 800;
+margin-top: -8px; color: var(--primary);
+}
+.uv-gauge-label {
+text-align: center; font-size: 0.65rem; font-weight: 700;
+color: var(--muted); margin-top: 2px;
+}
+/* ── HOURLY 24H WITH PRECIP BARS ── */
+.hourly-chart-wrap { position: relative; }
+.hourly-tabs {
+display: flex; gap: 4px; margin-bottom: 8px;
+background: var(--card); border-radius: 10px; padding: 3px;
+width: fit-content;
+}
+.hourly-tab {
+padding: 4px 10px; border-radius: 7px; font-size: 0.6rem;
+font-weight: 700; border: none; cursor: pointer;
+background: transparent; color: var(--muted); transition: all 0.2s;
+}
+.hourly-tab.active {
+background: var(--primary); color: white;
+}
+/* ── FORECAST DETAIL MODAL ── */
+.fc-modal-overlay {
+position: fixed; inset: 0; z-index: 10000;
+background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+display: none; align-items: center; justify-content: center;
+padding: 20px; animation: fadeIn 0.2s ease;
+}
+.fc-modal-overlay.open { display: flex; }
+.fc-modal {
+background: var(--card); border-radius: 24px;
+padding: 24px; max-width: 340px; width: 100%;
+box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+animation: scaleIn 0.2s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes scaleIn { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+.fc-modal-header {
+display: flex; justify-content: space-between; align-items: center;
+margin-bottom: 16px;
+}
+.fc-modal-title {
+font-size: 1.1rem; font-weight: 800; color: var(--primary);
+text-transform: uppercase;
+}
+.fc-modal-close {
+background: var(--grid); border: none; border-radius: 10px;
+width: 32px; height: 32px; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+color: var(--muted); font-size: 0.85rem; transition: background 0.2s;
+}
+.fc-modal-close:hover { background: #fee2e2; color: #dc2626; }
+.fc-modal-grid {
+display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.fc-modal-item {
+background: var(--grid); border-radius: 12px; padding: 10px;
+}
+.fc-modal-item-label {
+font-size: 0.55rem; font-weight: 800; color: var(--muted);
+text-transform: uppercase; letter-spacing: 0.3px;
+}
+.fc-modal-item-val {
+font-size: 0.9rem; font-weight: 800; margin-top: 4px;
+}
+/* ── PRESSURE TREND BADGE ── */
+.press-trend-up   { color: #16a34a; font-weight: 900; }
+.press-trend-down { color: #dc2626; font-weight: 900; }
+.press-trend-stable { color: #64748b; font-weight: 900; }
+/* ── SUNRISE COUNTDOWN ── */
+.sun-countdown {
+text-align: center; font-size: 0.6rem; font-weight: 700;
+color: var(--primary); margin-top: 4px; opacity: 0.8;
+}
+/* ── FORECAST CARD CLICKABLE ── */
+.forecast-card { cursor: pointer; }
+.forecast-card:active { transform: scale(0.95); }
+/* ── BEAUFORT SCALE ── */
+.beaufort-ring {
+font-size: 0.52rem; font-weight: 800;
+color: var(--muted); margin-top: 2px; text-align: center;
+letter-spacing: 0.3px;
+}
+/* ── ENHANCED CARD SHADOW ── */
+.card {
+box-shadow: 0 25px 60px -12px rgba(0,0,0,0.15),
+0 0 0 1px rgba(255,255,255,0.1) inset;
+}
+/* ── SCROLL TO TOP ── */
+.scroll-top-btn {
+position: fixed; bottom: 24px; right: 24px; z-index: 5000;
+background: var(--primary); color: white; border: none;
+width: 44px; height: 44px; border-radius: 14px;
+cursor: pointer; display: none; align-items: center;
+justify-content: center; font-size: 1rem;
+box-shadow: 0 8px 24px rgba(79,70,229,0.4);
+transition: opacity 0.3s, transform 0.2s;
+}
+.scroll-top-btn.visible { display: flex; }
+.scroll-top-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+/* ── LIVE CLOCK ── */
+.live-clock {
+display: inline-flex; align-items: center; gap: 4px;
+font-size: 0.7rem; font-weight: 700; color: var(--primary);
+background: var(--info-box); border-radius: 8px; padding: 2px 8px;
+margin-bottom: 12px; width: 100%; justify-content: center;
+}
+/* ── WIND GUST INDICATOR ── */
+.wind-gust-bar {
+height: 3px; border-radius: 99px; margin-top: 4px;
+background: linear-gradient(90deg, #60a5fa, #f97316, #dc2626);
+position: relative;
+}
+.wind-gust-marker {
+position: absolute; top: -4px; width: 10px; height: 10px;
+border-radius: 50%; background: var(--primary);
+border: 2px solid var(--card); transform: translateX(-50%);
+transition: left 0.6s ease;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -637,6 +796,18 @@ body { background: white; padding: 0; }
 </style>
 </head>
 <body>
+<canvas id="weather-canvas"></canvas>
+<button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Sus"><i class="fas fa-chevron-up"></i></button>
+<!-- FORECAST DETAIL MODAL -->
+<div class="fc-modal-overlay" id="fc-modal-overlay" onclick="if(event.target===this)closeFcModal()">
+<div class="fc-modal" id="fc-modal">
+<div class="fc-modal-header">
+<div class="fc-modal-title" id="fc-modal-title">Detalii Zi</div>
+<button class="fc-modal-close" onclick="closeFcModal()"><i class="fas fa-times"></i></button>
+</div>
+<div id="fc-modal-body"></div>
+</div>
+</div>
 <div class="toast-container" id="toast-container"></div>
 <div class="card">
 <!-- SEARCH + GEO + THEME + LANG -->
@@ -651,7 +822,9 @@ oninput="onSearchInput(this.value)"
 onfocus="onSearchFocus()"
 onkeypress="if(event.key==='Enter') updateWeather()">
 </div>
-<button class="btn-action btn-geo" onclick="geoLocate()" title="Localizare automată" style="display:none"><i class="fas fa-location-crosshairs"></i></button>
+<button class="btn-action btn-geo" onclick="geoLocate()" title="Localizare automată"><i class="fas fa-location-crosshairs"></i></button>
+<button class="btn-action btn-unit" onclick="toggleUnit()" title="Toggle °C/°F" id="btn-unit">°F</button>
+<button class="btn-action btn-share" onclick="shareWeather()" title="Distribuie vremea"><i class="fas fa-share-nodes"></i></button>
 <button class="btn-action btn-theme" onclick="toggleTheme()" title="Schimbă tema"><i class="fas fa-moon" id="theme-icon"></i></button>
 <button class="btn-action btn-lang"  onclick="toggleLang()"  title="Switch language" id="btn-lang">RO</button>
 <!-- AUTOCOMPLETE DROPDOWN -->
@@ -681,6 +854,8 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <div style="margin-top:10px;font-size:0.8rem;color:var(--muted);font-weight:700;" data-i18n="loading_text">Se încarcă datele...</div>
 </div>
 <div id="main-content">
+<!-- LIVE CLOCK -->
+<div class="live-clock" id="live-clock"><i class="fas fa-clock"></i> <span id="live-clock-time">--:--:--</span></div>
 <div id="city-title" class="city-name">--</div>
 <div id="sync-info"  class="time-sync">--<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 10:00</span></div>
 <div class="weather-main">
@@ -706,12 +881,20 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <div class="section-title"><i class="fas fa-sun"></i> <span data-i18n="sunarc_title">Arc Soare</span></div>
 <svg id="sun-arc-svg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet"></svg>
 <div class="sun-times" id="sun-times"><span>--:--</span> | <span>--:--</span></div>
+<div class="sun-countdown" id="sun-countdown"></div>
 </div>
 </div>
 <!-- AQI DETALIAT -->
 <div class="aqi-detail-panel" id="aqi-detail-panel">
 <div class="section-title"><i class="fas fa-lungs"></i> <span data-i18n="aqi_title">Calitate Aer — Detaliat</span></div>
 <div class="aqi-detail-grid" id="aqi-detail-grid"></div>
+</div>
+<!-- UV INDEX GAUGE -->
+<div class="uv-gauge-wrap" id="uv-gauge-wrap" style="display:none">
+<div class="section-title"><i class="fas fa-sun"></i> <span>Indice UV — Progresie</span></div>
+<svg id="uv-gauge-svg" viewBox="0 0 200 110" width="180" height="110"></svg>
+<div class="uv-gauge-val" id="uv-gauge-val">--</div>
+<div class="uv-gauge-label" id="uv-gauge-label">--</div>
 </div>
 <!-- FAZA LUNII + CONFORT TERMIC -->
 <div class="widgets-row">
@@ -727,6 +910,11 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <!-- HOURLY CHART — shown only when data available -->
 <div class="hourly-chart-wrap" id="hourly-section">
 <div class="section-title"><i class="fas fa-chart-line"></i> <span data-i18n="hourly_title" id="hourly-title-label">Temperaturi Orare (8h)</span></div>
+<div class="hourly-tabs">
+<button class="hourly-tab active" onclick="setHourlyView('8h', this)">8h</button>
+<button class="hourly-tab" onclick="setHourlyView('24h', this)">24h</button>
+<button class="hourly-tab" onclick="setHourlyView('precip', this)">🌧️ Precipitații</button>
+</div>
 <svg id="hourly-svg" viewBox="0 0 460 90" preserveAspectRatio="none"></svg>
 <div class="hourly-labels" id="hourly-labels"></div>
 </div>
@@ -3177,6 +3365,7 @@ const futureMax = omd.temperature_2m_max[d];
 const dateStr = omd.time ? omd.time[d] : '';
 const dayShort = dateStr ? new Date(dateStr + 'T12:00').toLocaleDateString('ro-RO', { weekday:'short' }) : '';
 if (futureMax >= 38) alerts.push({ level:'orange', icon:'🌡️', title:`Caniculă prognozată — ${dayShort}`, msg:`Max. ${futureMax.toFixed(0)}°C` });
+
 }
 }
 /* Sortare: red > orange > yellow */
@@ -3366,6 +3555,472 @@ document.getElementById('city-in').value = defaultCity;
 currentCoords = { lat: 47.17, lon: 26.36 };
 updateWeather();
 }
+})();
+
+/* ================================================================
+ WEATHER PARTICLE ANIMATION ENGINE
+================================================================ */
+const _weatherCanvas = document.getElementById('weather-canvas');
+const _wCtx = _weatherCanvas ? _weatherCanvas.getContext('2d') : null;
+let _wParticles = [], _wAnimFrame = null;
+
+function _resizeCanvas() {
+  if (!_weatherCanvas) return;
+  _weatherCanvas.width = window.innerWidth;
+  _weatherCanvas.height = window.innerHeight;
+}
+_resizeCanvas();
+window.addEventListener('resize', _resizeCanvas);
+
+function _clearParticles() {
+  if (_wAnimFrame) { cancelAnimationFrame(_wAnimFrame); _wAnimFrame = null; }
+  _wParticles = [];
+  if (_wCtx && _weatherCanvas) _wCtx.clearRect(0,0,_weatherCanvas.width,_weatherCanvas.height);
+}
+
+function _startRain(intensity) {
+  intensity = intensity || 1;
+  _clearParticles();
+  const count = Math.floor(110 * intensity);
+  for (let i = 0; i < count; i++) {
+    _wParticles.push({ x: Math.random()*_weatherCanvas.width, y: Math.random()*_weatherCanvas.height,
+      len: 8+Math.random()*14, spd: 7+Math.random()*9, op: 0.12+Math.random()*0.35, w: 0.5+Math.random()*0.8 });
+  }
+  (function loop() {
+    _wCtx.clearRect(0,0,_weatherCanvas.width,_weatherCanvas.height);
+    _wCtx.strokeStyle = '#93c5fd';
+    _wParticles.forEach(p => {
+      _wCtx.globalAlpha = p.op; _wCtx.lineWidth = p.w;
+      _wCtx.beginPath(); _wCtx.moveTo(p.x,p.y); _wCtx.lineTo(p.x-1,p.y+p.len); _wCtx.stroke();
+      p.y += p.spd; p.x -= 0.6;
+      if (p.y > _weatherCanvas.height) { p.y = -p.len; p.x = Math.random()*_weatherCanvas.width; }
+    });
+    _wCtx.globalAlpha = 1;
+    _wAnimFrame = requestAnimationFrame(loop);
+  })();
+}
+
+function _startSnow() {
+  _clearParticles();
+  for (let i = 0; i < 70; i++) {
+    _wParticles.push({ x: Math.random()*_weatherCanvas.width, y: Math.random()*_weatherCanvas.height,
+      r: 1.5+Math.random()*3, spd: 0.4+Math.random()*1.2, drift: (Math.random()-0.5)*0.4,
+      op: 0.45+Math.random()*0.45, ang: Math.random()*Math.PI*2 });
+  }
+  (function loop() {
+    _wCtx.clearRect(0,0,_weatherCanvas.width,_weatherCanvas.height);
+    _wParticles.forEach(p => {
+      _wCtx.globalAlpha = p.op; _wCtx.fillStyle='#fff';
+      _wCtx.beginPath(); _wCtx.arc(p.x,p.y,p.r,0,Math.PI*2); _wCtx.fill();
+      p.y += p.spd; p.x += p.drift + Math.sin(p.ang)*0.25; p.ang += 0.015;
+      if (p.y > _weatherCanvas.height) { p.y = -5; p.x = Math.random()*_weatherCanvas.width; }
+    });
+    _wCtx.globalAlpha = 1;
+    _wAnimFrame = requestAnimationFrame(loop);
+  })();
+}
+
+function _startThunder() {
+  _startRain(1.6);
+  function _bolt(x, y, depth) {
+    if (depth > 5) return;
+    _wCtx.globalAlpha = 0.75/(depth+1);
+    _wCtx.strokeStyle='#fde68a'; _wCtx.lineWidth=3-depth*0.5;
+    _wCtx.shadowColor='#fbbf24'; _wCtx.shadowBlur=16;
+    _wCtx.beginPath(); _wCtx.moveTo(x,y);
+    const nx=x+(Math.random()-0.5)*70, ny=y+50+Math.random()*55;
+    _wCtx.lineTo(nx,ny); _wCtx.stroke();
+    _wCtx.shadowBlur=0; _wCtx.globalAlpha=1;
+    if (Math.random()>0.45) _bolt(nx,ny,depth+1);
+    if (depth<2 && Math.random()>0.65) _bolt(nx,ny,depth+2);
+    setTimeout(()=>{ if(_wCtx&&_weatherCanvas) _wCtx.clearRect(0,0,_weatherCanvas.width,_weatherCanvas.height); },160);
+  }
+  let _lastBolt = 0;
+  (function boltLoop() {
+    const now = Date.now();
+    if (now - _lastBolt > 2200 + Math.random()*3800) {
+      _lastBolt = now;
+      _bolt(Math.random()*_weatherCanvas.width*0.7+_weatherCanvas.width*0.15, 0, 0);
+    }
+    setTimeout(boltLoop, 120);
+  })();
+}
+
+function applyWeatherEffect(condText, isDay) {
+  const c = (condText||'').toLowerCase();
+  if (c.includes('furtun')||c.includes('thunder')||c.includes('storm')) { _startThunder(); }
+  else if (c.includes('ninsoare')||c.includes('snow')||c.includes('ninge')) { _startSnow(); }
+  else if (c.includes('ploaie')||c.includes('rain')||c.includes('avers')||c.includes('shower')||c.includes('burniță')||c.includes('drizzle')) { _startRain(0.75); }
+  else { _clearParticles(); }
+}
+
+/* ================================================================
+ ENHANCED applyDynamicBg — TIME-BASED + PARTICLES
+================================================================ */
+const _origApplyDynBg = window.applyDynamicBg;
+function applyDynamicBg(condText, isDay) {
+  const c = (condText||'').toLowerCase();
+  const h = new Date().getHours();
+  const body = document.body;
+  body.style.background = ''; /* clear any inline style from old version */
+  body.classList.remove('bg-clear-day','bg-clear-night','bg-rain','bg-snow','bg-storm','bg-cloudy','bg-fog','bg-dawn','bg-dusk');
+  if (c.includes('furtun')||c.includes('thunder')||c.includes('storm')) body.classList.add('bg-storm');
+  else if (c.includes('ninsoare')||c.includes('snow')) body.classList.add('bg-snow');
+  else if (c.includes('ploaie')||c.includes('rain')||c.includes('avers')||c.includes('shower')||c.includes('burniță')) body.classList.add('bg-rain');
+  else if (c.includes('ceață')||c.includes('fog')) body.classList.add('bg-fog');
+  else if (c.includes('noros')||c.includes('cloud')||c.includes('acoperit')||c.includes('overcast')) body.classList.add('bg-cloudy');
+  else if (!isDay) body.classList.add('bg-clear-night');
+  else if (h>=5&&h<=7) body.classList.add('bg-dawn');
+  else if (h>=18&&h<=20) body.classList.add('bg-dusk');
+  else body.classList.add('bg-clear-day');
+  applyWeatherEffect(condText, isDay);
+}
+
+/* ================================================================
+ °C / °F TOGGLE
+================================================================ */
+let currentUnit = localStorage.getItem('hub_unit') || 'C';
+function toggleUnit() {
+  currentUnit = currentUnit === 'C' ? 'F' : 'C';
+  localStorage.setItem('hub_unit', currentUnit);
+  const btnU = document.getElementById('btn-unit');
+  if (btnU) btnU.textContent = currentUnit === 'C' ? '°F' : '°C';
+  updateWeather();
+}
+function toF(c) { return (parseFloat(c)*9/5+32).toFixed(1); }
+function displayTemp(cVal) {
+  if (cVal==null||isNaN(cVal)) return 'N/A';
+  if (currentUnit==='F') return toF(cVal)+'°F';
+  return parseFloat(cVal).toFixed(1)+'°C';
+}
+/* init label */
+(function(){ const b=document.getElementById('btn-unit'); if(b) b.textContent = currentUnit==='C'?'°F':'°C'; })();
+
+/* ================================================================
+ SHARE WEATHER
+================================================================ */
+function shareWeather() {
+  const city = (document.getElementById('city-title')||{}).innerText || '?';
+  const temp = (document.getElementById('main-temp')||{}).innerText || '?';
+  const desc = (document.getElementById('main-desc')||{}).innerText || '';
+  const text = '🌤️ Vremea în '+city+': '+temp+', '+desc+' — Hub Meteo PRO';
+  if (navigator.share) {
+    navigator.share({ title:'Hub Meteo PRO', text, url: location.href }).catch(()=>{});
+  } else {
+    navigator.clipboard ? navigator.clipboard.writeText(text).then(()=>showToast('✓ Copiat în clipboard','success')) : showToast(text,'info');
+  }
+}
+
+/* ================================================================
+ UV GAUGE SVG
+================================================================ */
+function drawUVGauge(uvValue) {
+  const svgEl = document.getElementById('uv-gauge-svg');
+  const valEl = document.getElementById('uv-gauge-val');
+  const lblEl = document.getElementById('uv-gauge-label');
+  const wrap  = document.getElementById('uv-gauge-wrap');
+  if (!svgEl) return;
+  if (uvValue==null||isNaN(uvValue)) { if(wrap) wrap.style.display='none'; return; }
+  if (wrap) wrap.style.display='block';
+  const uv = Math.min(parseFloat(uvValue),11);
+  const stops=[{at:0,c:'#22c55e'},{at:3,c:'#84cc16'},{at:6,c:'#eab308'},{at:8,c:'#f97316'},{at:11,c:'#dc2626'}];
+  function lerp(a,b,t){ const ah=parseInt(a.slice(1),16),bh=parseInt(b.slice(1),16);
+    const f=n=>Math.round(((ah>>n)&255)+((((bh>>n)&255)-((ah>>n)&255))*t)).toString(16).padStart(2,'0');
+    return '#'+f(16)+f(8)+f(0); }
+  function colorAt(v){ for(let i=stops.length-1;i>=0;i--){ if(v>=stops[i].at){ const nx=stops[i+1]; if(!nx)return stops[i].c; return lerp(stops[i].c,nx.c,(v-stops[i].at)/(nx.at-stops[i].at)); }} return stops[0].c; }
+  const cx=100,cy=95,R=72;
+  let arcs='';
+  const segs=44;
+  for(let i=0;i<segs;i++){
+    const a1=Math.PI+(i/segs)*Math.PI, a2=Math.PI+((i+0.82)/segs)*Math.PI;
+    const x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1),x2=cx+R*Math.cos(a2),y2=cy+R*Math.sin(a2);
+    arcs+=`<path d="M${x1.toFixed(1)},${y1.toFixed(1)} A${R},${R} 0 0 1 ${x2.toFixed(1)},${y2.toFixed(1)}" fill="none" stroke="${colorAt((i/segs)*11)}" stroke-width="13" stroke-linecap="round" opacity="0.85"/>`;
+  }
+  const needleA=Math.PI+(uv/11)*Math.PI;
+  const nx2=cx+50*Math.cos(needleA),ny2=cy+50*Math.sin(needleA);
+  const fillC=colorAt(uv);
+  svgEl.innerHTML=`<defs><filter id="uvglow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+${arcs}
+<line x1="${cx}" y1="${cy}" x2="${nx2.toFixed(1)}" y2="${ny2.toFixed(1)}" stroke="${fillC}" stroke-width="3.5" stroke-linecap="round" filter="url(#uvglow)"/>
+<circle cx="${cx}" cy="${cy}" r="6" fill="${fillC}"/>
+<circle cx="${cx}" cy="${cy}" r="3.5" fill="var(--card)"/>
+<text x="${cx-R-6}" y="${cy+5}" text-anchor="middle" font-size="8" fill="var(--muted)" font-weight="700">0</text>
+<text x="${cx}" y="${cy-R-5}" text-anchor="middle" font-size="8" fill="var(--muted)" font-weight="700">5-6</text>
+<text x="${cx+R+6}" y="${cy+5}" text-anchor="middle" font-size="8" fill="var(--muted)" font-weight="700">11+</text>`;
+  const info = uvLabel(uv);
+  valEl.textContent = uv.toFixed(1); valEl.style.color = fillC;
+  lblEl.textContent = info ? info.text : '';
+}
+
+/* ================================================================
+ HOURLY CHART — 24h MODE + PRECIPITATION BARS
+================================================================ */
+let _hourlyDataFull = null, _hourlyPrecipData = null, _hourlyView = '8h';
+
+function setHourlyView(mode, btn) {
+  _hourlyView = mode;
+  document.querySelectorAll('.hourly-tab').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (!_hourlyDataFull) return;
+  if (mode==='precip' && _hourlyPrecipData) { _drawPrecipChart(_hourlyPrecipData); }
+  else if (mode==='24h') { drawHourlyChart(_hourlyDataFull.slice(0,24)); }
+  else { drawHourlyChart(_hourlyDataFull.slice(0,8)); }
+}
+
+function _drawPrecipChart(data) {
+  const svg=document.getElementById('hourly-svg'), lbls=document.getElementById('hourly-labels');
+  if (!svg||!data||!data.length) return;
+  const W=460,H=90,pad=20, barW=(W-pad*2)/data.length-2;
+  svg.innerHTML=data.map((p,i)=>{
+    const bh=Math.max(2,(p.prob/100)*(H-pad*2)), by=H-pad-bh;
+    const col=p.prob>=70?'#1d4ed8':p.prob>=40?'#3b82f6':'#93c5fd';
+    return `<rect x="${(pad+i*(barW+2)).toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" fill="${col}" rx="2" opacity="0.85"/>
+<text x="${(pad+i*(barW+2)+barW/2).toFixed(1)}" y="${(by-3).toFixed(1)}" text-anchor="middle" font-size="7" fill="var(--text)" font-weight="700">${p.prob}%</text>`;
+  }).join('');
+  if (lbls) lbls.innerHTML = data.map(p=>`<span>${p.time.slice(11,16)}</span>`).join('');
+}
+
+/* Wrap drawHourlyChart to cache data */
+const _origDrawHourly = window.drawHourlyChart;
+window.drawHourlyChart = function(hours) {
+  if (!hours||!hours.length) return;
+  _hourlyDataFull = hours;
+  const svg=document.getElementById('hourly-svg'), lbls=document.getElementById('hourly-labels');
+  if (!svg) return;
+  const W=460,H=90,pad=20, temps=hours.map(h=>h.temp_c);
+  const minT=Math.min(...temps)-2, maxT=Math.max(...temps)+2;
+  const xStep=(W-pad*2)/Math.max(temps.length-1,1);
+  const pts=temps.map((t,i)=>({x:pad+i*xStep, y:H-pad-((t-minT)/(maxT-minT))*(H-pad*2)}));
+  let d=`M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for(let i=1;i<pts.length;i++){const cp=(pts[i-1].x+pts[i].x)/2; d+=` C${cp.toFixed(1)},${pts[i-1].y.toFixed(1)} ${cp.toFixed(1)},${pts[i].y.toFixed(1)} ${pts[i].x.toFixed(1)},${pts[i].y.toFixed(1)}`;}
+  const areaD=d+` L${pts[pts.length-1].x.toFixed(1)},${H} L${pts[0].x.toFixed(1)},${H} Z`;
+  svg.innerHTML=`<defs><linearGradient id="hcg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="var(--primary)" stop-opacity="0.38"/>
+<stop offset="100%" stop-color="var(--primary)" stop-opacity="0.02"/></linearGradient></defs>
+<path d="${areaD}" fill="url(#hcg)"/>
+<path d="${d}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/>
+${pts.map((p,i)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${hours.length<=8?4:2.5}" fill="var(--card)" stroke="var(--primary)" stroke-width="2"/>
+${hours.length<=12?`<text x="${p.x.toFixed(1)}" y="${(p.y-8).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--text)">${temps[i].toFixed(0)}°</text>`:''}`).join('')}`;
+  if (lbls) lbls.innerHTML = hours.map(h=>`<span>${h.time.slice(11,16)}</span>`).join('');
+};
+
+/* ================================================================
+ SUNRISE/SUNSET COUNTDOWN
+================================================================ */
+let _srStr=null, _ssStr=null;
+function _updateSunCountdown() {
+  const el=document.getElementById('sun-countdown');
+  if (!el||!_srStr||!_ssStr) return;
+  const now=new Date();
+  const [rh,rm]=_srStr.split(':').map(Number), [sh,sm]=_ssStr.split(':').map(Number);
+  const sr=new Date(now); sr.setHours(rh,rm,0,0);
+  const ss=new Date(now); ss.setHours(sh,sm,0,0);
+  let label='', diff=0;
+  if (now<sr){ diff=sr-now; label='🌅 Răsărit în '; }
+  else if (now<ss){ diff=ss-now; label='🌇 Apus în '; }
+  else { el.textContent='🌙 Noapte'; return; }
+  const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000);
+  el.textContent = label+(h>0?h+'h ':'')+m+'min';
+}
+setInterval(_updateSunCountdown, 30000);
+
+/* Wrap drawSunArc to capture times */
+const _origDrawSunArc2 = window.drawSunArc;
+window.drawSunArc = function(sunrise, sunset) {
+  try {
+    const p = s => { if(!s) return null; return typeof s==='string'&&s.includes(':')&&!s.includes(' ')?s:to24h(String(s)); };
+    _srStr = p(sunrise); _ssStr = p(sunset);
+  } catch(e) {}
+  if (_origDrawSunArc2) _origDrawSunArc2(sunrise, sunset);
+  _updateSunCountdown();
+};
+
+/* ================================================================
+ BEAUFORT SCALE ON COMPASS
+================================================================ */
+const _BEAUFORT=[
+  {max:1,ro:'Calm',en:'Calm'},{max:6,ro:'Adiere',en:'Light air'},
+  {max:12,ro:'Briza ușoară',en:'Light breeze'},{max:20,ro:'Briza moderată',en:'Gentle breeze'},
+  {max:29,ro:'Vânt moderat',en:'Moderate breeze'},{max:39,ro:'Vânt proaspăt',en:'Fresh breeze'},
+  {max:50,ro:'Vânt tare',en:'Strong breeze'},{max:62,ro:'Aproape furtună',en:'Near gale'},
+  {max:75,ro:'Furtună',en:'Gale'},{max:89,ro:'Furtună severă',en:'Severe gale'},
+  {max:103,ro:'Viscol',en:'Storm'},{max:117,ro:'Viscol violent',en:'Violent storm'},
+  {max:999,ro:'Uragan',en:'Hurricane'}
+];
+function _beaufortScale(kmh) {
+  const idx = _BEAUFORT.findIndex(x=>kmh<=x.max);
+  const bf = idx>=0 ? idx : 12;
+  return `Bf ${bf} — ${_BEAUFORT[bf][currentLang]||_BEAUFORT[bf].ro}`;
+}
+
+const _origDrawCompass = window.drawWindCompass;
+window.drawWindCompass = function(dirText, speedKmh) {
+  if (_origDrawCompass) _origDrawCompass(dirText, speedKmh);
+  const el=document.getElementById('wind-speed-big');
+  if (el && !isNaN(speedKmh)) {
+    let bfEl=document.getElementById('beaufort-text');
+    if (!bfEl) { bfEl=document.createElement('div'); bfEl.id='beaufort-text'; bfEl.className='beaufort-ring'; el.parentNode.appendChild(bfEl); }
+    bfEl.textContent = _beaufortScale(parseFloat(speedKmh));
+  }
+};
+
+/* ================================================================
+ FORECAST DETAIL MODAL
+================================================================ */
+let _omDaysCache=null;
+function openFcModal(dayIdx) {
+  if (!_omDaysCache||!_omDaysCache[dayIdx]) return;
+  const d=_omDaysCache[dayIdx];
+  const condText=omWmoText(d.weather_code);
+  const ico=getWeatherIcon(condText,true);
+  const overlay=document.getElementById('fc-modal-overlay');
+  const modalTitle=document.getElementById('fc-modal-title');
+  const modalBody=document.getElementById('fc-modal-body');
+  if (!overlay||!modalTitle||!modalBody) return;
+  const isToday=dayIdx===0;
+  const dayLabel=isToday?(currentLang==='ro'?'Astăzi':'Today'):dayName(d.date+'T00:00');
+  modalTitle.innerHTML=`<i class="fas ${ico.cls}" style="color:${ico.col};margin-right:6px"></i>${dayLabel} — ${d.date}`;
+  const rows=[
+    {label:currentLang==='ro'?'Temperatură Max':'Max Temp', val:d.maxtemp_c!=null?displayTemp(d.maxtemp_c):'--'},
+    {label:currentLang==='ro'?'Temperatură Min':'Min Temp', val:d.mintemp_c!=null?displayTemp(d.mintemp_c):'--'},
+    {label:currentLang==='ro'?'Condiție':'Condition', val:condText},
+    {label:'Precipitații', val:(d.precip_mm||0).toFixed(1)+' mm'},
+    {label:currentLang==='ro'?'Șanse Ploaie':'Rain Chance', val:(d.rain_prob||0)+'%'},
+    {label:currentLang==='ro'?'Vânt Max':'Max Wind', val:d.wind_max?Math.round(d.wind_max)+' km/h':'--'},
+    {label:currentLang==='ro'?'Dir. Vânt':'Wind Dir', val:d.wind_dir||'--'},
+    {label:currentLang==='ro'?'Ore precipitații':'Precip hours', val:d.precip_hours!=null?d.precip_hours+'h':'--'},
+    {label:'Sursă / Source', val:d.source||'ICON-EU'},
+  ];
+  modalBody.innerHTML=`<div class="fc-modal-grid">${rows.map(r=>`<div class="fc-modal-item"><div class="fc-modal-item-label">${r.label}</div><div class="fc-modal-item-val">${r.val}</div></div>`).join('')}</div>`;
+  overlay.classList.add('open');
+}
+function closeFcModal() {
+  const ov=document.getElementById('fc-modal-overlay');
+  if(ov) ov.classList.remove('open');
+}
+
+/* Wrap renderForecastOM to cache days and support modal */
+const _origRenderFOM = window.renderForecastOM;
+window.renderForecastOM = function(days, ecmwfDailyData) {
+  _omDaysCache = days;
+  /* Store hourly precip for tab */
+  const now=new Date(); const todayLocal=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  document.getElementById('forecast-section').querySelector('.section-title').innerHTML=
+    '<i class="fas fa-calendar-days"></i> Prognoză 10 Zile <small style="font-size:0.5rem;opacity:0.7;font-weight:700;margin-left:4px;">ICON-EU+ECMWF · click=detalii</small>';
+  const allTemps=days.flatMap(d=>[d.maxtemp_c,d.mintemp_c]).filter(v=>v!=null);
+  const globalMin=allTemps.length?Math.min(...allTemps):0, globalMax=allTemps.length?Math.max(...allTemps):30, tempRange=globalMax-globalMin||1;
+  document.getElementById('forecast-scroll').innerHTML=days.slice(0,10).map((d,i)=>{
+    const isToday=d.date===todayLocal, condText=omWmoText(d.weather_code), ico=getWeatherIcon(condText,true);
+    const maxT=d.maxtemp_c!=null?(currentUnit==='F'?toF(d.maxtemp_c):d.maxtemp_c.toFixed(0)):'--';
+    const minT=d.mintemp_c!=null?(currentUnit==='F'?toF(d.mintemp_c):d.mintemp_c.toFixed(0)):'--';
+    const unitSym=currentUnit==='F'?'°F':'°';
+    const prob=d.rain_prob!=null?d.rain_prob:0, mm=d.precip_mm!=null?d.precip_mm:null;
+    const wind=d.wind_max!=null?Math.round(d.wind_max):null, windDir=d.wind_dir||null;
+    const ecPrecip=d.ecmwf_precip_mm;
+    const ensLbl=(mm!=null&&ecPrecip!=null&&d.source!=='ECMWF')?`Ens: ${((mm+ecPrecip)/2).toFixed(1)}mm`:null;
+    const barLeft=d.mintemp_c!=null?((d.mintemp_c-globalMin)/tempRange*100).toFixed(0):0;
+    const barWidth=(d.maxtemp_c!=null&&d.mintemp_c!=null)?(((d.maxtemp_c-d.mintemp_c)/tempRange)*100).toFixed(0):10;
+    const dayLabel=isToday?t('today'):dayName(d.date+'T00:00');
+    const probColor=prob>=70?'#1d4ed8':prob>=40?'#3b82f6':'#93c5fd';
+    const srcBadge=d.source==='ECMWF'?`<div class="fc-ensemble" style="color:#0369a1">ECMWF</div>`:'';
+    const windDirDeg={'N':0,'NE':45,'E':90,'SE':135,'S':180,'SV':225,'V':270,'NV':315};
+    const windArrow=windDir?`<span style="display:inline-block;transform:rotate(${windDirDeg[windDir]||0}deg);font-size:0.7rem">↑</span> `:'';
+    return `<div class="forecast-card ${isToday?'today':''}" onclick="openFcModal(${i})" title="Click pt. detalii">
+<div class="fc-day">${dayLabel}</div>
+<div class="fc-icon"><i class="fas ${ico.cls}" style="color:${ico.col}"></i></div>
+<div class="fc-max">${maxT}${unitSym}</div>
+<div class="fc-min">${minT}${unitSym}</div>
+<div class="fc-temp-bar-wrap"><div class="fc-temp-bar" style="margin-left:${barLeft}%;width:${barWidth}%"></div></div>
+<div class="fc-precip"><span class="fc-precip-prob" style="color:${probColor}"><i class="fas fa-droplet" style="font-size:0.5rem"></i> ${prob}%</span>${mm!=null&&mm>0?`<span class="fc-precip-mm">${mm.toFixed(1)}mm</span>`:''}</div>
+${wind!=null?`<div class="fc-wind">${windArrow}${windDir?windDir+' ':''}${wind} km/h</div>`:''}
+${ensLbl?`<div class="fc-ensemble">${ensLbl}</div>`:''}${srcBadge}
+</div>`;
+  }).join('');
+};
+
+/* ================================================================
+ AUTO UV GAUGE + PRESSURE TREND AFTER RENDER
+================================================================ */
+const _origStartAutoRefresh = window.startAutoRefresh;
+window.startAutoRefresh = function() {
+  if (_origStartAutoRefresh) _origStartAutoRefresh();
+  setTimeout(() => {
+    /* UV gauge */
+    document.querySelectorAll('.data-item').forEach(item => {
+      const lbl=item.querySelector('.item-label');
+      if (!lbl) return;
+      if (lbl.textContent.includes('UV')) {
+        const v=parseFloat((item.querySelector('.item-val')||{}).textContent);
+        if (!isNaN(v)) drawUVGauge(v);
+      }
+      /* Pressure trend visual */
+      if (lbl.textContent.includes('Presiune')||lbl.textContent.includes('Pressure')) {
+        const val=item.querySelector('.item-val');
+        if (val&&val.textContent&&!val.innerHTML.includes('press-trend')) {
+          const txt=val.textContent;
+          if (txt.includes('↑')) val.innerHTML=txt.replace('↑','<span class="press-trend-up">↑ Crește</span>');
+          else if (txt.includes('↓')) val.innerHTML=txt.replace('↓','<span class="press-trend-down">↓ Scade</span>');
+          else if (txt.includes('→')) val.innerHTML=txt.replace('→','<span class="press-trend-stable">→ Stabil</span>');
+        }
+      }
+    });
+  }, 700);
+};
+
+/* ================================================================
+ LIVE CLOCK
+================================================================ */
+function _updateLiveClock() {
+  const el=document.getElementById('live-clock-time');
+  if (el) el.textContent=new Date().toLocaleTimeString('ro-RO');
+}
+setInterval(_updateLiveClock, 1000);
+_updateLiveClock();
+
+/* ================================================================
+ SCROLL-TO-TOP BUTTON
+================================================================ */
+window.addEventListener('scroll', () => {
+  const btn=document.getElementById('scroll-top-btn');
+  if (btn) btn.classList.toggle('visible', window.scrollY > 280);
+});
+
+/* ================================================================
+ STORE OM HOURLY PRECIP FOR TAB
+================================================================ */
+const _origFetchOM2 = window.fetchOpenMeteo;
+window.fetchOpenMeteo = async function(lat, lon) {
+  const result = _origFetchOM2 ? await _origFetchOM2(lat, lon) : null;
+  if (result && result.hourly && result.hourly.precipitation_probability) {
+    const omh=result.hourly, omi=result.nowIdx||0;
+    _hourlyPrecipData=[];
+    for(let i=omi; i<Math.min(omi+24,omh.time.length); i++) {
+      _hourlyPrecipData.push({ time: omh.time[i], prob: omh.precipitation_probability[i]||0 });
+    }
+    /* Also set full hourly for 24h tab */
+    if (omh.temperature_2m) {
+      _hourlyDataFull=[];
+      for(let i=omi; i<Math.min(omi+24,omh.temperature_2m.length); i++) {
+        _hourlyDataFull.push({ time: omh.time[i], temp_c: omh.temperature_2m[i] });
+      }
+    }
+  }
+  return result;
+};
+
+/* ================================================================
+ INIT — APPLY BG BY TIME ON FIRST LOAD
+================================================================ */
+(function() {
+  const h=new Date().getHours();
+  const body=document.body;
+  if (!body.className.match(/bg-/)) {
+    if(h>=5&&h<=7) body.classList.add('bg-dawn');
+    else if(h>=18&&h<=20) body.classList.add('bg-dusk');
+    else if(h>=21||h<=4) body.classList.add('bg-clear-night');
+    else body.classList.add('bg-clear-day');
+  }
+  console.log('🌤️ Hub Meteo PRO v2.0 — Toate funcționalitățile activate ✓');
 })();
 </script>
 </body>
