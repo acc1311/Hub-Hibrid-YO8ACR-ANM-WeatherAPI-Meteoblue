@@ -216,7 +216,7 @@ transition: transform 0.15s, opacity 0.2s; flex-shrink: 0;
 }
 .btn-action:hover  { opacity: 0.85; }
 .btn-action:active { transform: scale(0.92); }
-.btn-geo   { background: #059669; }
+
 .btn-theme { background: var(--grid); color: #f59e0b; }
 .btn-lang  { background: var(--grid); color: #2563eb; font-size: 0.65rem; font-weight: 800; }
 /* ===================== AUTOCOMPLETE DROPDOWN ===================== */
@@ -822,7 +822,7 @@ oninput="onSearchInput(this.value)"
 onfocus="onSearchFocus()"
 onkeypress="if(event.key==='Enter') updateWeather()">
 </div>
-<button class="btn-action btn-geo" onclick="geoLocate()" title="Localizare automată"><i class="fas fa-location-crosshairs"></i></button>
+
 <button class="btn-action btn-unit" onclick="toggleUnit()" title="Toggle °C/°F" id="btn-unit">°F</button>
 <button class="btn-action btn-share" onclick="shareWeather()" title="Distribuie vremea"><i class="fas fa-share-nodes"></i></button>
 <button class="btn-action btn-theme" onclick="toggleTheme()" title="Schimbă tema"><i class="fas fa-moon" id="theme-icon"></i></button>
@@ -1637,19 +1637,7 @@ el.innerHTML = `<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
 document.getElementById('toast-container').appendChild(el);
 setTimeout(() => el.remove(), 3200);
 }
-/* ================================================================
-GEOLOCALIZARE - DEZACTIVAT
-================================================================ */
-function geoLocate() {
-// Dezactivat la cererea utilizatorului - folosim locația implicită
-console.log('Geolocalizare dezactivată');
-showToast('Geolocalizare dezactivată - se folosește locația implicită', 'info');
-// Setează locație fixă implicită
-currentCoords = { lat: 47.17, lon: 26.36 }; // Târgu Neamț
-const defaultCity = localStorage.getItem('hub_last_city') || 'Targu Neamt';
-document.getElementById('city-in').value = defaultCity;
-updateWeather();
-}
+
 /* ================================================================
 HELPERS
 ================================================================ */
@@ -4025,3 +4013,4 @@ window.fetchOpenMeteo = async function(lat, lon) {
 </script>
 </body>
 </html>
+ 
