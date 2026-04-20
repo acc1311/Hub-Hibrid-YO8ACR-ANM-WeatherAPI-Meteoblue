@@ -2879,8 +2879,8 @@ const pressSrc      = anmPressure.value !== null ? 'ANM' : 'ICON-EU 3km';
 /* Umiditate: ANM > ICON-EU */
 const humidity    = p && anmVal(p.umezeala) ? p.umezeala : (omHumidity != null ? omHumidity : '--');
 const humiditySrc = p && anmVal(p.umezeala) ? 'ANM' : 'ICON-EU 3km';
-/* Condiție text și iconiță */
-const condText    = (dW ? dW.current.condition.text : null) || omCondText;
+/* Condiție text și iconiță — ICON-EU întotdeauna primar, W-API ignorat pentru condiție */
+const condText    = omCondText;
 const uvInfo      = omUvNow !== null ? uvLabel(omUvNow) : (dW ? uvLabel(dW.current.uv) : { text: 'N/A', color: 'var(--muted)' });
 const aqiIdx      = dW && dW.current.air_quality ? dW.current.air_quality['us-epa-index'] : 0;
 const aqiInfo     = aqiLabel(aqiIdx);
