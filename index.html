@@ -828,7 +828,7 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <span class="ps-label" data-i18n="provider_label">Furnizori:</span>
 <div class="ps-chips">
 <button class="ps-chip active c-om ps-primary" id="chip-om" onclick="toggleProvider('om', this)" title="Open-Meteo ICON-EU + ECMWF — model primar, precizie maximă România (3km)">
-<span class="ps-dot"></span> ICON-EU <span class="ps-primary-badge">★</span>
+<span class="ps-dot"></span> ICON-EU <span class="ps-primary-badge">★</span> <span style="font-size:0.5rem;font-weight:900;background:linear-gradient(135deg,#7c3aed,#2563eb);color:white;padding:1px 5px;border-radius:5px;margin-left:2px;letter-spacing:0.2px;vertical-align:middle;">D2</span>
 </button>
 <button class="ps-chip active c-anm ps-secondary" id="chip-anm" onclick="toggleProvider('anm', this)" title="ANM — stații meteo oficiale RO (completare secundară cu date reale de stație)">
 <span class="ps-dot"></span> ANM <span class="ps-secondary-badge">+</span>
@@ -3455,30 +3455,42 @@ CONFORT TERMIC — Dew Point + feels like + text
 ================================================================ */
 function renderComfort(dW) {
 const el = document.getElementById('comfort-info');
-const temp = dW.current.temp_c;
-const feels = dW.current.feelslike_c;
-const dew = dW.current.dewpoint_c;
-const hum = dW.current.humidity;
-const wind = dW.current.wind_kph;
+if (!el || !dW || !dW.current) return;
+const temp  = parseFloat(dW.current.temp_c);
+const feels = parseFloat(dW.current.feelslike_c);
+const dew   = parseFloat(dW.current.dewpoint_c);
+const hum   = parseFloat(dW.current.humidity);
+const wind  = parseFloat(dW.current.wind_kph);
+// Validare date — dacă lipsesc date esențiale, afișăm N/A
+if (isNaN(temp) || isNaN(hum)) {
+el.innerHTML = '<div class="comfort-text comfort-ok">Date insuficiente pentru calcul confort.</div>';
+return;
+}
+const feelsOk = !isNaN(feels);
+const dewOk   = !isNaN(dew);
+const windOk  = !isNaN(wind);
 // Calcul index de confort simplificat
 let comfortText = '', comfortCls = 'comfort-good';
-if (temp >= 18 && temp <= 26 && hum < 70 && wind < 20) {
+if (temp >= 18 && temp <= 26 && hum < 70 && (!windOk || wind < 20)) {
 comfortText = t('comfort_good');
 comfortCls = 'comfort-good';
-} else if (temp < 0 || temp > 35 || hum > 85) {
+} else if (temp < 0 || temp > 35) {
 comfortText = temp < 0 ? t('comfort_cold') : t('comfort_hot');
 comfortCls = 'comfort-bad';
-} else if (feels < temp - 5 || feels > temp + 5) {
+} else if (hum > 85) {
+comfortText = t('comfort_hot_feel');
+comfortCls = 'comfort-ok';
+} else if (feelsOk && (feels < temp - 5 || feels > temp + 5)) {
 comfortText = feels < temp ? t('comfort_cold_feel') : t('comfort_hot_feel');
 comfortCls = 'comfort-ok';
 } else {
 comfortText = t('comfort_ok');
 comfortCls = 'comfort-ok';
 }
-const windDiscomfortLabel = wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
+const windDiscomfortLabel = !windOk ? t('comfort_low') : wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
 el.innerHTML = `
-<div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dew !== undefined ? dew.toFixed(1) + '°C' : 'N/A'}</span></div>
-<div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feels}°C</span></div>
+<div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dewOk ? dew.toFixed(1) + '°C' : 'N/A'}</span></div>
+<div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feelsOk ? feels.toFixed(1) + '°C' : 'N/A'}</span></div>
 <div class="comfort-row"><span class="comfort-label">${t('wind_discomfort')}</span><span class="comfort-val">${windDiscomfortLabel}</span></div>
 <div class="comfort-text ${comfortCls}">${comfortText}</div>
 `;
@@ -4002,4 +4014,5 @@ window.fetchOpenMeteo = async function(lat, lon) {
 </script>
 </body>
 </html>
+ 
  
