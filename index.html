@@ -63,19 +63,90 @@ text-align: center; font-size: 0.65rem; font-weight: 700;
 color: var(--muted); margin-top: 2px;
 }
 /* ── HOURLY 24H WITH PRECIP BARS ── */
-.hourly-chart-wrap { position: relative; }
+.hourly-chart-wrap { position: relative; overflow: hidden; max-width: 100%; }
+.hourly-scroll {
+width: 100%;
+max-width: 100%;
+overflow-x: auto;
+overflow-y: hidden;
+padding-bottom: 4px;
+scrollbar-width: thin;
+scrollbar-color: var(--primary) transparent;
+}
+.hourly-scroll::-webkit-scrollbar { height: 5px; }
+.hourly-scroll::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 999px; }
+.hourly-scroll-inner { min-width: 100%; }
 .hourly-tabs {
 display: flex; gap: 4px; margin-bottom: 8px;
 background: var(--card); border-radius: 10px; padding: 3px;
-width: fit-content;
+width: fit-content; max-width: 100%; flex-wrap: wrap;
 }
 .hourly-tab {
 padding: 4px 10px; border-radius: 7px; font-size: 0.6rem;
 font-weight: 700; border: none; cursor: pointer;
 background: transparent; color: var(--muted); transition: all 0.2s;
+white-space: nowrap;
 }
 .hourly-tab.active {
 background: var(--primary); color: white;
+}
+.hourly-legend {
+display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+font-size: 0.62rem; color: var(--muted); font-weight: 700;
+}
+.legend-item {
+display: inline-flex; align-items: center; gap: 6px;
+padding: 4px 8px; border-radius: 999px; background: var(--grid);
+}
+.legend-swatch {
+width: 16px; height: 3px; border-radius: 999px; display: inline-block;
+}
+.legend-swatch.temp { background: linear-gradient(90deg,#f97316,#ef4444); height: 4px; }
+.legend-swatch.dew { background: repeating-linear-gradient(90deg,#22d3ee 0 6px,transparent 6px 10px); height: 2px; }
+.legend-swatch.precip { width: 10px; height: 10px; border-radius: 3px; background: rgba(59,130,246,0.7); }
+.legend-swatch.cape { width: 10px; height: 10px; border-radius: 50%; background: #facc15; box-shadow: 0 0 0 2px rgba(250,204,21,0.18); }
+.forecast-source-badges {
+display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; margin-top: 6px;
+}
+.fc-src-badge {
+font-size: 0.47rem; font-weight: 800; letter-spacing: 0.3px;
+padding: 2px 5px; border-radius: 999px; border: 1px solid rgba(59,130,246,0.18);
+background: rgba(59,130,246,0.08); color: #1d4ed8;
+}
+.fc-src-badge.d2 { color: #b45309; background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.25); }
+.fc-src-badge.eu { color: #2563eb; background: rgba(37,99,235,0.10); border-color: rgba(37,99,235,0.20); }
+.fc-src-badge.ecmwf { color: #0f766e; background: rgba(20,184,166,0.10); border-color: rgba(20,184,166,0.20); }
+.cape-pill {
+display: inline-flex; align-items: center; gap: 6px;
+padding: 2px 8px; border-radius: 999px; font-weight: 800;
+}
+.cape-low { background: rgba(250,204,21,0.12); color: #a16207; }
+.cape-mid { background: rgba(249,115,22,0.12); color: #c2410c; }
+.cape-high { background: rgba(239,68,68,0.12); color: #b91c1c; }
+.cape-pulse {
+animation: capePulse 1.4s ease-in-out infinite;
+transform-origin: center;
+}
+@keyframes capePulse {
+0%,100% { transform: scale(1); opacity: 0.9; }
+50% { transform: scale(1.28); opacity: 1; }
+}
+.press-trend-arrow {
+display: inline-flex; align-items: center; gap: 4px;
+animation: pressFloat 1.6s ease-in-out infinite;
+}
+@keyframes pressFloat {
+0%,100% { transform: translateY(0); }
+50% { transform: translateY(-1px); }
+}
+@media (max-width: 420px) {
+.hourly-chart-wrap { padding: 10px 8px; }
+.hourly-tab { padding: 4px 8px; font-size: 0.55rem; }
+#hourly-svg { height: 166px; }
+.hourly-labels { gap: 2px; padding: 0 2px; }
+.hourly-labels span { font-size: 0.5rem; }
+.hourly-legend { gap: 6px; margin-top: 8px; font-size: 0.52rem; }
+.legend-item { padding: 3px 6px; gap: 4px; }
 }
 /* ── FORECAST DETAIL MODAL ── */
 .fc-modal-overlay {
@@ -364,10 +435,22 @@ display: flex; align-items: center; gap: 6px;
 background: var(--grid); border-radius: 20px;
 padding: 14px 14px 10px; margin-bottom: 18px;
 }
-.hourly-chart-wrap .section-title { margin-bottom: 10px; }
-#hourly-svg { width: 100%; height: 90px; display: block; }
-.hourly-labels { display: flex; justify-content: space-between; margin-top: 4px; padding: 0 4px; }
-.hourly-labels span { font-size: 0.6rem; color: var(--muted); font-weight: 700; }
+.hourly-chart-wrap .section-title { margin-bottom: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+#hourly-svg { width: 100%; max-width: none; height: 150px; display: block; overflow: hidden; }
+.hourly-labels {
+display: grid;
+grid-template-columns: repeat(var(--hourly-label-count, 12), minmax(42px,1fr));
+gap: 4px;
+margin-top: 4px;
+padding: 0 4px;
+width: 100%;
+max-width: none;
+overflow: hidden;
+}
+.hourly-labels span {
+font-size: 0.58rem; color: var(--muted); font-weight: 700;
+min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 /* 7-DAY FORECAST — ICON-EU + ECMWF */
 .forecast-wrap { background: var(--grid); border-radius: 20px; padding: 14px; margin-bottom: 18px; }
 .forecast-wrap .section-title { margin-bottom: 12px; }
@@ -903,13 +986,22 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <!-- HOURLY CHART — shown only when data available -->
 <div class="hourly-chart-wrap" id="hourly-section">
 <div class="section-title"><i class="fas fa-chart-line"></i> <span data-i18n="hourly_title" id="hourly-title-label">Temperaturi Orare (8h)</span></div>
-
+<div class="hourly-tabs" id="hourly-tabs">
+<button class="hourly-tab active" onclick="setHourlyView('24h', this)">24h</button>
+<button class="hourly-tab" onclick="setHourlyView('48h', this)">48h</button>
+<button class="hourly-tab" onclick="setHourlyView('120h', this)">5 Zile</button>
+</div>
+<div class="hourly-scroll" id="hourly-scroll">
+<div class="hourly-scroll-inner" id="hourly-scroll-inner">
 <svg id="hourly-svg" viewBox="0 0 460 90" preserveAspectRatio="none"></svg>
 <div class="hourly-labels" id="hourly-labels"></div>
 </div>
+</div>
+<div class="hourly-legend" id="hourly-legend"></div>
+</div>
 <!-- 10-DAY FORECAST — ICON-EU + ECMWF fusion -->
 <div class="forecast-wrap" id="forecast-section">
-<div class="section-title"><i class="fas fa-calendar-days"></i> <span data-i18n="forecast_title">Prognoză 10 Zile</span></div>
+<div class="section-title"><i class="fas fa-calendar-days"></i> <span data-i18n="forecast_title">Prognoză 5 Zile (120h)</span></div>
 <div class="forecast-scroll" id="forecast-scroll"></div>
 </div>
 <!-- ⚠️ ALERTE METEO — generate din ICON-EU/ECMWF -->
@@ -988,7 +1080,7 @@ aqi_title: 'Calitate Aer — Detaliat',
 moon_title: 'Faza Lunii',
 comfort_title: 'Confort Termic',
 hourly_title: 'Temperaturi Orare (8h)',
-forecast_title: 'Prognoză 10 Zile',
+forecast_title: 'Prognoză 5 Zile (120h)',
 radar_title: 'Radar Ploi Live',
 radar_tab_animated: '🌧️ Radar Animat',
 radar_tab_meteo: '🌐 Radar RO',
@@ -1090,7 +1182,7 @@ aqi_title: 'Air Quality — Detailed',
 moon_title: 'Moon Phase',
 comfort_title: 'Thermal Comfort',
 hourly_title: 'Hourly Temperatures (8h)',
-forecast_title: '10-Day Forecast',
+forecast_title: '5-Day Forecast (120h)',
 radar_title: 'Live Rain Radar',
 radar_tab_animated: '🌧️ Animated Radar',
 radar_tab_meteo: '🌐 Radar RO',
@@ -4011,6 +4103,703 @@ window.fetchOpenMeteo = async function(lat, lon) {
   }
   console.log('🌤️ Hub Meteo PRO v2.0 — Toate funcționalitățile activate ✓');
 })();
+
+/* ================================================================
+ OPEN-METEO FUSION V3 — ICON-D2 + ICON-EU + ECMWF ENSEMBLE
+================================================================ */
+let _omCompositeCache = null;
+let _hourlySourceMeta = null;
+
+function _isNum(v) {
+  return typeof v === 'number' && !Number.isNaN(v);
+}
+function _seriesValue(arr, idx) {
+  return Array.isArray(arr) && idx >= 0 && arr[idx] != null ? arr[idx] : null;
+}
+function _buildTimeMap(arr) {
+  const out = {};
+  (arr || []).forEach((t, i) => { out[t] = i; });
+  return out;
+}
+function _avgMembers(container, base) {
+  if (!container) return null;
+  if (Array.isArray(container[base]) && container[base].some(v => v != null)) return container[base];
+  const keys = Object.keys(container).filter(k => k.startsWith(base + '_member'));
+  if (!keys.length) return null;
+  const len = container[keys[0]].length;
+  const avg = [];
+  for (let i = 0; i < len; i++) {
+    let sum = 0, count = 0;
+    keys.forEach(k => {
+      const v = container[k] && container[k][i];
+      if (v != null && !Number.isNaN(v)) { sum += v; count++; }
+    });
+    avg.push(count ? parseFloat((sum / count).toFixed(2)) : null);
+  }
+  return avg;
+}
+function _pickValue(candidates) {
+  for (const c of candidates) {
+    if (_isNum(c.value)) return { value: c.value, source: c.source };
+  }
+  return { value: null, source: null };
+}
+function _formatHour(ts) {
+  return typeof ts === 'string' ? ts.slice(11, 16) : '--:--';
+}
+function _severityClass(level) {
+  if (level >= 3500) return 'cape-high';
+  if (level >= 2000) return 'cape-mid';
+  return 'cape-low';
+}
+function _sourceBadgeClass(src) {
+  if (src === 'ICON-D2') return 'd2';
+  if (src === 'ECMWF') return 'ecmwf';
+  return 'eu';
+}
+function _ensureHourlyLegend() {
+  const el = document.getElementById('hourly-legend');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="legend-item"><span class="legend-swatch precip"></span> Precipitații (mm/h)</div>
+    <div class="legend-item"><span class="legend-swatch temp"></span> Temperatură</div>
+    <div class="legend-item"><span class="legend-swatch dew"></span> Punct de rouă</div>
+    <div class="legend-item"><span class="legend-swatch cape"></span> CAPE</div>
+  `;
+}
+function _updateHourlyTitle(mode, hours) {
+  const prefix = mode === '120h' ? 'Prognoză Orară 5 Zile (120h)' : mode === '48h' ? 'Prognoză Orară 48h' : 'Prognoză Orară 24h';
+  let label = document.getElementById('hourly-title-label');
+  const titleWrap = document.querySelector('#hourly-section .section-title');
+  if (!label && titleWrap) {
+    titleWrap.innerHTML = '<i class="fas fa-chart-line"></i> <span id="hourly-title-label"></span>';
+    label = document.getElementById('hourly-title-label');
+  }
+  if (label) label.textContent = `${prefix} · Temp / Dew / Precip / CAPE`;
+}
+function _sampleLabels(hours, mode) {
+  const lbls = document.getElementById('hourly-labels');
+  if (!lbls) return;
+  const labels = hours.map((h, i) => {
+    const date = new Date(h.time);
+    const hh = _formatHour(h.time);
+    const dayMarker = mode === '120h' && i % 24 === 0
+      ? `<small style="display:block;font-size:0.47rem;opacity:0.72">${date.toLocaleDateString('ro-RO', { weekday: 'short', day: '2-digit' })}</small>`
+      : '';
+    return `<span>${dayMarker}${hh}</span>`;
+  });
+  lbls.style.setProperty('--hourly-label-count', String(Math.max(labels.length, 2)));
+  lbls.innerHTML = labels.join('');
+}
+async function fetchOpenMeteoD2(lat, lon) {
+  const params = new URLSearchParams({
+    latitude: parseFloat(lat).toFixed(4),
+    longitude: parseFloat(lon).toFixed(4),
+    models: 'icon_d2',
+    current: 'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,precipitation,cloud_cover,visibility,is_day,dew_point_2m',
+    hourly: 'temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,cloud_cover,visibility,snow_depth,cape',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,precipitation_probability_max,precipitation_probability_min,sunrise,sunset,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant',
+    wind_speed_unit: 'kmh',
+    temperature_unit: 'celsius',
+    precipitation_unit: 'mm',
+    timezone: 'Europe/Bucharest',
+    forecast_days: 3,
+    forecast_hours: 48
+  });
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  if (!res.ok) throw new Error(`ICON-D2 HTTP ${res.status}`);
+  const data = await res.json();
+  return { current: data.current || null, hourly: data.hourly || null, daily: data.daily || null, raw: data };
+}
+async function fetchOpenMeteoEU(lat, lon) {
+  const params = new URLSearchParams({
+    latitude: parseFloat(lat).toFixed(4),
+    longitude: parseFloat(lon).toFixed(4),
+    models: 'icon_eu',
+    current: 'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,precipitation,cloud_cover,visibility,is_day,dew_point_2m',
+    hourly: 'temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,cloud_cover,visibility,snow_depth,cape',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,precipitation_probability_max,precipitation_probability_min,sunrise,sunset,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant',
+    wind_speed_unit: 'kmh',
+    temperature_unit: 'celsius',
+    precipitation_unit: 'mm',
+    timezone: 'Europe/Bucharest',
+    forecast_days: 5,
+    forecast_hours: 120
+  });
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  if (!res.ok) throw new Error(`ICON-EU HTTP ${res.status}`);
+  const data = await res.json();
+  return { current: data.current || null, hourly: data.hourly || null, daily: data.daily || null, raw: data };
+}
+async function fetchOpenMeteoECMWF(lat, lon) {
+  const latS = parseFloat(lat).toFixed(4);
+  const lonS = parseFloat(lon).toFixed(4);
+  const ensParams = new URLSearchParams({
+    latitude: latS,
+    longitude: lonS,
+    models: 'ecmwf_ifs025',
+    hourly: 'temperature_2m,dew_point_2m,apparent_temperature,precipitation,cape,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,cloud_cover,visibility',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant',
+    timezone: 'Europe/Bucharest',
+    forecast_days: 5,
+    forecast_hours: 120
+  });
+  const uvParams = new URLSearchParams({
+    latitude: latS,
+    longitude: lonS,
+    models: 'ecmwf_ifs025',
+    hourly: 'uv_index',
+    daily: 'uv_index_max',
+    timezone: 'Europe/Bucharest',
+    forecast_days: 5,
+    forecast_hours: 120
+  });
+  const [ensRes, uvRes] = await Promise.all([
+    fetch(`https://ensemble-api.open-meteo.com/v1/ensemble?${ensParams}`),
+    fetch(`https://api.open-meteo.com/v1/forecast?${uvParams}`)
+  ]);
+  if (!ensRes.ok) throw new Error(`ECMWF ENS HTTP ${ensRes.status}`);
+  const ens = await ensRes.json();
+  const uv = uvRes.ok ? await uvRes.json() : null;
+  const hourly = ens.hourly || {};
+  const daily = ens.daily || {};
+  const outHourly = {
+    time: hourly.time || [],
+    temperature_2m: _avgMembers(hourly, 'temperature_2m'),
+    dew_point_2m: _avgMembers(hourly, 'dew_point_2m'),
+    apparent_temperature: _avgMembers(hourly, 'apparent_temperature'),
+    precipitation: _avgMembers(hourly, 'precipitation'),
+    cape: _avgMembers(hourly, 'cape'),
+    weather_code: _avgMembers(hourly, 'weather_code'),
+    wind_speed_10m: _avgMembers(hourly, 'wind_speed_10m'),
+    wind_gusts_10m: _avgMembers(hourly, 'wind_gusts_10m'),
+    wind_direction_10m: _avgMembers(hourly, 'wind_direction_10m'),
+    surface_pressure: _avgMembers(hourly, 'surface_pressure'),
+    cloud_cover: _avgMembers(hourly, 'cloud_cover'),
+    visibility: _avgMembers(hourly, 'visibility'),
+    uv_index: uv && uv.hourly ? uv.hourly.uv_index : null
+  };
+  const outDaily = {
+    time: daily.time || [],
+    weather_code: _avgMembers(daily, 'weather_code'),
+    temperature_2m_max: _avgMembers(daily, 'temperature_2m_max'),
+    temperature_2m_min: _avgMembers(daily, 'temperature_2m_min'),
+    precipitation_sum: _avgMembers(daily, 'precipitation_sum'),
+    precipitation_probability_max: _avgMembers(daily, 'precipitation_probability_max'),
+    wind_speed_10m_max: _avgMembers(daily, 'wind_speed_10m_max'),
+    wind_direction_10m_dominant: _avgMembers(daily, 'wind_direction_10m_dominant'),
+    uv_index_max: uv && uv.daily ? uv.daily.uv_index_max : null
+  };
+  return { current: null, hourly: outHourly, daily: outDaily, raw: { ensemble: ens, uv } };
+}
+async function fetchOpenMeteoAll(lat, lon) {
+  const [d2Res, euRes, ecmwfRes] = await Promise.allSettled([
+    fetchOpenMeteoD2(lat, lon),
+    fetchOpenMeteoEU(lat, lon),
+    fetchOpenMeteoECMWF(lat, lon)
+  ]);
+  const d2 = d2Res.status === 'fulfilled' ? d2Res.value : null;
+  const eu = euRes.status === 'fulfilled' ? euRes.value : null;
+  const ecmwf = ecmwfRes.status === 'fulfilled' ? ecmwfRes.value : null;
+  if (!d2 && !eu && !ecmwf) return null;
+  const hourlyMaster = (eu && eu.hourly && eu.hourly.time) || (d2 && d2.hourly && d2.hourly.time) || (ecmwf && ecmwf.hourly && ecmwf.hourly.time) || [];
+  const hourlyFields = ['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','precipitation','precipitation_probability','weather_code','wind_speed_10m','wind_gusts_10m','wind_direction_10m','surface_pressure','cloud_cover','visibility','snow_depth','cape','uv_index'];
+  const d2Map = _buildTimeMap(d2 && d2.hourly ? d2.hourly.time : []);
+  const euMap = _buildTimeMap(eu && eu.hourly ? eu.hourly.time : []);
+  const ecMap = _buildTimeMap(ecmwf && ecmwf.hourly ? ecmwf.hourly.time : []);
+  const mergedHourly = { time: hourlyMaster.slice() };
+  const sourceHourly = {};
+  hourlyFields.forEach(field => {
+    mergedHourly[field] = [];
+    sourceHourly[field] = [];
+    hourlyMaster.forEach((time, idx) => {
+      const pick = _pickValue([
+        { value: d2 && d2.hourly ? _seriesValue(d2.hourly[field], d2Map[time]) : null, source: 'ICON-D2' },
+        { value: eu && eu.hourly ? _seriesValue(eu.hourly[field], euMap[time]) : null, source: 'ICON-EU' },
+        { value: ecmwf && ecmwf.hourly ? _seriesValue(ecmwf.hourly[field], ecMap[time]) : null, source: 'ECMWF' }
+      ]);
+      mergedHourly[field][idx] = pick.value;
+      sourceHourly[field][idx] = pick.source;
+    });
+  });
+  const now = new Date();
+  const nowPrefix = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + 'T' + String(now.getHours()).padStart(2, '0');
+  let nowIdx = hourlyMaster.findIndex(t => t.startsWith(nowPrefix));
+  if (nowIdx < 0) nowIdx = 0;
+  const dayPrefix23 = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + 'T23';
+  let tonight23Idx = hourlyMaster.findIndex(t => t.startsWith(dayPrefix23));
+  if (tonight23Idx < 0) tonight23Idx = Math.min(nowIdx + 11, hourlyMaster.length - 1);
+  const current = {};
+  const currentFields = ['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','weather_code','wind_speed_10m','wind_direction_10m','wind_gusts_10m','surface_pressure','precipitation','cloud_cover','visibility','is_day'];
+  currentFields.forEach(field => {
+    if (field === 'is_day') {
+      current[field] = _pickValue([
+        { value: d2 && d2.current ? d2.current.is_day : null, source: 'ICON-D2' },
+        { value: eu && eu.current ? eu.current.is_day : null, source: 'ICON-EU' }
+      ]).value;
+      return;
+    }
+    const currentPick = _pickValue([
+      { value: d2 && d2.current ? d2.current[field] : null, source: 'ICON-D2' },
+      { value: eu && eu.current ? eu.current[field] : null, source: 'ICON-EU' },
+      { value: mergedHourly[field] ? mergedHourly[field][nowIdx] : null, source: sourceHourly[field] ? sourceHourly[field][nowIdx] : null }
+    ]);
+    current[field] = currentPick.value;
+  });
+  current.cape = mergedHourly.cape ? mergedHourly.cape[nowIdx] : null;
+  current.uv_index = mergedHourly.uv_index ? mergedHourly.uv_index[nowIdx] : null;
+  const dailyMaster = eu && eu.daily && eu.daily.time ? eu.daily.time.slice(0, 5)
+    : d2 && d2.daily && d2.daily.time ? d2.daily.time.slice(0, 5)
+    : ecmwf && ecmwf.daily && ecmwf.daily.time ? ecmwf.daily.time.slice(0, 5)
+    : [];
+  const dailyFields = ['weather_code','temperature_2m_max','temperature_2m_min','precipitation_sum','precipitation_hours','precipitation_probability_max','precipitation_probability_min','sunrise','sunset','wind_speed_10m_max','wind_gusts_10m_max','wind_direction_10m_dominant','uv_index_max'];
+  const d2DailyMap = _buildTimeMap(d2 && d2.daily ? d2.daily.time : []);
+  const euDailyMap = _buildTimeMap(eu && eu.daily ? eu.daily.time : []);
+  const ecDailyMap = _buildTimeMap(ecmwf && ecmwf.daily ? ecmwf.daily.time : []);
+  const mergedDaily = { time: dailyMaster.slice(), source_model: [], source_badges: [] };
+  dailyFields.forEach(field => { mergedDaily[field] = []; });
+  dailyMaster.forEach((date, idx) => {
+    const badges = new Set();
+    dailyFields.forEach(field => {
+      const pick = _pickValue([
+        { value: idx < 2 && d2 && d2.daily ? _seriesValue(d2.daily[field], d2DailyMap[date]) : null, source: 'ICON-D2' },
+        { value: eu && eu.daily ? _seriesValue(eu.daily[field], euDailyMap[date]) : null, source: 'ICON-EU' },
+        { value: ecmwf && ecmwf.daily ? _seriesValue(ecmwf.daily[field], ecDailyMap[date]) : null, source: 'ECMWF' }
+      ]);
+      mergedDaily[field][idx] = pick.value;
+      if (pick.source) badges.add(pick.source);
+    });
+    const tempSource = _pickValue([
+      { value: idx < 2 && d2 && d2.daily ? _seriesValue(d2.daily.temperature_2m_max, d2DailyMap[date]) : null, source: 'ICON-D2' },
+      { value: eu && eu.daily ? _seriesValue(eu.daily.temperature_2m_max, euDailyMap[date]) : null, source: 'ICON-EU' },
+      { value: ecmwf && ecmwf.daily ? _seriesValue(ecmwf.daily.temperature_2m_max, ecDailyMap[date]) : null, source: 'ECMWF' }
+    ]);
+    mergedDaily.source_model[idx] = tempSource.source || 'ICON-EU';
+    mergedDaily.source_badges[idx] = Array.from(badges);
+  });
+  const viewStart = Math.max(0, nowIdx);
+  _hourlyDataFull = hourlyMaster.slice(viewStart, viewStart + 120).map((time, localIdx) => {
+    const idx = viewStart + localIdx;
+    return ({
+    time,
+    temp_c: mergedHourly.temperature_2m ? mergedHourly.temperature_2m[idx] : null,
+    dew_c: mergedHourly.dew_point_2m ? mergedHourly.dew_point_2m[idx] : null,
+    precip_mm: mergedHourly.precipitation ? mergedHourly.precipitation[idx] : null,
+    cape: mergedHourly.cape ? mergedHourly.cape[idx] : null,
+    source: {
+      temp: sourceHourly.temperature_2m ? sourceHourly.temperature_2m[idx] : null,
+      precip: sourceHourly.precipitation ? sourceHourly.precipitation[idx] : null,
+      dew: sourceHourly.dew_point_2m ? sourceHourly.dew_point_2m[idx] : null,
+      cape: sourceHourly.cape ? sourceHourly.cape[idx] : null
+    }
+  })});
+  _hourlySourceMeta = sourceHourly;
+  _hourlyPrecipData = _hourlyDataFull.slice(0, 120).map(h => ({ time: h.time, prob: h.precip_mm || 0 }));
+  _omCompositeCache = {
+    raw: { d2: d2 && d2.raw, eu: eu && eu.raw, ecmwf: ecmwf && ecmwf.raw },
+    current,
+    hourly: mergedHourly,
+    daily: mergedDaily,
+    ecmwfDaily: ecmwf ? ecmwf.daily : null,
+    sourceHourly,
+    nowIdx,
+    tonight23Idx
+  };
+  return _omCompositeCache;
+}
+window.fetchOpenMeteoD2 = fetchOpenMeteoD2;
+window.fetchOpenMeteoEU = fetchOpenMeteoEU;
+window.fetchOpenMeteoECMWF = fetchOpenMeteoECMWF;
+window.fetchOpenMeteoAll = fetchOpenMeteoAll;
+window.fetchOpenMeteo = fetchOpenMeteoAll;
+
+function getPressureTrend(omData) {
+  const omh = omData && omData.hourly;
+  const idx = omData && typeof omData.nowIdx === 'number' ? omData.nowIdx : 0;
+  if (!omh || !omh.surface_pressure || !Array.isArray(omh.surface_pressure)) {
+    return { arrow: '→', label: 'Stabil', className: 'press-trend-stable', delta: null };
+  }
+  const nowP = omh.surface_pressure[idx];
+  const prevP = idx >= 3 ? omh.surface_pressure[idx - 3] : null;
+  if (!_isNum(nowP) || !_isNum(prevP)) {
+    return { arrow: '→', label: 'Stabil', className: 'press-trend-stable', delta: null };
+  }
+  const delta = parseFloat((nowP - prevP).toFixed(1));
+  if (delta >= 1) return { arrow: '↑', label: 'Crește', className: 'press-trend-up', delta };
+  if (delta <= -1) return { arrow: '↓', label: 'Scade', className: 'press-trend-down', delta };
+  return { arrow: '→', label: 'Stabil', className: 'press-trend-stable', delta };
+}
+window.getPressureTrend = getPressureTrend;
+
+function _decorateSourceText() {
+  const sync = document.getElementById('sync-info');
+  if (sync) sync.innerHTML = sync.innerHTML.replace(/ICON-EU 3km/g, 'ICON-D2 · ICON-EU · ECMWF');
+  const feel = document.getElementById('temp-feel');
+  if (feel) feel.textContent = feel.textContent.replace(/\[ICON-EU 3km\]|\[OM\/ICON-EU\]/g, '[ICON-D2/EU/ECMWF]');
+  const smart = document.getElementById('smart-text');
+  if (smart) smart.innerHTML = smart.innerHTML.replace(/\[ICON-EU(?: 3km)?\]/g, '[ICON-D2/EU/ECMWF]');
+}
+function _upsertGridCard(label, value, source, extraClass) {
+  const grid = document.getElementById('full-grid');
+  if (!grid) return;
+  const id = 'extra-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  let item = document.getElementById(id);
+  if (!item) {
+    item = document.createElement('div');
+    item.className = 'data-item';
+    item.id = id;
+    grid.appendChild(item);
+  }
+  item.innerHTML = `
+    <span class="item-label">${label}</span>
+    <span class="item-val ${extraClass || ''}">${value}</span>
+    <span class="item-src">[${source}]</span>
+  `;
+}
+function enhanceDataGrid(omData) {
+  const grid = document.getElementById('full-grid');
+  if (!grid || !omData || !omData.hourly) return;
+  _decorateSourceText();
+  const idx = omData.nowIdx || 0;
+  const dew = _seriesValue(omData.hourly.dew_point_2m, idx);
+  const cape = _seriesValue(omData.hourly.cape, idx);
+  const pressTrend = getPressureTrend(omData);
+  const currentPressure = omData.current && omData.current.surface_pressure != null ? omData.current.surface_pressure : _seriesValue(omData.hourly.surface_pressure, idx);
+  grid.querySelectorAll('.data-item').forEach(item => {
+    const lbl = item.querySelector('.item-label');
+    const val = item.querySelector('.item-val');
+    const src = item.querySelector('.item-src');
+    if (!lbl || !val) return;
+    const text = (lbl.textContent || '').toLowerCase();
+    if (text.includes('presiune') || text.includes('pressure')) {
+      const deltaTxt = pressTrend.delta != null ? ` (${pressTrend.delta > 0 ? '+' : ''}${pressTrend.delta} hPa / 3h)` : '';
+      val.innerHTML = currentPressure != null
+        ? `${currentPressure.toFixed(1)} mb (${(currentPressure * 0.75006).toFixed(0)} mmHg) <span class="press-trend-arrow ${pressTrend.className}">${pressTrend.arrow} ${pressTrend.label}</span>${deltaTxt}`
+        : 'N/A';
+      if (src) src.textContent = '[ICON-D2/EU]';
+    }
+  });
+  _upsertGridCard('Punct de rouă', dew != null ? `${dew.toFixed(1)}°C` : 'Date incomplete', 'ICON-D2/EU/ECMWF');
+  const capeCls = cape != null ? _severityClass(cape) : '';
+  const capeText = cape != null ? `<span class="cape-pill ${capeCls}">${Math.round(cape)} J/kg</span>` : 'Date incomplete';
+  _upsertGridCard('CAPE', capeText, 'ICON-D2/EU/ECMWF');
+  _upsertGridCard('Presiune detaliată', currentPressure != null ? `${currentPressure.toFixed(1)} hPa · <span class="press-trend-arrow ${pressTrend.className}">${pressTrend.arrow} ${pressTrend.label}</span>` : 'Date incomplete', 'ICON-D2/EU');
+}
+
+function _chartPath(points) {
+  let d = `M${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+  for (let i = 1; i < points.length; i++) {
+    const cp = (points[i - 1].x + points[i].x) / 2;
+    d += ` C${cp.toFixed(1)},${points[i - 1].y.toFixed(1)} ${cp.toFixed(1)},${points[i].y.toFixed(1)} ${points[i].x.toFixed(1)},${points[i].y.toFixed(1)}`;
+  }
+  return d;
+}
+function renderHourlyCurrentView() {
+  if (!_hourlyDataFull || !_hourlyDataFull.length) return;
+  const count = _hourlyView === '120h' ? 120 : _hourlyView === '48h' ? 48 : 24;
+  _renderAdvancedHourlyChart(_hourlyDataFull.slice(0, Math.min(count, _hourlyDataFull.length)), _hourlyView);
+}
+function _renderAdvancedHourlyChart(hours, mode) {
+  const svg = document.getElementById('hourly-svg');
+  const scrollWrap = document.getElementById('hourly-scroll');
+  const scrollInner = document.getElementById('hourly-scroll-inner');
+  if (!svg || !hours || hours.length < 2) return;
+  const mobile = window.innerWidth <= 420;
+  const pxPerHour = mode === '120h' ? (mobile ? 28 : 24) : mode === '48h' ? (mobile ? 30 : 26) : (mobile ? 34 : 30);
+  const W = Math.max(460, hours.length * pxPerHour);
+  const H = mobile ? 166 : 154;
+  const pad = mobile ? { l: 12, r: 8, t: 14, b: 30 } : { l: 16, r: 10, t: 12, b: 26 };
+  const temps = hours.map(h => _isNum(h.temp_c) ? h.temp_c : null).filter(v => v != null);
+  const dews = hours.map(h => _isNum(h.dew_c) ? h.dew_c : null).filter(v => v != null);
+  if (!temps.length) return;
+  const minT = Math.min(...temps, ...(dews.length ? dews : temps)) - 2;
+  const maxT = Math.max(...temps, ...(dews.length ? dews : temps)) + 2;
+  const xStep = (W - pad.l - pad.r) / Math.max(hours.length - 1, 1);
+  const precipMax = Math.max(...hours.map(h => _isNum(h.precip_mm) ? h.precip_mm : 0), 1);
+  const capeMax = Math.max(...hours.map(h => _isNum(h.cape) ? h.cape : 0), 1);
+  const yTemp = v => H - pad.b - ((v - minT) / Math.max(maxT - minT, 1)) * (H - pad.t - pad.b - 14);
+  const tempPts = hours.map((h, i) => ({ x: pad.l + i * xStep, y: yTemp(_isNum(h.temp_c) ? h.temp_c : minT), val: h.temp_c }));
+  const dewPts = hours.map((h, i) => ({ x: pad.l + i * xStep, y: yTemp(_isNum(h.dew_c) ? h.dew_c : minT), val: h.dew_c }));
+  const line = _chartPath(tempPts);
+  const dewLine = _chartPath(dewPts);
+  const area = `${line} L${tempPts[tempPts.length - 1].x.toFixed(1)},${(H - pad.b).toFixed(1)} L${tempPts[0].x.toFixed(1)},${(H - pad.b).toFixed(1)} Z`;
+  const barW = Math.max(2, Math.min(10, xStep * 0.7));
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.width = `${W}px`;
+  if (scrollInner) scrollInner.style.width = `${W}px`;
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="tempGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f97316" stop-opacity="0.42"/>
+        <stop offset="100%" stop-color="#ef4444" stop-opacity="0.03"/>
+      </linearGradient>
+      <linearGradient id="tempStroke" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#fb7185"/>
+        <stop offset="50%" stop-color="#f97316"/>
+        <stop offset="100%" stop-color="#ef4444"/>
+      </linearGradient>
+    </defs>
+    ${hours.map((h, i) => {
+      const mm = _isNum(h.precip_mm) ? h.precip_mm : 0;
+      const height = (mm / precipMax) * (H - pad.t - pad.b);
+      const x = pad.l + i * xStep - barW / 2;
+      const y = H - pad.b - height;
+      const opacity = Math.max(0.12, Math.min(0.92, mm / Math.max(precipMax, 0.3)));
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${height.toFixed(1)}" rx="3" fill="#2563eb" opacity="${opacity.toFixed(2)}"></rect>`;
+    }).join('')}
+    <path d="${area}" fill="url(#tempGrad)"></path>
+    <path d="${line}" fill="none" stroke="url(#tempStroke)" stroke-width="2.8" stroke-linecap="round"></path>
+    <path d="${dewLine}" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"></path>
+    ${tempPts.map((p, i) => {
+      const show = mode === '120h' ? i % 6 === 0 : mode === '48h' ? i % 4 === 0 : i % 2 === 0;
+      if (!show || !_isNum(p.val)) return '';
+      return `<text x="${p.x.toFixed(1)}" y="${(p.y - 8).toFixed(1)}" text-anchor="middle" font-size="${mobile ? '7' : '8'}" font-weight="800" fill="var(--text)">${Math.round(p.val)}°</text>`;
+    }).join('')}
+    ${hours.map((h, i) => {
+      if (!_isNum(h.cape) || h.cape < 1000) return '';
+      const x = pad.l + i * xStep;
+      const y = pad.t + 12 + (1 - Math.min(h.cape, capeMax) / capeMax) * 20;
+      const color = h.cape >= 3500 ? '#ef4444' : h.cape >= 2000 ? '#f97316' : '#facc15';
+      const pulse = h.cape >= 2000 ? 'cape-pulse' : '';
+      const r = h.cape >= 3500 ? 5.4 : h.cape >= 2000 ? 4.8 : 4.2;
+      return `<circle class="${pulse}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${color}" stroke="rgba(255,255,255,0.85)" stroke-width="1.2"></circle>`;
+    }).join('')}
+  `;
+  if (scrollWrap) scrollWrap.scrollLeft = 0;
+  _sampleLabels(hours, mode);
+  _updateHourlyTitle(mode, hours);
+  _ensureHourlyLegend();
+}
+window.setHourlyView = function(mode, btn) {
+  _hourlyView = mode === '5d' ? '120h' : mode;
+  document.querySelectorAll('.hourly-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderHourlyCurrentView();
+};
+window.drawHourlyChart = function(hours) {
+  if (Array.isArray(hours) && hours.length && !_hourlyDataFull) {
+    _hourlyDataFull = hours.map(h => ({
+      time: h.time,
+      temp_c: h.temp_c,
+      dew_c: h.dew_c != null ? h.dew_c : null,
+      precip_mm: h.precip_mm != null ? h.precip_mm : 0,
+      cape: h.cape != null ? h.cape : null
+    }));
+  }
+  renderHourlyCurrentView();
+};
+
+window.buildOMDays = function(omd, ecmwfDaily) {
+  if (!omd || !omd.time) return [];
+  const ecMap = _buildTimeMap(ecmwfDaily && ecmwfDaily.time ? ecmwfDaily.time : []);
+  return omd.time.slice(0, 5).map((date, idx) => ({
+    date,
+    source: omd.source_model && omd.source_model[idx] ? omd.source_model[idx] : 'ICON-EU',
+    sourceBadges: omd.source_badges && omd.source_badges[idx] ? omd.source_badges[idx] : ['ICON-EU'],
+    weather_code: _seriesValue(omd.weather_code, idx) || 0,
+    maxtemp_c: _seriesValue(omd.temperature_2m_max, idx),
+    mintemp_c: _seriesValue(omd.temperature_2m_min, idx),
+    rain_prob: _seriesValue(omd.precipitation_probability_max, idx) || 0,
+    precip_mm: _seriesValue(omd.precipitation_sum, idx),
+    precip_hours: _seriesValue(omd.precipitation_hours, idx),
+    wind_max: _seriesValue(omd.wind_speed_10m_max, idx),
+    wind_dir: _seriesValue(omd.wind_direction_10m_dominant, idx) != null ? degToCompass(_seriesValue(omd.wind_direction_10m_dominant, idx)) : null,
+    ecmwf_precip_mm: ecmwfDaily && ecmwfDaily.precipitation_sum ? _seriesValue(ecmwfDaily.precipitation_sum, ecMap[date]) : null
+  }));
+};
+
+window.renderForecastOM = function(days) {
+  _omDaysCache = days;
+  const now = new Date();
+  const todayLocal = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const title = document.getElementById('forecast-section') && document.getElementById('forecast-section').querySelector('.section-title');
+  if (title) title.innerHTML = '<i class="fas fa-calendar-days"></i> Prognoză 5 Zile (120h) <small style="font-size:0.5rem;opacity:0.72;font-weight:700;margin-left:4px;">ICON-D2 / ICON-EU / ECMWF</small>';
+  const allTemps = days.flatMap(d => [d.maxtemp_c, d.mintemp_c]).filter(v => v != null);
+  const globalMin = allTemps.length ? Math.min(...allTemps) : 0;
+  const globalMax = allTemps.length ? Math.max(...allTemps) : 30;
+  const tempRange = globalMax - globalMin || 1;
+  const wrap = document.getElementById('forecast-scroll');
+  if (!wrap) return;
+  wrap.innerHTML = days.slice(0, 5).map((d, i) => {
+    const isToday = d.date === todayLocal;
+    const condText = omWmoText(d.weather_code);
+    const ico = getWeatherIcon(condText, true);
+    const maxT = d.maxtemp_c != null ? (currentUnit === 'F' ? toF(d.maxtemp_c) : d.maxtemp_c.toFixed(0)) : '--';
+    const minT = d.mintemp_c != null ? (currentUnit === 'F' ? toF(d.mintemp_c) : d.mintemp_c.toFixed(0)) : '--';
+    const unitSym = currentUnit === 'F' ? '°F' : '°';
+    const prob = d.rain_prob != null ? d.rain_prob : 0;
+    const mm = d.precip_mm != null ? d.precip_mm : null;
+    const wind = d.wind_max != null ? Math.round(d.wind_max) : null;
+    const ensAvg = mm != null && d.ecmwf_precip_mm != null ? ((mm + d.ecmwf_precip_mm) / 2).toFixed(1) : null;
+    const barLeft = d.mintemp_c != null ? ((d.mintemp_c - globalMin) / tempRange * 100).toFixed(0) : 0;
+    const barWidth = d.maxtemp_c != null && d.mintemp_c != null ? (((d.maxtemp_c - d.mintemp_c) / tempRange) * 100).toFixed(0) : 10;
+    const dayLabel = isToday ? t('today') : dayName(d.date + 'T00:00');
+    const probColor = prob >= 70 ? '#1d4ed8' : prob >= 40 ? '#3b82f6' : '#93c5fd';
+    const badges = (d.sourceBadges || [d.source]).map(src => `<span class="fc-src-badge ${_sourceBadgeClass(src)}">${src}</span>`).join('');
+    return `<div class="forecast-card ${isToday ? 'today' : ''}" onclick="openFcModal(${i})" title="Click pt. detalii">
+      <div class="fc-day">${dayLabel}</div>
+      <div class="fc-icon"><i class="fas ${ico.cls}" style="color:${ico.col}"></i></div>
+      <div class="fc-max">${maxT}${unitSym}</div>
+      <div class="fc-min">${minT}${unitSym}</div>
+      <div class="fc-temp-bar-wrap"><div class="fc-temp-bar" style="margin-left:${barLeft}%;width:${barWidth}%"></div></div>
+      <div class="fc-precip">
+        <span class="fc-precip-prob" style="color:${probColor}"><i class="fas fa-droplet" style="font-size:0.5rem"></i> ${prob}%</span>
+        ${mm != null && mm > 0 ? `<span class="fc-precip-mm">${mm.toFixed(1)}mm</span>` : ''}
+      </div>
+      ${wind != null ? `<div class="fc-wind"><i class="fas fa-wind" style="font-size:0.5rem"></i> ${wind} km/h</div>` : ''}
+      ${ensAvg != null ? `<div class="fc-ensemble">Ens avg: ${ensAvg}mm</div>` : ''}
+      <div class="forecast-source-badges">${badges}</div>
+    </div>`;
+  }).join('');
+};
+
+function _futureHourLabel(ts) {
+  return new Date(ts).toLocaleString('ro-RO', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+}
+window.generateAlerts = function(omData) {
+  if (!omData || !omData.current || !omData.hourly) return [];
+  const alerts = [];
+  const omc = omData.current;
+  const omh = omData.hourly;
+  const omd = omData.daily;
+  const start = omData.nowIdx || 0;
+  const push = a => alerts.push(a);
+  const maxNext = (arr, hours) => {
+    let bestVal = null, bestIdx = -1;
+    for (let i = start; i < Math.min(start + hours, arr.length); i++) {
+      const v = arr[i];
+      if (v != null && (bestVal == null || v > bestVal)) { bestVal = v; bestIdx = i; }
+    }
+    return { value: bestVal, idx: bestIdx };
+  };
+  if (_isNum(omc.wind_gusts_10m)) {
+    if (omc.wind_gusts_10m >= 90) push({ level: 'red', icon: '🌪️', title: 'Cod roșu vânt', msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
+    else if (omc.wind_gusts_10m >= 62) push({ level: 'orange', icon: '💨', title: 'Avertizare vânt', msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
+    else if (omc.wind_gusts_10m >= 40) push({ level: 'yellow', icon: '💨', title: 'Atenționare vânt', msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
+  }
+  if (omh.precipitation) {
+    const maxP = maxNext(omh.precipitation, 24);
+    if (_isNum(maxP.value)) {
+      const when = maxP.idx >= 0 ? _futureHourLabel(omh.time[maxP.idx]) : '';
+      if (maxP.value >= 20) push({ level: 'red', icon: '🌊', title: 'Ploaie torențială în 24h', msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxP.value >= 10) push({ level: 'orange', icon: '🌧️', title: 'Ploaie intensă în 24h', msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxP.value >= 5) push({ level: 'yellow', icon: '🌦️', title: 'Ploaie moderată în 24h', msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+    }
+  }
+  if (omh.cape) {
+    const maxCape = maxNext(omh.cape, 6);
+    if (_isNum(maxCape.value)) {
+      const when = maxCape.idx >= 0 ? _futureHourLabel(omh.time[maxCape.idx]) : '';
+      if (maxCape.value >= 3500) push({ level: 'red', icon: '⛈️', title: 'Instabilitate extremă CAPE', msg: `${Math.round(maxCape.value)} J/kg posibil la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxCape.value >= 2000) push({ level: 'orange', icon: '⛈️', title: 'CAPE ridicat', msg: `${Math.round(maxCape.value)} J/kg în următoarele 6h (${when})`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxCape.value >= 1000) push({ level: 'yellow', icon: '⚡', title: 'Instabilitate convectivă', msg: `${Math.round(maxCape.value)} J/kg în următoarele 6h (${when})`, src: 'ICON-D2/EU/ECMWF' });
+    }
+  }
+  if (_isNum(omc.weather_code)) {
+    if (omc.weather_code === 99) push({ level: 'red', icon: '⛈️', title: 'Furtună severă', msg: 'Semnal convectiv sever în datele brute OM', src: 'ICON-D2/EU' });
+    else if (omc.weather_code === 96 || omc.weather_code === 95) push({ level: 'orange', icon: '⛈️', title: 'Furtună', msg: 'Descărcări electrice sau grindină posibile', src: 'ICON-D2/EU' });
+    else if ([75, 86].includes(omc.weather_code)) push({ level: 'orange', icon: '❄️', title: 'Ninsoare intensă', msg: 'Precipitații solide semnificative', src: 'ICON-D2/EU' });
+    else if ([73, 71].includes(omc.weather_code)) push({ level: 'yellow', icon: '🌨️', title: 'Ninsoare', msg: 'Ninsoare în curs sau iminentă', src: 'ICON-D2/EU' });
+    else if (omc.weather_code === 48) push({ level: 'orange', icon: '🌫️', title: 'Ceață densă', msg: 'Vizibilitate foarte redusă', src: 'ICON-D2/EU' });
+    else if (omc.weather_code === 45) push({ level: 'yellow', icon: '🌫️', title: 'Ceață', msg: 'Vizibilitate redusă', src: 'ICON-D2/EU' });
+  }
+  if (_isNum(omc.visibility) && omc.visibility < 500) {
+    push({ level: 'orange', icon: '🚗', title: 'Vizibilitate critică', msg: `${omc.visibility.toFixed(0)} m`, src: 'ICON-D2/EU' });
+  }
+  if (omd && omd.temperature_2m_max && omd.temperature_2m_min) {
+    const todayMax = omd.temperature_2m_max[0];
+    const todayMin = omd.temperature_2m_min[0];
+    if (_isNum(todayMax)) {
+      if (todayMax >= 40) push({ level: 'red', icon: '🌡️', title: 'Caniculă extremă', msg: `Maxima urcă la ${todayMax.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      else if (todayMax >= 36) push({ level: 'orange', icon: '🌡️', title: 'Caniculă', msg: `Maxima urcă la ${todayMax.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      else if (todayMax >= 33) push({ level: 'yellow', icon: '☀️', title: 'Căldură accentuată', msg: `Maxima urcă la ${todayMax.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+    }
+    if (_isNum(todayMin)) {
+      if (todayMin <= -20) push({ level: 'red', icon: '🥶', title: 'Ger extrem', msg: `Minima coboară la ${todayMin.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      else if (todayMin <= -10) push({ level: 'orange', icon: '🥶', title: 'Ger puternic', msg: `Minima coboară la ${todayMin.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      else if (todayMin <= -3) push({ level: 'yellow', icon: '❄️', title: 'Îngheț', msg: `Minima coboară la ${todayMin.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+    }
+    for (let i = 1; i < Math.min(5, omd.time.length); i++) {
+      const rain = omd.precipitation_sum ? omd.precipitation_sum[i] : null;
+      const maxT = omd.temperature_2m_max ? omd.temperature_2m_max[i] : null;
+      const dayShort = new Date(omd.time[i] + 'T12:00').toLocaleDateString('ro-RO', { weekday: 'short', day: '2-digit' });
+      if (_isNum(rain) && rain >= 20) {
+        push({ level: rain >= 45 ? 'orange' : 'yellow', icon: '🛰️', title: `Ploi prognozate ${dayShort}`, msg: `${rain.toFixed(0)} mm în datele zilelor 2-5`, src: 'ICON-EU/ECMWF' });
+      }
+      if (_isNum(maxT) && maxT >= 38) {
+        push({ level: 'orange', icon: '🌡️', title: `Caniculă prognozată ${dayShort}`, msg: `Maxima ajunge la ${maxT.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      }
+    }
+  }
+  const ord = { red: 0, orange: 1, yellow: 2 };
+  alerts.sort((a, b) => ord[a.level] - ord[b.level]);
+  return alerts.slice(0, 8);
+};
+window.renderAlerts = function(omData) {
+  enhanceDataGrid(omData);
+  const panel = document.getElementById('alerts-panel');
+  if (!panel) return;
+  const alerts = generateAlerts(omData);
+  if (!alerts.length) { panel.style.display = 'none'; return; }
+  panel.style.display = 'flex';
+  panel.innerHTML = alerts.map(a => `
+    <div class="alert-item ${a.level}">
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-body">
+        <div class="alert-title">⚠️ ${a.title}</div>
+        ${a.msg ? `<div class="alert-msg">${a.msg}</div>` : ''}
+        <div class="alert-src">${a.src || 'ICON-D2 · ICON-EU · ECMWF'}</div>
+      </div>
+    </div>
+  `).join('');
+};
+
+window.renderComfort = function(dW) {
+  const el = document.getElementById('comfort-info');
+  if (!el) return;
+  const current = dW && dW.current ? dW.current : null;
+  if (!current) {
+    el.innerHTML = '<div class="comfort-text comfort-ok">Date incomplete</div>';
+    return;
+  }
+  const temp = parseFloat(current.temp_c);
+  const feels = parseFloat(current.feelslike_c);
+  const hum = parseFloat(current.humidity);
+  const wind = parseFloat(current.wind_kph);
+  let dew = parseFloat(current.dewpoint_c);
+  if (Number.isNaN(dew) && _isNum(temp) && _isNum(hum)) dew = calcDewPoint(temp, hum);
+  if (!_isNum(temp) || !_isNum(hum)) {
+    el.innerHTML = '<div class="comfort-text comfort-ok">Date incomplete</div>';
+    return;
+  }
+  const feelsOk = _isNum(feels);
+  const dewOk = _isNum(dew);
+  const windOk = _isNum(wind);
+  let comfortText = t('comfort_ok');
+  let comfortCls = 'comfort-ok';
+  if (temp >= 18 && temp <= 26 && hum < 70 && (!windOk || wind < 20)) {
+    comfortText = t('comfort_good');
+    comfortCls = 'comfort-good';
+  } else if (temp < 0 || temp > 35) {
+    comfortText = temp < 0 ? t('comfort_cold') : t('comfort_hot');
+    comfortCls = 'comfort-bad';
+  } else if (hum > 85) {
+    comfortText = t('comfort_hot_feel');
+  }
+  const windDiscomfortLabel = !windOk ? t('comfort_low') : wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
+  el.innerHTML = `
+    <div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dewOk ? dew.toFixed(1) + '°C' : 'Date incomplete'}</span></div>
+    <div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feelsOk ? feels.toFixed(1) + '°C' : 'Date incomplete'}</span></div>
+    <div class="comfort-row"><span class="comfort-label">${t('wind_discomfort')}</span><span class="comfort-val">${windDiscomfortLabel}</span></div>
+    <div class="comfort-text ${comfortCls}">${comfortText}</div>
+  `;
+};
+
+setTimeout(() => {
+  _ensureHourlyLegend();
+  const btn = document.querySelector('.hourly-tab.active') || document.querySelector('.hourly-tab');
+  if (btn) setHourlyView('24h', btn);
+}, 0);
 </script>
 </body>
 </html>
