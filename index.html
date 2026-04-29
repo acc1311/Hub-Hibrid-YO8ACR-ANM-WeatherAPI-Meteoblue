@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="ro">
-<head>
+<html lang="ro" class=" jclxvfrp idc0_350" data-immersive-translate-page-theme="dark"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; child-src 'self' https: blob:; frame-src https://embed.windy.com https://radar.wo-cloud.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://www.meteoradar.ro; connect-src 'self' https:; img-src 'self' https: data: blob:; style-src 'self' 'unsafe-inline' https:;">
-<title>Hub Meteo PRO — Radar & Prognoză România</title>
+<meta http-equiv="Permissions-Policy" content="geolocation=()">
+<title>Hub Meteo PRO — Radar &amp; Prognoză România</title>
 <meta name="description" content="Aplicație meteo profesională cu radar live, prognoză 10 zile ICON-EU + ECMWF, date ANM, AQI și mai mult.">
 <meta name="theme-color" content="#4f46e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Meteo PRO">
 <link rel="manifest" href="data:application/json,{%22name%22:%22Hub%20Meteo%20PRO%22,%22short_name%22:%22Meteo%20PRO%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%234f46e5%22,%22theme_color%22:%22%234f46e5%22}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
@@ -47,6 +46,121 @@ body.bg-dusk         { background: linear-gradient(160deg,#fb923c,#c2410c,#7c3ae
 
 /* ── SHARE BUTTON ── */
 .btn-share { background: #0ea5e9; color: white; }
+.btn-favorite { background: #f59e0b; color: white; }
+.btn-favorite.active { background: #d97706; }
+.btn-settings { background: var(--grid); color: var(--text); }
+.btn-settings:hover { opacity: 0.9; }
+/* ── APP STATE UI ── */
+.favorites-strip {
+background: var(--grid); border-radius: 18px; padding: 12px 14px;
+margin-bottom: 16px; display: none;
+}
+.favorites-strip.visible { display: block; }
+.favorites-strip-head {
+display: flex; align-items: center; justify-content: space-between;
+gap: 8px; margin-bottom: 10px;
+}
+.favorites-strip-title {
+font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+letter-spacing: 0.4px; color: var(--muted);
+}
+.favorites-manage-btn {
+border: none; background: var(--card); color: var(--primary);
+border-radius: 10px; padding: 6px 10px; cursor: pointer;
+font-size: 0.62rem; font-weight: 800;
+}
+.favorites-list {
+display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px;
+}
+.favorites-list::-webkit-scrollbar { height: 4px; }
+.favorites-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 999px; }
+.favorite-chip {
+border: none; cursor: pointer; flex-shrink: 0;
+padding: 8px 12px; border-radius: 999px;
+background: var(--card); color: var(--text);
+font-size: 0.7rem; font-weight: 700;
+display: inline-flex; align-items: center; gap: 8px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.favorite-chip.active {
+background: rgba(79,70,229,0.12); color: var(--primary);
+box-shadow: 0 0 0 1px rgba(79,70,229,0.18) inset;
+}
+.favorite-chip-remove {
+width: 18px; height: 18px; border: none; border-radius: 50%;
+background: rgba(239,68,68,0.12); color: #dc2626; cursor: pointer;
+display: inline-flex; align-items: center; justify-content: center;
+font-size: 0.62rem;
+}
+.hub-modal-overlay {
+position: fixed; inset: 0; z-index: 11000;
+background: rgba(15,23,42,0.52); backdrop-filter: blur(6px);
+display: none; align-items: center; justify-content: center;
+padding: 18px;
+}
+.hub-modal-overlay.open { display: flex; }
+.hub-modal {
+background: var(--card); color: var(--text); width: 100%;
+max-width: 380px; border-radius: 24px; padding: 22px;
+box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+}
+.hub-modal-head {
+display: flex; align-items: center; justify-content: space-between;
+gap: 10px; margin-bottom: 14px;
+}
+.hub-modal-title {
+font-size: 1rem; font-weight: 800; color: var(--primary);
+text-transform: uppercase; letter-spacing: 0.4px;
+}
+.hub-modal-close {
+width: 34px; height: 34px; border: none; border-radius: 10px;
+background: var(--grid); color: var(--muted); cursor: pointer;
+}
+.settings-form {
+display: grid; gap: 12px;
+}
+.settings-field {
+display: grid; gap: 6px;
+}
+.settings-label {
+font-size: 0.62rem; font-weight: 800; color: var(--muted);
+text-transform: uppercase; letter-spacing: 0.4px;
+}
+.settings-select {
+width: 100%; border: none; outline: none;
+background: var(--grid); color: var(--text);
+padding: 12px 14px; border-radius: 14px; font-weight: 700;
+}
+.settings-actions {
+display: flex; gap: 8px; margin-top: 4px;
+}
+.settings-btn {
+flex: 1; border: none; cursor: pointer; border-radius: 14px;
+padding: 12px 14px; font-weight: 800;
+}
+.settings-btn.primary { background: var(--primary); color: white; }
+.settings-btn.secondary { background: var(--grid); color: var(--text); }
+.favorites-modal-list {
+display: grid; gap: 8px; max-height: 320px; overflow-y: auto;
+}
+.favorites-modal-item {
+display: flex; align-items: center; justify-content: space-between;
+gap: 10px; background: var(--grid); border-radius: 14px; padding: 10px 12px;
+}
+.favorites-modal-name {
+font-size: 0.78rem; font-weight: 800;
+}
+.favorites-modal-meta {
+font-size: 0.6rem; font-weight: 700; color: var(--muted); margin-top: 2px;
+}
+.favorites-modal-actions {
+display: flex; align-items: center; gap: 6px;
+}
+.favorites-empty {
+background: var(--grid); border-radius: 14px; padding: 14px;
+font-size: 0.76rem; color: var(--muted); font-weight: 700;
+text-align: center;
+}
 /* ── UV GAUGE ── */
 .uv-gauge-wrap {
 background: var(--grid); border-radius: 20px;
@@ -215,7 +329,29 @@ letter-spacing: 0.3px;
 box-shadow: 0 25px 60px -12px rgba(0,0,0,0.15),
 0 0 0 1px rgba(255,255,255,0.1) inset;
 }
-/* ── SCROLL TO TOP ── */
+/* ── NOTIFICĂRI BROWSER ── */
+.btn-notif { background: var(--grid); color: var(--muted); position: relative; }
+.btn-notif.granted { color: #16a34a; }
+.btn-notif.denied  { color: #dc2626; opacity: 0.55; cursor: not-allowed; }
+.notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #ef4444; border: 2px solid var(--card);
+  animation: notifPulse 1.4s ease-in-out infinite;
+  display: none;
+}
+.btn-notif.has-alert .notif-badge { display: block; }
+@keyframes notifPulse {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.35); opacity: 0.7; }
+}
+.alert-item { cursor: default; }
+.alert-item.red { animation: alertPulseRed 2s ease-in-out 3; }
+@keyframes alertPulseRed {
+  0%,100% { box-shadow: none; }
+  50%     { box-shadow: 0 0 0 3px rgba(239,68,68,0.25); }
+}
+
 .scroll-top-btn {
 position: fixed; bottom: 24px; right: 24px; z-index: 5000;
 background: var(--primary); color: white; border: none;
@@ -406,6 +542,102 @@ background: var(--info-box); border-radius: 16px; padding: 14px 16px;
 margin-bottom: 18px; font-size: 0.83rem; line-height: 1.5;
 border-left: 4px solid var(--primary); transition: background 0.3s;
 }
+.trust-panel {
+background: var(--grid); border-radius: 20px; padding: 14px;
+margin-bottom: 18px;
+}
+.trust-panel-head {
+display: flex; align-items: center; justify-content: space-between;
+gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.trust-panel-title {
+font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
+letter-spacing: 0.4px; color: var(--muted);
+}
+.trust-panel-note {
+font-size: 0.56rem; font-weight: 700; color: var(--muted);
+}
+.trust-grid {
+display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+}
+.trust-panel.compact {
+padding: 10px 12px;
+border-radius: 16px;
+}
+.trust-panel.compact .trust-panel-head {
+margin-bottom: 0;
+cursor: pointer;
+}
+.trust-panel.compact .trust-panel-note {
+font-size: 0.5rem;
+}
+.trust-panel.compact .trust-grid {
+display: none;
+margin-top: 10px;
+}
+.trust-panel.compact.expanded .trust-grid {
+display: grid;
+}
+.trust-summary {
+display: flex;
+flex-wrap: wrap;
+gap: 6px;
+margin-top: 8px;
+}
+.trust-panel.compact.expanded .trust-summary {
+display: none;
+}
+.trust-chip {
+display: inline-flex;
+align-items: center;
+gap: 5px;
+padding: 4px 8px;
+border-radius: 999px;
+background: var(--card);
+font-size: 0.56rem;
+font-weight: 800;
+color: var(--muted);
+}
+.trust-chip b {
+font-size: 0.58rem;
+color: var(--text);
+}
+.trust-card {
+background: var(--card); border-radius: 16px; padding: 12px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.trust-card-top {
+display: flex; align-items: center; justify-content: space-between;
+gap: 8px; margin-bottom: 6px;
+}
+.trust-card-label {
+font-size: 0.58rem; font-weight: 800; text-transform: uppercase;
+letter-spacing: 0.4px; color: var(--muted);
+}
+.trust-card-badge {
+padding: 2px 8px; border-radius: 999px;
+font-size: 0.5rem; font-weight: 900; letter-spacing: 0.35px;
+text-transform: uppercase;
+}
+.trust-card-badge.observed { background: #dcfce7; color: #166534; }
+.trust-card-badge.model { background: #dbeafe; color: #1d4ed8; }
+.trust-card-badge.blend { background: #ede9fe; color: #6d28d9; }
+.trust-card-badge.fallback { background: #ffedd5; color: #c2410c; }
+.trust-card-badge.unavailable { background: #e5e7eb; color: #475569; }
+[data-theme="dark"] .trust-card-badge.observed { background: #064e3b; color: #4ade80; }
+[data-theme="dark"] .trust-card-badge.model { background: #172554; color: #93c5fd; }
+[data-theme="dark"] .trust-card-badge.blend { background: #312e81; color: #c4b5fd; }
+[data-theme="dark"] .trust-card-badge.fallback { background: #431407; color: #fdba74; }
+[data-theme="dark"] .trust-card-badge.unavailable { background: #334155; color: #cbd5e1; }
+.trust-source {
+font-size: 0.84rem; font-weight: 800; color: var(--text);
+}
+.trust-meta {
+display: flex; flex-direction: column; gap: 3px; margin-top: 4px;
+}
+.trust-meta-line {
+font-size: 0.58rem; font-weight: 700; color: var(--muted);
+}
 /* DATA GRID */
 .data-grid {
 display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -523,7 +755,7 @@ font-size: 0.8rem; flex-shrink: 0; transition: opacity 0.2s;
 .radar-time-label { font-size: 0.62rem; font-weight: 700; color: #fff; min-width: 38px; text-align: right; }
 .radar-layer-info { font-size: 0.58rem; color: rgba(255,255,255,0.6); font-weight: 700; }
 /* Windy + MeteoRadar iframe */
-.windy-frame, .meteo-radar-frame {
+.windy-frame, .meteo-radar-frame, .complex-radar-frame {
 border-radius: 20px;
 border: 2px solid var(--grid); display: none;
 position: relative;
@@ -531,7 +763,8 @@ position: relative;
 /* MeteoRadar are nevoie de mai mult spațiu vertical pentru hartă */
 .meteo-radar-frame { height: 440px; }
 .windy-frame       { height: 340px; }
-.windy-frame iframe, .meteo-radar-frame iframe { width: 100%; height: 100%; border: none; border-radius: 18px; }
+.complex-radar-frame { height: 440px; }
+.windy-frame iframe, .meteo-radar-frame iframe, .complex-radar-frame iframe { width: 100%; height: 100%; border: none; border-radius: 18px; }
 .windy-logo-cover {
 position: absolute; bottom: 8px; left: 8px; z-index: 500;
 background: var(--card); border-radius: 8px;
@@ -756,8 +989,8 @@ z-index: 1500; background: transparent; pointer-events: none !important; cursor:
 position: absolute; inset: 0;
 z-index: 1490;
 background: transparent;
-pointer-events: auto;
-touch-action: none;
+pointer-events: none !important;
+touch-action: auto;
 }
 .iframe-click-shield::after {
 content: "";
@@ -794,9 +1027,25 @@ body { padding: 8px; }
 .meteo-radar-frame { height: 420px !important; }
 .provider-selector { padding: 8px 10px; gap: 6px; }
 .ps-chip { padding: 5px 8px; font-size: 0.6rem; }
-.header-actions { gap: 5px; }
-.btn-action { width: 38px; height: 38px; border-radius: 11px; }
+.header-actions {
+display: grid;
+grid-template-columns: repeat(5, minmax(0, 1fr));
+gap: 8px;
+}
+.search-box {
+grid-column: 1 / -1;
+min-height: 48px;
+}
+.btn-action {
+width: 100%;
+height: 44px;
+border-radius: 12px;
+}
+.favorites-strip { padding: 10px 12px; }
+.favorite-chip { padding: 7px 10px; font-size: 0.66rem; }
 .smart-banner { padding: 10px 12px; font-size: 0.78rem; margin-bottom: 14px; }
+.trust-panel { padding: 10px; margin-bottom: 14px; }
+.trust-grid { grid-template-columns: 1fr; }
 .forecast-card { min-width: 65px; padding: 8px 10px; }
 .aqi-detail-panel { padding: 10px; }
 .aqi-detail-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
@@ -833,8 +1082,8 @@ body { padding: 4px; }
 .card { padding: 12px; border-radius: 14px; }
 .temp-main { font-size: 3rem; }
 .big-icon-wrap { font-size: 2.4rem; }
-.header-actions { gap: 3px; }
-.btn-action { width: 34px; height: 34px; font-size: 0.85rem; }
+.header-actions { gap: 6px; }
+.btn-action { height: 40px; font-size: 0.85rem; }
 .map-wrapper, .windy-frame { height: 190px; }
 .meteo-radar-frame { height: 320px; }
 .widgets-row { flex-direction: column; gap: 8px; }
@@ -887,8 +1136,8 @@ body { background: white; padding: 0; }
 }
 </style>
 </head>
-<body>
-<canvas id="weather-canvas"></canvas>
+<body data-theme="dark" class="bg-cloudy">
+<canvas id="weather-canvas" width="406" height="796"></canvas>
 <button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Sus"><i class="fas fa-chevron-up"></i></button>
 <!-- FORECAST DETAIL MODAL -->
 <div class="fc-modal-overlay" id="fc-modal-overlay" onclick="if(event.target===this)closeFcModal()">
@@ -900,24 +1149,77 @@ body { background: white; padding: 0; }
 <div id="fc-modal-body"></div>
 </div>
 </div>
+<div class="hub-modal-overlay" id="favorites-modal-overlay" onclick="if(event.target===this)closeFavoritesModal()">
+<div class="hub-modal">
+<div class="hub-modal-head">
+<div class="hub-modal-title" data-i18n="favorites_title">Locații Favorite</div>
+<button class="hub-modal-close" onclick="closeFavoritesModal()"><i class="fas fa-times"></i></button>
+</div>
+<div class="favorites-modal-list" id="favorites-modal-list"><div class="favorites-empty">Nu ai încă locații favorite. Apasă steaua de lângă căutare pentru a salva locația curentă.</div></div>
+</div>
+</div>
+<div class="hub-modal-overlay" id="settings-modal-overlay" onclick="if(event.target===this)closeSettingsModal()">
+<div class="hub-modal">
+<div class="hub-modal-head">
+<div class="hub-modal-title" data-i18n="settings_title">Setări Hub</div>
+<button class="hub-modal-close" onclick="closeSettingsModal()"><i class="fas fa-times"></i></button>
+</div>
+<div class="settings-form">
+<div class="settings-field">
+<label class="settings-label" for="settings-theme" data-i18n="settings_theme">Temă</label>
+<select class="settings-select" id="settings-theme">
+<option value="light" id="settingsThemeLight">Light</option>
+<option value="dark" id="settingsThemeDark">Dark</option>
+</select>
+</div>
+<div class="settings-field">
+<label class="settings-label" for="settings-lang" data-i18n="settings_language">Limbă</label>
+<select class="settings-select" id="settings-lang">
+<option value="ro" id="settingsLangRo">Română</option>
+<option value="en" id="settingsLangEn">English</option>
+</select>
+</div>
+<div class="settings-field">
+<label class="settings-label" for="settings-unit" data-i18n="settings_unit">Unitate Temperatură</label>
+<select class="settings-select" id="settings-unit">
+<option value="C">Celsius</option>
+<option value="F">Fahrenheit</option>
+</select>
+</div>
+<div class="settings-field">
+<label class="settings-label" for="settings-refresh" data-i18n="settings_refresh">Auto Refresh</label>
+<select class="settings-select" id="settings-refresh">
+<option value="300" id="settingsRefresh5">5 minute</option>
+<option value="600" id="settingsRefresh10">10 minute</option>
+<option value="900" id="settingsRefresh15">15 minute</option>
+<option value="1800" id="settingsRefresh30">30 minute</option>
+</select>
+</div>
+<div class="settings-actions">
+<button class="settings-btn secondary" onclick="closeSettingsModal()" data-i18n="close_btn">Închide</button>
+<button class="settings-btn primary" onclick="saveSettingsFromModal()" data-i18n="save_btn">Salvează</button>
+</div>
+</div>
+</div>
+</div>
 <div class="toast-container" id="toast-container"></div>
 <div class="card">
 <!-- SEARCH + GEO + THEME + LANG -->
 <div class="header-actions">
 <div class="search-box">
 <i class="fas fa-search" style="color:var(--muted);font-size:0.85rem;margin-right:4px;"></i>
-<input type="text" id="city-in"
-data-i18n-placeholder="search_placeholder"
-placeholder="Caută oraș (Ex: Iași, Cluj...)"
-autocomplete="off"
-oninput="onSearchInput(this.value)"
-onfocus="onSearchFocus()"
-onkeypress="if(event.key==='Enter') updateWeather()">
+<input type="text" id="city-in" data-i18n-placeholder="search_placeholder" placeholder="Caută oraș (Ex: Iași, Cluj...)" autocomplete="off" oninput="onSearchInput(this.value)" onfocus="onSearchFocus()" onkeypress="if(event.key==='Enter') updateWeather()">
 </div>
 
+<button class="btn-action btn-favorite" id="btn-favorite" onclick="toggleCurrentFavorite()" title="Adaugă sau șterge din favorite"><i class="far fa-star" id="favorite-icon"></i></button>
+<button class="btn-action btn-notif" id="btn-notif" onclick="toggleNotifications()" title="Notificări alerte meteo">
+  <i class="fas fa-bell"></i>
+  <span class="notif-badge" id="notif-badge"></span>
+</button>
 <button class="btn-action btn-share" onclick="shareWeather()" title="Distribuie vremea"><i class="fas fa-share-nodes"></i></button>
-<button class="btn-action btn-theme" onclick="toggleTheme()" title="Schimbă tema"><i class="fas fa-moon" id="theme-icon"></i></button>
-<button class="btn-action btn-lang"  onclick="toggleLang()"  title="Switch language" id="btn-lang">RO</button>
+<button class="btn-action btn-settings" onclick="openSettingsModal()" title="Setări"><i class="fas fa-sliders"></i></button>
+<button class="btn-action btn-theme" onclick="toggleTheme()" title="Schimbă tema"><i class="fas fa-sun" id="theme-icon"></i></button>
+<button class="btn-action btn-lang" onclick="toggleLang()" title="Switch language" id="btn-lang">RO</button>
 <!-- AUTOCOMPLETE DROPDOWN -->
 <div class="autocomplete-dropdown" id="ac-dropdown"></div>
 </div>
@@ -940,99 +1242,417 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 </div>
 <span class="ps-status" id="ps-status">Toate sursele active</span>
 </div>
-<div id="loader">
+<div class="favorites-strip" id="favorites-strip">
+<div class="favorites-strip-head">
+<span class="favorites-strip-title" data-i18n="saved_locations">Locații Salvate</span>
+<button class="favorites-manage-btn" onclick="openFavoritesModal()" data-i18n="manage_btn">Gestionează</button>
+</div>
+<div class="favorites-list" id="favorites-list"></div>
+</div>
+<div id="loader" style="display: none;">
 <i class="fas fa-circle-notch fa-spin fa-2x" style="color:var(--primary);"></i>
 <div style="margin-top:10px;font-size:0.8rem;color:var(--muted);font-weight:700;" data-i18n="loading_text">Se încarcă datele...</div>
 </div>
-<div id="main-content">
+<div id="main-content" style="opacity: 1;">
 <!-- LIVE CLOCK -->
-<div class="live-clock" id="live-clock"><i class="fas fa-clock"></i> <span id="live-clock-time">--:--:--</span></div>
-<div id="city-title" class="city-name">--</div>
-<div id="sync-info"  class="time-sync">--<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 10:00</span></div>
+<div class="live-clock" id="live-clock"><i class="fas fa-clock"></i> <span id="live-clock-time">06:37:02</span></div>
+<div id="city-title" class="city-name">TARGU NEAMT</div>
+<div id="sync-info" class="time-sync">OM: ICON-EU | 06:35:54 · ANM: 24-04-2026 ora 06:00 · W-API: AQI ✓<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 28:52</span></div>
 <div class="weather-main">
-<div class="big-icon-wrap" id="big-icon"></div>
-<div id="main-temp" class="temp-main">--</div>
-<div id="temp-secondary-wrap" style="display:none;margin-top:4px;">
-<span class="temp-secondary" id="temp-secondary"></span>
+<div class="big-icon-wrap" id="big-icon"><i class="fas fa-sun" style="color:#f59e0b"></i></div>
+<div id="main-temp" class="temp-main">9.5°C</div>
+<div id="temp-secondary-wrap" style="display: block; margin-top: 4px;">
+<span class="temp-secondary" id="temp-secondary">6.9°C</span>
 <span class="temp-secondary-label">ICON-EU</span>
 </div>
-<div id="temp-feel" class="temp-feel"></div>
-<div id="main-desc" class="condition-text">--</div>
+<div id="temp-feel" class="temp-feel">Resimțit: 3.6°C [ICON-EU]</div>
+<div id="main-desc" class="condition-text">Acoperit</div>
 </div>
-<div class="smart-banner" id="smart-text">Se încarcă prognoza inteligentă...</div>
-<div class="data-grid" id="full-grid"></div>
+<div class="smart-banner" id="smart-text">📍 <b>TARGU NEAMT, România</b> — Acoperit. Șanse precipitații: <b>0%</b> [ICON-D2/EU/ECMWF]. Min/Max: <b>6.7°C / 14.0°C</b> [ICON-EU/ICON-EU].</div>
+<div class="trust-panel compact" id="trust-panel">
+<div class="trust-panel-head" onclick="toggleTrustPanel()">
+<span class="trust-panel-title">Încredere Date</span>
+<span class="trust-panel-note" id="trust-panel-note">Observație vs model vs fallback</span>
+</div>
+<div class="trust-summary" id="trust-summary"></div>
+<div class="trust-grid" id="trust-grid"><div class="trust-card">
+    <div class="trust-card-top">
+      <span class="trust-card-label">Curent</span>
+      <span class="trust-card-badge observed">Observație</span>
+    </div>
+    <div class="trust-source">ANM</div>
+    <div class="trust-meta">
+      <span class="trust-meta-line">Vechime: 24-04-2026 ora 06:00</span>
+      <span class="trust-meta-line">Tip: Observație</span>
+      <span class="trust-meta-line">Stație + model</span>
+    </div>
+  </div><div class="trust-card">
+    <div class="trust-card-top">
+      <span class="trust-card-label">Prognoză</span>
+      <span class="trust-card-badge blend">Blend</span>
+    </div>
+    <div class="trust-source">ICON-EU + ECMWF</div>
+    <div class="trust-meta">
+      <span class="trust-meta-line">Vechime: Actualizat acum</span>
+      <span class="trust-meta-line">Tip: Blend</span>
+      <span class="trust-meta-line">Prognoză + Meteoblue orar</span>
+    </div>
+  </div><div class="trust-card">
+    <div class="trust-card-top">
+      <span class="trust-card-label">AQI</span>
+      <span class="trust-card-badge blend">Blend</span>
+    </div>
+    <div class="trust-source">WeatherAPI</div>
+    <div class="trust-meta">
+      <span class="trust-meta-line">Vechime: Actualizat acum</span>
+      <span class="trust-meta-line">Tip: Blend</span>
+      <span class="trust-meta-line">AQI și text localizat</span>
+    </div>
+  </div><div class="trust-card">
+    <div class="trust-card-top">
+      <span class="trust-card-label">Radar</span>
+      <span class="trust-card-badge blend">Blend</span>
+    </div>
+    <div class="trust-source">RainViewer + Radar RO</div>
+    <div class="trust-meta">
+      <span class="trust-meta-line">Vechime: Live</span>
+      <span class="trust-meta-line">Tip: Blend</span>
+      <span class="trust-meta-line">Radar vizual live</span>
+    </div>
+  </div></div>
+</div>
+<div class="data-grid" id="full-grid">
+<div class="data-item">
+<span class="item-label">Temp. Actuală</span>
+<span class="item-val">9.5°C</span>
+<span class="item-src">[ANM]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Min / Max Azi</span>
+<span class="item-val">6.7°C / 14.0°C</span>
+<span class="item-src">[ICON-EU]</span>
+</div>
+<div class="data-item">
+<span class="item-label">La Noapte (23:00)</span>
+<span class="item-val">7.3°C</span>
+<span class="item-src">[ICON-EU]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Resimțit</span>
+<span class="item-val">3.6°C</span>
+<span class="item-src">[ICON-EU]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Vânt Mediu</span>
+<span class="item-val">7.9 km/h (2.2 m/s)</span>
+<span class="item-src">[ANM]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Direcție &amp; Rafale</span>
+<span class="item-val">NV | 13.3 km/h</span>
+<span class="item-src">[Dir: ANM | Rafale: ICON-EU]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Presiune</span>
+<span class="item-val">964.4 mb (723 mmHg) <span class="press-trend-up">↑ Crește</span></span>
+<span class="item-src">[ANM]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Umiditate</span>
+<span class="item-val">42%</span>
+<span class="item-src">[ANM]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Vizibilitate</span>
+<span class="item-val">40.8 km</span>
+<span class="item-src">[ICON-EU]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Indice UV</span>
+<span class="item-val" style="color:#4ade80">0 — Scăzut</span>
+<span class="item-src">[W-API]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Calitate Aer (AQI)</span>
+<span class="item-val">US-EPA 1 <span class="aqi-badge aqi-1">Bun</span></span>
+<span class="item-src">[W-API]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Șanse Precipitații</span>
+<span class="item-val">0%</span>
+<div class="rain-bar-wrap"><div class="rain-bar-bg"><div class="rain-bar-fill" style="width:0%"></div></div></div>
+<span class="item-src">[ICON-EU]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Nebulozitate</span>
+<span class="item-val">100%</span>
+<span class="item-src">[ICON-EU 3km]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Răsărit Soare</span>
+<span class="item-val">🌅 06:09</span>
+<span class="item-src">[W-API]</span>
+</div>
+<div class="data-item">
+<span class="item-label">Apus Soare</span>
+<span class="item-val">🌇 20:14</span>
+<span class="item-src">[W-API]</span>
+</div>
+
+
+
+<div class="data-item" id="extra-punct-de-rou-">
+    <span class="item-label">Punct de rouă</span>
+    <span class="item-val ">-1.2°C</span>
+    <span class="item-src">[ICON-D2/EU/ECMWF]</span>
+  </div><div class="data-item" id="extra-cape">
+    <span class="item-label">CAPE</span>
+    <span class="item-val "><span class="cape-pill cape-low">0 J/kg</span></span>
+    <span class="item-src">[ICON-D2/EU/ECMWF]</span>
+  </div><div class="data-item" id="extra-presiune-detaliat-">
+    <span class="item-label">Presiune detaliată</span>
+    <span class="item-val ">964.7 hPa · <span class="press-trend-arrow press-trend-stable">→ Stabil</span></span>
+    <span class="item-src">[ICON-D2/EU]</span>
+  </div></div>
 <!-- BUSOLA VANT + ARC SOARE -->
 <div class="widgets-row">
 <div class="widget-card">
 <div class="section-title"><i class="fas fa-compass"></i> <span data-i18n="compass_title">Busola Vant</span></div>
-<svg id="wind-compass-svg" viewBox="0 0 160 160" width="130" height="130"></svg>
-<div class="wind-speed-big" id="wind-speed-big">-- <span>km/h</span></div>
-</div>
+<svg id="wind-compass-svg" viewBox="0 0 160 160" width="130" height="130">
+<circle cx="80" cy="80" r="65" fill="none" stroke="var(--grid)" stroke-width="2"></circle>
+<circle cx="80" cy="80" r="9.75" fill="var(--primary)" opacity="0.15"></circle>
+<!-- Cardinal points -->
+<text x="80" y="18" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">N</text>
+<text x="80" y="157" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">S</text>
+<text x="77" y="83" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">E</text>
+<text x="7" y="83" text-anchor="middle" font-size="9" font-weight="800" fill="var(--muted)">V</text>
+<!-- Tick marks -->
+<line x1="80" y1="22.799999999999997" x2="80" y2="15" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line><line x1="120.44650788387052" y1="39.55349211612948" x2="125.96194077712559" y2="34.038059222874416" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line><line x1="137.2" y1="80" x2="145" y2="80" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line><line x1="120.44650788387052" y1="120.44650788387051" x2="125.96194077712559" y2="125.96194077712559" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line><line x1="80" y1="137.2" x2="80" y2="145" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line><line x1="39.55349211612948" y1="120.44650788387052" x2="34.038059222874416" y2="125.96194077712559" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line><line x1="22.799999999999997" y1="80" x2="15" y2="80.00000000000001" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line><line x1="39.55349211612947" y1="39.55349211612948" x2="34.0380592228744" y2="34.038059222874416" stroke="var(--muted)" stroke-width="1" opacity="0.3"></line>
+<!-- Arrow -->
+<line x1="91.4904851942814" y1="91.49048519428139" x2="47.826641456012084" y2="47.82664145601209" stroke="var(--primary)" stroke-width="3" stroke-linecap="round">
+<animateTransform attributeName="transform" type="rotate" from="0 80 80" to="360 80 80" dur="60s" repeatCount="indefinite"></animateTransform>
+</line>
+<circle cx="47.826641456012084" cy="47.82664145601209" r="5" fill="var(--primary)">
+<animateTransform attributeName="transform" type="rotate" from="0 80 80" to="360 80 80" dur="60s" repeatCount="indefinite"></animateTransform>
+</circle>
+<!-- Direction label -->
+<text x="80" y="169" text-anchor="middle" font-size="10" font-weight="800" fill="var(--primary)">NV</text>
+</svg>
+<div class="wind-speed-big" id="wind-speed-big">7.9 <span>km/h</span></div>
+<div id="beaufort-text" class="beaufort-ring">Bf 2 — Briza ușoară</div></div>
 <div class="widget-card">
 <div class="section-title"><i class="fas fa-sun"></i> <span data-i18n="sunarc_title">Arc Soare</span></div>
-<svg id="sun-arc-svg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet"></svg>
-<div class="sun-times" id="sun-times"><span>--:--</span> | <span>--:--</span></div>
-<div class="sun-countdown" id="sun-countdown"></div>
+<svg id="sun-arc-svg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet">
+<defs>
+<linearGradient id="sg" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0%" stop-color="#f59e0b" stop-opacity="0.3"></stop>
+<stop offset="50%" stop-color="#fbbf24" stop-opacity="0.6"></stop>
+<stop offset="100%" stop-color="#f59e0b" stop-opacity="0.3"></stop>
+</linearGradient>
+</defs>
+<line x1="25" y1="90" x2="175" y2="90" stroke="var(--grid)" stroke-width="1.5" stroke-dasharray="3"></line>
+<path d="M 30 90 A 70 70 0 0 1 170 90" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3" opacity="0.3"></path>
+<path d="M 30 90 A 70 70 0 0 1 169.67321443023542 83.24402553598395 L 169.67321443023542 90 Z" fill="url(#sg)" opacity="0.4"></path>
+<circle cx="169.67321443023542" cy="83.24402553598395" r="8" fill="#fde68a" filter="drop-shadow(0 0 6px #f59e0b)">
+<animate attributeName="r" values="7;9;7" dur="3s" repeatCount="indefinite"></animate>
+</circle>
+<text x="30" y="102" text-anchor="middle" font-size="7" font-weight="700" fill="var(--muted)">06:09</text>
+<text x="170" y="102" text-anchor="middle" font-size="7" font-weight="700" fill="var(--muted)">20:14</text>
+</svg>
+<div class="sun-times" id="sun-times"><span>06:09</span> | <span>20:14</span></div>
+<div class="sun-countdown" id="sun-countdown">🌇 Apus în 13h 37min</div>
 </div>
 </div>
 <!-- AQI DETALIAT -->
 <div class="aqi-detail-panel" id="aqi-detail-panel">
 <div class="section-title"><i class="fas fa-lungs"></i> <span data-i18n="aqi_title">Calitate Aer — Detaliat</span></div>
-<div class="aqi-detail-grid" id="aqi-detail-grid"></div>
+<div class="aqi-detail-grid" id="aqi-detail-grid"><div class="aqi-item">
+<div class="aqi-item-label">PM2.5</div>
+<div class="aqi-item-val" style="color:#22c55e">5.3</div>
+<div class="aqi-item-unit">µg/m³</div>
+</div><div class="aqi-item">
+<div class="aqi-item-label">PM10</div>
+<div class="aqi-item-val" style="color:#22c55e">6.8</div>
+<div class="aqi-item-unit">µg/m³</div>
+</div><div class="aqi-item">
+<div class="aqi-item-label">O₃</div>
+<div class="aqi-item-val" style="color:#f59e0b">81.0</div>
+<div class="aqi-item-unit">µg/m³</div>
+</div><div class="aqi-item">
+<div class="aqi-item-label">NO₂</div>
+<div class="aqi-item-val" style="color:#22c55e">2.5</div>
+<div class="aqi-item-unit">µg/m³</div>
+</div><div class="aqi-item">
+<div class="aqi-item-label">SO₂</div>
+<div class="aqi-item-val" style="color:#22c55e">1.8</div>
+<div class="aqi-item-unit">µg/m³</div>
+</div><div class="aqi-item">
+<div class="aqi-item-label">CO</div>
+<div class="aqi-item-val" style="color:#22c55e">141</div>
+<div class="aqi-item-unit">µg/m³</div>
+</div></div>
 </div>
 <!-- UV INDEX GAUGE -->
-<div class="uv-gauge-wrap" id="uv-gauge-wrap" style="display:none">
+<div class="uv-gauge-wrap" id="uv-gauge-wrap" style="display: block;">
 <div class="section-title"><i class="fas fa-sun"></i> <span>Indice UV — Progresie</span></div>
-<svg id="uv-gauge-svg" viewBox="0 0 200 110" width="180" height="110"></svg>
-<div class="uv-gauge-val" id="uv-gauge-val">--</div>
-<div class="uv-gauge-label" id="uv-gauge-label">--</div>
+<svg id="uv-gauge-svg" viewBox="0 0 200 110" width="180" height="110"><defs><filter id="uvglow"><feGaussianBlur stdDeviation="2.5" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs>
+<path d="M28.0,95.0 A72,72 0 0 1 28.1,90.8" fill="none" stroke="#22c55e" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M28.2,89.9 A72,72 0 0 1 28.6,85.7" fill="none" stroke="#2ac658" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M28.7,84.8 A72,72 0 0 1 29.5,80.6" fill="none" stroke="#32c652" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M29.6,79.7 A72,72 0 0 1 30.7,75.6" fill="none" stroke="#3bc74c" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M30.9,74.7 A72,72 0 0 1 32.2,70.7" fill="none" stroke="#43c746" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M32.5,69.8 A72,72 0 0 1 34.1,65.9" fill="none" stroke="#4bc840" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M34.5,65.1 A72,72 0 0 1 36.4,61.3" fill="none" stroke="#53c93a" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M36.8,60.5 A72,72 0 0 1 38.9,56.9" fill="none" stroke="#5bc934" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M39.4,56.1 A72,72 0 0 1 41.8,52.6" fill="none" stroke="#63ca2e" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M42.4,51.9 A72,72 0 0 1 45.0,48.6" fill="none" stroke="#6cca28" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M45.6,47.9 A72,72 0 0 1 48.4,44.7" fill="none" stroke="#74cb22" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M49.1,44.1 A72,72 0 0 1 52.2,41.2" fill="none" stroke="#7ccb1c" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M52.9,40.6 A72,72 0 0 1 56.1,37.9" fill="none" stroke="#84cc16" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M56.9,37.4 A72,72 0 0 1 60.3,34.9" fill="none" stroke="#8dca15" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M61.1,34.4 A72,72 0 0 1 64.7,32.3" fill="none" stroke="#95c814" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M65.5,31.8 A72,72 0 0 1 69.3,29.9" fill="none" stroke="#9ec613" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M70.1,29.5 A72,72 0 0 1 74.0,27.9" fill="none" stroke="#a6c411" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M74.8,27.5 A72,72 0 0 1 78.8,26.2" fill="none" stroke="#afc210" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M79.7,25.9 A72,72 0 0 1 83.8,24.8" fill="none" stroke="#b7c00f" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M84.7,24.6 A72,72 0 0 1 88.8,23.9" fill="none" stroke="#c0bd0e" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M89.8,23.7 A72,72 0 0 1 93.9,23.3" fill="none" stroke="#c8bb0d" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M94.9,23.2 A72,72 0 0 1 99.1,23.0" fill="none" stroke="#d1b90c" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M100.0,23.0 A72,72 0 0 1 104.2,23.1" fill="none" stroke="#d9b70a" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M105.1,23.2 A72,72 0 0 1 109.3,23.6" fill="none" stroke="#e2b509" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M110.2,23.7 A72,72 0 0 1 114.4,24.5" fill="none" stroke="#eab308" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M115.3,24.6 A72,72 0 0 1 119.4,25.7" fill="none" stroke="#ecab0a" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M120.3,25.9 A72,72 0 0 1 124.3,27.2" fill="none" stroke="#eea30c" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M125.2,27.5 A72,72 0 0 1 129.1,29.1" fill="none" stroke="#f09b0d" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M129.9,29.5 A72,72 0 0 1 133.7,31.4" fill="none" stroke="#f2930f" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M134.5,31.8 A72,72 0 0 1 138.1,33.9" fill="none" stroke="#f38b11" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M138.9,34.4 A72,72 0 0 1 142.4,36.8" fill="none" stroke="#f58312" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M143.1,37.4 A72,72 0 0 1 146.4,40.0" fill="none" stroke="#f77b14" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M147.1,40.6 A72,72 0 0 1 150.3,43.4" fill="none" stroke="#f97316" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M150.9,44.1 A72,72 0 0 1 153.8,47.2" fill="none" stroke="#f76d17" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M154.4,47.9 A72,72 0 0 1 157.1,51.1" fill="none" stroke="#f46619" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M157.6,51.9 A72,72 0 0 1 160.1,55.3" fill="none" stroke="#f2601a" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M160.6,56.1 A72,72 0 0 1 162.7,59.7" fill="none" stroke="#ef591b" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M163.2,60.5 A72,72 0 0 1 165.1,64.3" fill="none" stroke="#ed531d" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M165.5,65.1 A72,72 0 0 1 167.1,69.0" fill="none" stroke="#eb4d1e" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M167.5,69.8 A72,72 0 0 1 168.8,73.8" fill="none" stroke="#e8461f" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M169.1,74.7 A72,72 0 0 1 170.2,78.8" fill="none" stroke="#e64021" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M170.4,79.7 A72,72 0 0 1 171.1,83.8" fill="none" stroke="#e33922" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M171.3,84.8 A72,72 0 0 1 171.7,88.9" fill="none" stroke="#e13323" stroke-width="13" stroke-linecap="round" opacity="0.85"></path><path d="M171.8,89.9 A72,72 0 0 1 172.0,94.1" fill="none" stroke="#de2c25" stroke-width="13" stroke-linecap="round" opacity="0.85"></path>
+<line x1="100" y1="95" x2="50.0" y2="95.0" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" filter="url(#uvglow)"></line>
+<circle cx="100" cy="95" r="6" fill="#22c55e"></circle>
+<circle cx="100" cy="95" r="3.5" fill="var(--card)"></circle>
+<text x="22" y="100" text-anchor="middle" font-size="8" fill="var(--muted)" font-weight="700">0</text>
+<text x="100" y="18" text-anchor="middle" font-size="8" fill="var(--muted)" font-weight="700">5-6</text>
+<text x="178" y="100" text-anchor="middle" font-size="8" fill="var(--muted)" font-weight="700">11+</text></svg>
+<div class="uv-gauge-val" id="uv-gauge-val" style="color: rgb(34, 197, 94);">0.0</div>
+<div class="uv-gauge-label" id="uv-gauge-label">Scăzut</div>
 </div>
 <!-- FAZA LUNII + CONFORT TERMIC -->
 <div class="widgets-row">
 <div class="widget-card">
 <div class="section-title"><i class="fas fa-moon"></i> <span data-i18n="moon_title">Faza Lunii</span></div>
-<div class="moon-display" id="moon-display"></div>
+<div class="moon-display" id="moon-display">
+<div class="moon-icon">🌓</div>
+<div class="moon-info">
+<div class="moon-name">Primul Pătrar 49%</div>
+
+<div class="moon-illum">Răsărit: 12:10 | Apus: 03:12</div>
+<div class="moon-illum" style="opacity:0.5;font-size:0.5rem;">[W-API]</div>
+</div>
+</div>
 </div>
 <div class="widget-card">
 <div class="section-title"><i class="fas fa-temperature-half"></i> <span data-i18n="comfort_title">Confort Termic</span></div>
-<div class="comfort-info" id="comfort-info"></div>
+<div class="comfort-info" id="comfort-info">
+    <div class="comfort-row"><span class="comfort-label">Punct de rouă</span><span class="comfort-val">-2.8°C</span></div>
+    <div class="comfort-row"><span class="comfort-label">Resimțit</span><span class="comfort-val">3.6°C</span></div>
+    <div class="comfort-row"><span class="comfort-label">Vant disconfort</span><span class="comfort-val">Scăzut</span></div>
+    <div class="comfort-text comfort-ok">Condiții acceptabile pentru activități outdoor.</div>
+  </div>
 </div>
 </div>
 <!-- HOURLY CHART — shown only when data available -->
-<div class="hourly-chart-wrap" id="hourly-section">
-<div class="section-title"><i class="fas fa-chart-line"></i> <span data-i18n="hourly_title" id="hourly-title-label">Temperaturi Orare (8h)</span></div>
+<div class="hourly-chart-wrap" id="hourly-section" style="display: block;">
+<div class="section-title"><i class="fas fa-chart-line"></i> Temperaturi Orare (8h) [Meteoblue]</div>
 <div class="hourly-tabs" id="hourly-tabs">
 <button class="hourly-tab active" onclick="setHourlyView('24h', this)">24h</button>
 <button class="hourly-tab" onclick="setHourlyView('48h', this)">48h</button>
 <button class="hourly-tab" onclick="setHourlyView('120h', this)">5 Zile</button>
 </div>
 <div class="hourly-scroll" id="hourly-scroll">
-<div class="hourly-scroll-inner" id="hourly-scroll-inner">
-<svg id="hourly-svg" viewBox="0 0 460 90" preserveAspectRatio="none"></svg>
-<div class="hourly-labels" id="hourly-labels"></div>
+<div class="hourly-scroll-inner" id="hourly-scroll-inner" style="width: 816px;">
+<svg id="hourly-svg" viewBox="0 0 816 166" preserveAspectRatio="none" style="width: 816px;">
+    <defs>
+      <linearGradient id="tempGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f97316" stop-opacity="0.42"></stop>
+        <stop offset="100%" stop-color="#ef4444" stop-opacity="0.03"></stop>
+      </linearGradient>
+      <linearGradient id="tempStroke" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#fb7185"></stop>
+        <stop offset="50%" stop-color="#f97316"></stop>
+        <stop offset="100%" stop-color="#ef4444"></stop>
+      </linearGradient>
+    </defs>
+    <rect x="7.0" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="41.6" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="76.2" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="110.8" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="145.4" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="180.0" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="214.7" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="249.3" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="283.9" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="318.5" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="353.1" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="387.7" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="422.3" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="456.9" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="491.5" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="526.1" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="560.7" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="595.3" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="630.0" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="664.6" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="699.2" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="733.8" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="768.4" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect><rect x="803.0" y="136.0" width="10.0" height="0.0" rx="3" fill="#2563eb" opacity="0.12"></rect>
+    <path d="M12.0,79.2 C29.3,79.2 29.3,77.6 46.6,77.6 C63.9,77.6 63.9,69.3 81.2,69.3 C98.5,69.3 98.5,64.4 115.8,64.4 C133.1,64.4 133.1,61.1 150.4,61.1 C167.7,61.1 167.7,56.7 185.0,56.7 C202.3,56.7 202.3,52.8 219.7,52.8 C237.0,52.8 237.0,51.7 254.3,51.7 C271.6,51.7 271.6,46.7 288.9,46.7 C306.2,46.7 306.2,42.3 323.5,42.3 C340.8,42.3 340.8,40.1 358.1,40.1 C375.4,40.1 375.4,39.0 392.7,39.0 C410.0,39.0 410.0,42.9 427.3,42.9 C444.6,42.9 444.6,47.8 461.9,47.8 C479.2,47.8 479.2,55.0 496.5,55.0 C513.8,55.0 513.8,64.4 531.1,64.4 C548.4,64.4 548.4,71.5 565.7,71.5 C583.0,71.5 583.0,75.9 600.3,75.9 C617.7,75.9 617.7,80.3 635.0,80.3 C652.3,80.3 652.3,83.7 669.6,83.7 C686.9,83.7 686.9,86.4 704.2,86.4 C721.5,86.4 721.5,88.6 738.8,88.6 C756.1,88.6 756.1,90.8 773.4,90.8 C790.7,90.8 790.7,91.4 808.0,91.4 L808.0,136.0 L12.0,136.0 Z" fill="url(#tempGrad)"></path>
+    <path d="M12.0,79.2 C29.3,79.2 29.3,77.6 46.6,77.6 C63.9,77.6 63.9,69.3 81.2,69.3 C98.5,69.3 98.5,64.4 115.8,64.4 C133.1,64.4 133.1,61.1 150.4,61.1 C167.7,61.1 167.7,56.7 185.0,56.7 C202.3,56.7 202.3,52.8 219.7,52.8 C237.0,52.8 237.0,51.7 254.3,51.7 C271.6,51.7 271.6,46.7 288.9,46.7 C306.2,46.7 306.2,42.3 323.5,42.3 C340.8,42.3 340.8,40.1 358.1,40.1 C375.4,40.1 375.4,39.0 392.7,39.0 C410.0,39.0 410.0,42.9 427.3,42.9 C444.6,42.9 444.6,47.8 461.9,47.8 C479.2,47.8 479.2,55.0 496.5,55.0 C513.8,55.0 513.8,64.4 531.1,64.4 C548.4,64.4 548.4,71.5 565.7,71.5 C583.0,71.5 583.0,75.9 600.3,75.9 C617.7,75.9 617.7,80.3 635.0,80.3 C652.3,80.3 652.3,83.7 669.6,83.7 C686.9,83.7 686.9,86.4 704.2,86.4 C721.5,86.4 721.5,88.6 738.8,88.6 C756.1,88.6 756.1,90.8 773.4,90.8 C790.7,90.8 790.7,91.4 808.0,91.4" fill="none" stroke="url(#tempStroke)" stroke-width="2.8" stroke-linecap="round"></path>
+    <path d="M12.0,122.8 C29.3,122.8 29.3,117.3 46.6,117.3 C63.9,117.3 63.9,116.2 81.2,116.2 C98.5,116.2 98.5,123.9 115.8,123.9 C133.1,123.9 133.1,123.9 150.4,123.9 C167.7,123.9 167.7,121.1 185.0,121.1 C202.3,121.1 202.3,121.7 219.7,121.7 C237.0,121.7 237.0,122.2 254.3,122.2 C271.6,122.2 271.6,123.3 288.9,123.3 C306.2,123.3 306.2,121.7 323.5,121.7 C340.8,121.7 340.8,119.5 358.1,119.5 C375.4,119.5 375.4,121.1 392.7,121.1 C410.0,121.1 410.0,122.2 427.3,122.2 C444.6,122.2 444.6,124.4 461.9,124.4 C479.2,124.4 479.2,125.0 496.5,125.0 C513.8,125.0 513.8,120.6 531.1,120.6 C548.4,120.6 548.4,112.9 565.7,112.9 C583.0,112.9 583.0,112.3 600.3,112.3 C617.7,112.3 617.7,112.9 635.0,112.9 C652.3,112.9 652.3,113.4 669.6,113.4 C686.9,113.4 686.9,112.9 704.2,112.9 C721.5,112.9 721.5,111.2 738.8,111.2 C756.1,111.2 756.1,110.7 773.4,110.7 C790.7,110.7 790.7,112.3 808.0,112.3" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 4"></path>
+    <text x="12.0" y="71.2" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">7°</text><text x="81.2" y="61.3" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">9°</text><text x="150.4" y="53.1" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">10°</text><text x="219.7" y="44.8" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">12°</text><text x="288.9" y="38.7" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">13°</text><text x="358.1" y="32.1" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">14°</text><text x="427.3" y="34.9" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">13°</text><text x="496.5" y="47.0" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">11°</text><text x="565.7" y="63.5" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">8°</text><text x="635.0" y="72.3" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">7°</text><text x="704.2" y="78.4" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">5°</text><text x="773.4" y="82.8" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">5°</text>
+    
+  </svg>
+<div class="hourly-labels" id="hourly-labels" style="--hourly-label-count: 24;"><span>06:00</span><span>07:00</span><span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span><span>14:00</span><span>15:00</span><span>16:00</span><span>17:00</span><span>18:00</span><span>19:00</span><span>20:00</span><span>21:00</span><span>22:00</span><span>23:00</span><span>00:00</span><span>01:00</span><span>02:00</span><span>03:00</span><span>04:00</span><span>05:00</span></div>
 </div>
 </div>
-<div class="hourly-legend" id="hourly-legend"></div>
+<div class="hourly-legend" id="hourly-legend">
+    <div class="legend-item"><span class="legend-swatch precip"></span> Precipitații (mm/h)</div>
+    <div class="legend-item"><span class="legend-swatch temp"></span> Temperatură</div>
+    <div class="legend-item"><span class="legend-swatch dew"></span> Punct de rouă</div>
+    <div class="legend-item"><span class="legend-swatch cape"></span> CAPE</div>
+  </div>
 </div>
 <!-- 10-DAY FORECAST — ICON-EU + ECMWF fusion -->
-<div class="forecast-wrap" id="forecast-section">
-<div class="section-title"><i class="fas fa-calendar-days"></i> <span data-i18n="forecast_title">Prognoză 5 Zile (120h)</span></div>
-<div class="forecast-scroll" id="forecast-scroll"></div>
+<div class="forecast-wrap" id="forecast-section" style="display: block;">
+<div class="section-title"><i class="fas fa-calendar-days"></i> Prognoză 5 Zile (120h) <small style="font-size:0.5rem;opacity:0.72;font-weight:700;margin-left:4px;">ICON-D2 / ICON-EU / ECMWF</small></div>
+<div class="forecast-scroll" id="forecast-scroll"><div class="forecast-card today" onclick="openFcModal(0)" title="Click pt. detalii">
+      <div class="fc-day">Azi</div>
+      <div class="fc-icon"><i class="fas fa-sun" style="color:#f59e0b"></i></div>
+      <div class="fc-max">14°</div>
+      <div class="fc-min">7°</div>
+      <div class="fc-temp-bar-wrap"><div class="fc-temp-bar" style="margin-left:41%;width:37%"></div></div>
+      <div class="fc-precip">
+        <span class="fc-precip-prob" style="color:#93c5fd"><i class="fas fa-droplet" style="font-size:0.5rem"></i> 0%</span>
+        
+      </div>
+      <div class="fc-wind"><i class="fas fa-wind" style="font-size:0.5rem"></i> 18 km/h</div>
+      <div class="fc-ensemble">Ens avg: 0.0mm</div>
+      <div class="forecast-source-badges"><span class="fc-src-badge eu">ICON-EU</span></div>
+    </div><div class="forecast-card " onclick="openFcModal(1)" title="Click pt. detalii">
+      <div class="fc-day">Sâm</div>
+      <div class="fc-icon"><i class="fas fa-sun" style="color:#f59e0b"></i></div>
+      <div class="fc-max">17°</div>
+      <div class="fc-min">4°</div>
+      <div class="fc-temp-bar-wrap"><div class="fc-temp-bar" style="margin-left:28%;width:64%"></div></div>
+      <div class="fc-precip">
+        <span class="fc-precip-prob" style="color:#93c5fd"><i class="fas fa-droplet" style="font-size:0.5rem"></i> 0%</span>
+        
+      </div>
+      <div class="fc-wind"><i class="fas fa-wind" style="font-size:0.5rem"></i> 10 km/h</div>
+      <div class="fc-ensemble">Ens avg: 0.0mm</div>
+      <div class="forecast-source-badges"><span class="fc-src-badge eu">ICON-EU</span></div>
+    </div><div class="forecast-card " onclick="openFcModal(2)" title="Click pt. detalii">
+      <div class="fc-day">Dum</div>
+      <div class="fc-icon"><i class="fas fa-sun" style="color:#f59e0b"></i></div>
+      <div class="fc-max">18°</div>
+      <div class="fc-min">5°</div>
+      <div class="fc-temp-bar-wrap"><div class="fc-temp-bar" style="margin-left:30%;width:70%"></div></div>
+      <div class="fc-precip">
+        <span class="fc-precip-prob" style="color:#93c5fd"><i class="fas fa-droplet" style="font-size:0.5rem"></i> 0%</span>
+        <span class="fc-precip-mm">0.5mm</span>
+      </div>
+      <div class="fc-wind"><i class="fas fa-wind" style="font-size:0.5rem"></i> 35 km/h</div>
+      <div class="fc-ensemble">Ens avg: 0.5mm</div>
+      <div class="forecast-source-badges"><span class="fc-src-badge eu">ICON-EU</span></div>
+    </div><div class="forecast-card " onclick="openFcModal(3)" title="Click pt. detalii">
+      <div class="fc-day">Lun</div>
+      <div class="fc-icon"><i class="fas fa-sun" style="color:#f59e0b"></i></div>
+      <div class="fc-max">13°</div>
+      <div class="fc-min">2°</div>
+      <div class="fc-temp-bar-wrap"><div class="fc-temp-bar" style="margin-left:19%;width:52%"></div></div>
+      <div class="fc-precip">
+        <span class="fc-precip-prob" style="color:#93c5fd"><i class="fas fa-droplet" style="font-size:0.5rem"></i> 0%</span>
+        
+      </div>
+      <div class="fc-wind"><i class="fas fa-wind" style="font-size:0.5rem"></i> 14 km/h</div>
+      <div class="fc-ensemble">Ens avg: 0.0mm</div>
+      <div class="forecast-source-badges"><span class="fc-src-badge eu">ICON-EU</span></div>
+    </div><div class="forecast-card " onclick="openFcModal(4)" title="Click pt. detalii">
+      <div class="fc-day">Mar</div>
+      <div class="fc-icon"><i class="fas fa-sun" style="color:#f59e0b"></i></div>
+      <div class="fc-max">14°</div>
+      <div class="fc-min">-1°</div>
+      <div class="fc-temp-bar-wrap"><div class="fc-temp-bar" style="margin-left:0%;width:76%"></div></div>
+      <div class="fc-precip">
+        <span class="fc-precip-prob" style="color:#93c5fd"><i class="fas fa-droplet" style="font-size:0.5rem"></i> 0%</span>
+        
+      </div>
+      <div class="fc-wind"><i class="fas fa-wind" style="font-size:0.5rem"></i> 11 km/h</div>
+      <div class="fc-ensemble">Ens avg: 0.0mm</div>
+      <div class="forecast-source-badges"><span class="fc-src-badge ecmwf">ECMWF</span><span class="fc-src-badge eu">ICON-EU</span></div>
+    </div></div>
 </div>
 <!-- ⚠️ ALERTE METEO — generate din ICON-EU/ECMWF -->
 <div class="alerts-panel" id="alerts-panel" style="display:none;"></div>
-<div class="radar-section">
+<div class="radar-section" style="display: block;">
 <div class="radar-header">
 <span class="section-title"><i class="fas fa-cloud-showers-heavy"></i> <span data-i18n="radar_title">Radar Ploi Live</span></span>
 <div class="radar-tabs">
-<button class="radar-tab active" onclick="showRadarTab('leaflet', this)" data-i18n="radar_tab_animated">🌧️ Radar Animat</button>
-<button class="radar-tab"        onclick="showRadarTab('meteo',   this)" data-i18n="radar_tab_meteo">🌐 Radar RO</button>
-<button class="radar-tab"        onclick="showRadarTab('windy',   this)" data-i18n="radar_tab_windy">💨 Windy</button>
+<button class="radar-tab active" onclick="showRadarTab('leaflet', this)" data-i18n="radar_tab_animated">🌧️ RainViewer</button>
+<button class="radar-tab" onclick="showRadarTab('meteo', this)" data-i18n="radar_tab_meteo">🌐 MeteoRadar</button>
+<button class="radar-tab" onclick="showRadarTab('windy', this)" data-i18n="radar_tab_windy">🌬️ Windy</button>
 </div>
 </div>
 <div class="map-wrapper" id="map-wrapper">
-<div id="radar-map"></div>
-<div class="radar-layers">
+<div id="radar-map" class="leaflet-container leaflet-touch leaflet-retina leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom" style="position: relative;" tabindex="0"><div class="leaflet-pane leaflet-map-pane" style="transform: translate3d(0px, 0px, 0px);"><div class="leaflet-pane leaflet-tile-pane"><div class="leaflet-layer " style="z-index: 1; opacity: 0.85;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://a.tile.openstreetmap.org/7/73/44.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://b.tile.openstreetmap.org/7/73/45.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://c.tile.openstreetmap.org/7/72/44.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://b.tile.openstreetmap.org/7/74/44.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://a.tile.openstreetmap.org/7/72/45.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://c.tile.openstreetmap.org/7/74/45.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0.6;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div></div><div class="leaflet-pane leaflet-overlay-pane"><svg pointer-events="none" class="leaflet-zoom-animated" width="421" height="307" viewBox="-35 -26 421 307" style="transform: translate3d(-35px, -26px, 0px);"><g><path class="leaflet-interactive" stroke="#4f46e5" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="#818cf8" fill-opacity="0.9" fill-rule="evenodd" d="M168,128a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 "></path></g></svg></div><div class="leaflet-pane leaflet-shadow-pane"></div><div class="leaflet-pane leaflet-marker-pane"></div><div class="leaflet-pane leaflet-tooltip-pane"></div><div class="leaflet-pane leaflet-popup-pane"></div><div class="leaflet-proxy leaflet-zoom-animated"></div></div><div class="leaflet-control-container"><div class="leaflet-top leaflet-left"><div class="leaflet-control-zoom leaflet-bar leaflet-control"><a class="leaflet-control-zoom-in" href="#" title="Zoom in" role="button" aria-label="Zoom in" aria-disabled="false"><span aria-hidden="true">+</span></a><a class="leaflet-control-zoom-out" href="#" title="Zoom out" role="button" aria-label="Zoom out" aria-disabled="false"><span aria-hidden="true">−</span></a></div></div><div class="leaflet-top leaflet-right"></div><div class="leaflet-bottom leaflet-left"></div><div class="leaflet-bottom leaflet-right"><div class="leaflet-control-attribution leaflet-control"><a href="https://leafletjs.com" title="A JavaScript library for interactive maps"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"></path><path fill="#FFD500" d="M0 4h12v3H0z"></path><path fill="#E0BC00" d="M0 7h12v1H0z"></path></svg> Leaflet</a> <span aria-hidden="true">|</span> © OSM, RainViewer</div></div></div></div>
+<div class="radar-layers" style="display:none;">
 <button class="layer-btn active" onclick="setRadarLayer('radar',this)" title="Radar ploi" data-i18n="rain_btn">🌧️ Ploi</button>
 </div>
 <!-- Legendă intensitate precipitații -->
@@ -1046,14 +1666,14 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <i class="fas fa-play" id="play-icon"></i>
 </button>
 <div class="radar-timeline" id="radar-timeline" onclick="timelineClick(event)">
-<div class="radar-timeline-fill" id="timeline-fill" style="width:0%"></div>
+<div class="radar-timeline-fill" id="timeline-fill" style="width: 100%;"></div>
 </div>
-<span class="radar-time-label" id="radar-time">--:--</span>
-<span class="radar-layer-info" id="radar-layer-info">RADAR</span>
+<span class="radar-time-label" id="radar-time">06:30</span>
+<span class="radar-layer-info" id="radar-layer-info">RADAR PLOI</span>
 </div>
 </div>
 <div class="meteo-radar-frame" id="meteo-radar-frame">
-<iframe id="meteo-radar-iframe" sandbox="allow-scripts allow-same-origin allow-presentation allow-pointer-lock" allowfullscreen referrerpolicy="no-referrer" loading="lazy"></iframe>
+<iframe id="meteo-radar-iframe" sandbox="allow-scripts allow-same-origin allow-presentation allow-pointer-lock allow-popups allow-top-navigation-by-user-activation" allowfullscreen="" referrerpolicy="no-referrer" loading="lazy"></iframe>
 <!-- Blocare navigație/link-uri spre site extern - MODIFICAT: pointer-events: none -->
 <div class="iframe-top-blocker"></div>
 <div class="iframe-nav-blocker" style="height:44px;"></div>
@@ -1062,15 +1682,15 @@ onkeypress="if(event.key==='Enter') updateWeather()">
 <div class="iframe-click-shield" title="Navigarea externă este blocată în embed"></div>
 <button class="radar-fs-btn" onclick="toggleRadarFullscreen('meteo-radar-frame')" title="Fullscreen"><i class="fas fa-expand"></i></button>
 </div>
-<div class="windy-frame" id="windy-frame">
-<iframe id="windy-iframe" sandbox="allow-scripts allow-same-origin allow-presentation" allowfullscreen referrerpolicy="no-referrer"></iframe>
-<!-- Blocare navigație/link-uri Windy spre site extern -->
-<div class="iframe-top-blocker"></div>
-<div class="iframe-nav-blocker" style="height:36px;"></div>
+<div class="complex-radar-frame" id="windy-frame" style="display:none; position:relative;">
+<iframe id="windy-iframe"
+  sandbox="allow-scripts allow-presentation allow-same-origin"
+  allow="fullscreen" allowfullscreen="" referrerpolicy="no-referrer" loading="lazy">
+</iframe>
 <button class="radar-fs-btn" onclick="toggleRadarFullscreen('windy-frame')" title="Fullscreen"><i class="fas fa-expand"></i></button>
 </div>
 </div>
-<div class="footer-tag" id="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro — ANM + W-API + Meteoblue + Radar ploi + MeteoRadar + Windy</div>
+<div class="footer-tag" id="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro — W-API + ANM + Meteoblue + Open-Meteo + Radar ploi</div>
 <button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> <span data-i18n="update_btn">Actualizează Datele</span></button>
 </div>
 </div>
@@ -1085,6 +1705,26 @@ search_placeholder: 'Caută oraș (Ex: Iași, Cluj...)',
 search_placeholder_anm: 'Caută stație ANM (Ex: Târgu Neamț, Iași...)',
 search_placeholder_generic: 'Caută locație...',
 provider_label: 'Furnizori:',
+favorites_title: 'Locații Favorite',
+saved_locations: 'Locații Salvate',
+manage_btn: 'Gestionează',
+settings_title: 'Setări Hub',
+settings_theme: 'Temă',
+settings_language: 'Limbă',
+settings_unit: 'Unitate Temperatură',
+settings_refresh: 'Auto Refresh',
+close_btn: 'Închide',
+save_btn: 'Salvează',
+open_btn: 'Deschide',
+delete_btn: 'Șterge',
+theme_light: 'Light',
+theme_dark: 'Dark',
+lang_ro: 'Română',
+lang_en: 'English',
+refresh_5m: '5 minute',
+refresh_10m: '10 minute',
+refresh_15m: '15 minute',
+refresh_30m: '30 minute',
 provider_all_active: 'Toate sursele active',
 provider_deactivated: '{name} dezactivat',
 provider_active: 'Active: ',
@@ -1098,9 +1738,9 @@ comfort_title: 'Confort Termic',
 hourly_title: 'Temperaturi Orare (8h)',
 forecast_title: 'Prognoză 5 Zile (120h)',
 radar_title: 'Radar Ploi Live',
-radar_tab_animated: '🌧️ Radar Animat',
-radar_tab_meteo: '🌐 Radar RO',
-radar_tab_windy: '💨 Windy',
+radar_tab_animated: '🌧️ RainViewer',
+radar_tab_meteo: '🌐 MeteoRadar',
+radar_tab_windy: '🌬️ Windy',
 update_btn: 'Actualizează Datele',
 footer_text: 'Hub Hibrid Pro — ',
 no_results: 'Niciun rezultat găsit',
@@ -1177,16 +1817,78 @@ radar_rain: 'RADAR PLOI',
 radar_sat_ir: 'SATELIT IR',
 radar_error: 'EROARE',
 rain_btn: '🌧️ Ploi',
+satellite_btn: '🛰️ Satelit IR',
 feels_like_label: 'Resimțit',
 tonight: 'La Noapte',
 wind_dir: 'Direcție Vânt',
-radar_ploi: 'Radar ploi'
+radar_ploi: 'Radar ploi',
+hourly_title_om: 'Temperaturi Orare (8h) [Open-Meteo ICON-EU]',
+hourly_title_d2: 'Temperaturi Orare (8h) [ICON-EU 3km]',
+hourly_prefix_24h: 'Prognoză Orară 24h',
+hourly_prefix_48h: 'Prognoză Orară 48h',
+hourly_prefix_120h: 'Prognoză Orară 5 Zile (120h)',
+hourly_suffix: 'Temp / Punct rouă / Precip / CAPE',
+legend_precip: 'Precipitații (mm/h)',
+legend_temp: 'Temperatură',
+legend_dew: 'Punct de rouă',
+forecast_title_10d: 'Prognoză 10 Zile',
+forecast_hint_click: 'click=detalii',
+forecast_click_title: 'Click pt. detalii',
+today_full: 'Astăzi',
+condition: 'Condiție',
+rain_chance_short: 'Șanse Ploaie',
+max_wind: 'Vânt Max',
+precip_hours: 'Ore precipitații',
+source_label: 'Sursă',
+max_temp: 'Temperatură Max',
+min_temp: 'Temperatură Min',
+incomplete_data: 'Date incomplete',
+saved_settings: 'Setări salvate',
+trust_detail_forecast_comp: 'Prognoză complementară',
+trust_detail_no_forecast: 'Fără forecast model',
+trust_detail_aqi_unavailable_anm: 'AQI indisponibil în ANM-only',
+trust_detail_radar_live: 'Radar vizual live',
+trust_detail_primary_model: 'Model primar',
+trust_detail_blend_forecast: 'Prognoză combinată',
+trust_detail_forecast_model: 'Prognoză model',
+trust_detail_aqi_unavailable_om: 'AQI indisponibil din OM gratuit',
+trust_detail_station_model: 'Stație + model',
+trust_detail_forecast_mb: 'Prognoză + Meteoblue orar',
+trust_detail_aqi_unavailable: 'AQI indisponibil',
+trust_detail_fallback_full: 'Fallback complet',
+trust_detail_forecast_fallback: 'Prognoză fallback',
+trust_detail_aqi_active: 'AQI activ',
+trust_source_radar: 'RainViewer + Radar RO + Satelit IR',
+favorites_empty: 'Nu ai încă locații favorite. Apasă steaua de lângă căutare pentru a salva locația curentă.',
+favorite_removed: 'Favorit șters',
+favorite_added: 'Locație adăugată la favorite',
+invalid_current_location: 'Nu există o locație curentă validă'
 },
 en: {
 search_placeholder: 'Search city (e.g. Iași, Cluj...)',
 search_placeholder_anm: 'Search ANM station (e.g. Târgu Neamț, Iași...)',
 search_placeholder_generic: 'Search location...',
 provider_label: 'Providers:',
+favorites_title: 'Favorite Locations',
+saved_locations: 'Saved Locations',
+manage_btn: 'Manage',
+settings_title: 'Hub Settings',
+settings_theme: 'Theme',
+settings_language: 'Language',
+settings_unit: 'Temperature Unit',
+settings_refresh: 'Auto Refresh',
+close_btn: 'Close',
+save_btn: 'Save',
+open_btn: 'Open',
+delete_btn: 'Delete',
+theme_light: 'Light',
+theme_dark: 'Dark',
+lang_ro: 'Romanian',
+lang_en: 'English',
+refresh_5m: '5 minutes',
+refresh_10m: '10 minutes',
+refresh_15m: '15 minutes',
+refresh_30m: '30 minutes',
 provider_all_active: 'All sources active',
 provider_deactivated: '{name} deactivated',
 provider_active: 'Active: ',
@@ -1200,7 +1902,7 @@ comfort_title: 'Thermal Comfort',
 hourly_title: 'Hourly Temperatures (8h)',
 forecast_title: '5-Day Forecast (120h)',
 radar_title: 'Live Rain Radar',
-radar_tab_animated: '🌧️ Animated Radar',
+radar_tab_animated: '🌧️ RainViewer',
 radar_tab_meteo: '🌐 Radar RO',
 radar_tab_windy: '💨 Windy',
 update_btn: 'Refresh Data',
@@ -1279,10 +1981,52 @@ radar_rain: 'RAIN RADAR',
 radar_sat_ir: 'IR SATELLITE',
 radar_error: 'ERROR',
 rain_btn: '🌧️ Rain',
+satellite_btn: '🛰️ IR Satellite',
 feels_like_label: 'Feels Like',
 tonight: 'Tonight',
 wind_dir: 'Wind Direction',
-radar_ploi: 'Rain Radar'
+radar_ploi: 'Rain Radar',
+hourly_title_om: 'Hourly Temperatures (8h) [Open-Meteo ICON-EU]',
+hourly_title_d2: 'Hourly Temperatures (8h) [ICON-EU 3km]',
+hourly_prefix_24h: 'Hourly Forecast 24h',
+hourly_prefix_48h: 'Hourly Forecast 48h',
+hourly_prefix_120h: 'Hourly Forecast 5 Days (120h)',
+hourly_suffix: 'Temp / Dew Point / Precip / CAPE',
+legend_precip: 'Precipitation (mm/h)',
+legend_temp: 'Temperature',
+legend_dew: 'Dew Point',
+forecast_title_10d: '10-Day Forecast',
+forecast_hint_click: 'click=details',
+forecast_click_title: 'Click for details',
+today_full: 'Today',
+condition: 'Condition',
+rain_chance_short: 'Rain Chance',
+max_wind: 'Max Wind',
+precip_hours: 'Precip Hours',
+source_label: 'Source',
+max_temp: 'Max Temperature',
+min_temp: 'Min Temperature',
+incomplete_data: 'Incomplete data',
+saved_settings: 'Settings saved',
+trust_detail_forecast_comp: 'Complementary forecast',
+trust_detail_no_forecast: 'No model forecast',
+trust_detail_aqi_unavailable_anm: 'AQI unavailable in ANM-only',
+trust_detail_radar_live: 'Live radar view',
+trust_detail_primary_model: 'Primary model',
+trust_detail_blend_forecast: 'Blended forecast',
+trust_detail_forecast_model: 'Forecast model',
+trust_detail_aqi_unavailable_om: 'AQI unavailable in free OM',
+trust_detail_station_model: 'Station + model',
+trust_detail_forecast_mb: 'Forecast + Meteoblue hourly',
+trust_detail_aqi_unavailable: 'AQI unavailable',
+trust_detail_fallback_full: 'Full fallback',
+trust_detail_forecast_fallback: 'Fallback forecast',
+trust_detail_aqi_active: 'AQI active',
+trust_source_radar: 'RainViewer + RO Radar + IR Satellite',
+favorites_empty: 'No favorite locations yet. Press the star next to search to save the current location.',
+favorite_removed: 'Favorite removed',
+favorite_added: 'Location added to favorites',
+invalid_current_location: 'No valid current location'
 }
 };
 function t(key) {
@@ -1301,6 +2045,20 @@ el.textContent = t(key);
 document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
 const key = el.getAttribute('data-i18n-placeholder');
 el.placeholder = t(key);
+});
+const map = {
+settingsThemeLight: 'theme_light',
+settingsThemeDark: 'theme_dark',
+settingsLangRo: 'lang_ro',
+settingsLangEn: 'lang_en',
+settingsRefresh5: 'refresh_5m',
+settingsRefresh10: 'refresh_10m',
+settingsRefresh15: 'refresh_15m',
+settingsRefresh30: 'refresh_30m'
+};
+Object.entries(map).forEach(([id, key]) => {
+const el = document.getElementById(id);
+if (el) el.textContent = t(key);
 });
 document.getElementById('btn-lang').textContent = currentLang.toUpperCase();
 }
@@ -1324,6 +2082,19 @@ const M_KEY     = "dTx4DkKZerufXShl";                  // Meteoblue
 const ANM_PROXY = "https://vremea-tg-neamt.yo8acr.workers.dev"; // Meteoromania proxy
 let currentCoords = { lat: 47.17, lon: 26.36 };
 let isDark        = false;
+const APP_STATE_KEY = 'hub_app_state_v1';
+const DEFAULT_APP_SETTINGS = {
+theme: localStorage.getItem('hub_theme') || 'light',
+lang: localStorage.getItem('hub_lang') || 'ro',
+unit: localStorage.getItem('hub_unit') || 'C',
+autoRefreshSec: 600
+};
+let appState = {
+  favorites: [],
+  currentLocation: null,
+  settings: { ...DEFAULT_APP_SETTINGS }
+};
+let trustPanelState = null;
 /* Global cached ANM data for search */
 let anmCache       = null;
 let anmCacheTime   = 0;
@@ -1416,7 +2187,7 @@ return name.includes(q);
 }).slice(0, 6);
 matches.forEach(f => {
 const p = f.properties;
-const temp = p.tempe ? parseFloat(p.tempe).toFixed(1) + '°C' : '--';
+const temp = p.tempe ? displayTemp(parseFloat(p.tempe)) : '--';
 const st = anmFeatureLatLon(f);
 items.push({
 type: 'anm',
@@ -1571,13 +2342,11 @@ radarLayers.forEach(l => map.removeLayer(l));
 radarLayers  = [];
 radarFrames  = [];
 currentFrame = 0;
-const frames = activeLayerType === 'radar'
-? [...(data.radar.past || []), ...(data.radar.nowcast || [])]
-: (data.satellite.infrared || []);
+const frames = [...(data.radar.past || []), ...(data.radar.nowcast || [])];
 if (!frames.length) { showToast(t('toast_no_radar'), 'error'); return; }
 radarFrames = frames;
 frames.forEach((frame) => {
-const colorScheme = activeLayerType === 'radar' ? 2 : 0;
+const colorScheme = 2;
 const tileUrl = `${data.host}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/1_1.png`;
 const layer = L.tileLayer(tileUrl, {
 opacity: 0, tileSize: 256, zIndex: 10,
@@ -1588,8 +2357,7 @@ layer.addTo(map);
 radarLayers.push(layer);
 });
 showFrame(frames.length - 1);
-document.getElementById('radar-layer-info').innerText =
-activeLayerType === 'radar' ? t('radar_rain') : t('radar_sat_ir');
+document.getElementById('radar-layer-info').innerText = t('radar_rain');
 showToast(t('toast_radar_loaded'), 'success');
 } catch(e) {
 console.error(e);
@@ -1604,7 +2372,7 @@ if (currentFrame !== index && radarLayers[currentFrame]) {
 radarLayers[currentFrame].setOpacity(0);
 }
 currentFrame = index;
-radarLayers[currentFrame].setOpacity(activeLayerType === 'radar' ? 0.6 : 0.7);
+radarLayers[currentFrame].setOpacity(0.6);
 const ts  = radarFrames[currentFrame].time * 1000;
 const dt  = new Date(ts);
 const hm  = dt.toLocaleTimeString('ro-RO', { hour:'2-digit', minute:'2-digit' });
@@ -1638,60 +2406,79 @@ if (!map) return;
 map.setView([currentCoords.lat, currentCoords.lon], 7, { animate: true });
 if (cityMarker) cityMarker.setLatLng([currentCoords.lat, currentCoords.lon]);
 loadRainViewerFrames();
+refreshRadarEmbeds();
 }
 /* ================================================================
 RADAR TABS — Leaflet | Windy | MeteoRadar
 ================================================================ */
 function showRadarTab(type, btn) {
 document.querySelectorAll('.radar-tab').forEach(t => t.classList.remove('active'));
-btn.classList.add('active');
-const mapWrap     = document.getElementById('map-wrapper');
-const windyFrame  = document.getElementById('windy-frame');
-const meteoFrame  = document.getElementById('meteo-radar-frame');
-/* Exit fullscreen if active */
-if (document.fullscreenElement) {
-document.exitFullscreen().catch(() => {});
-}
-/* Hide all iframes first */
+if (btn) btn.classList.add('active');
+const mapWrap    = document.getElementById('map-wrapper');
+const meteoFrame = document.getElementById('meteo-radar-frame');
+const windyFrame = document.getElementById('windy-frame');
+if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 mapWrap.style.display    = 'none';
-windyFrame.style.display = 'none';
 meteoFrame.style.display = 'none';
+windyFrame.style.display = 'none';
+const legend = document.getElementById('radar-legend');
 if (type === 'leaflet') {
-mapWrap.style.display = 'block';
-const legend = document.getElementById('radar-legend');
-if (legend) legend.style.display = 'flex';
-setTimeout(() => { if(map) map.invalidateSize(); }, 100);
+  mapWrap.style.display = 'block';
+  if (legend) legend.style.display = 'flex';
+  setTimeout(() => { if(map) map.invalidateSize(); }, 100);
 } else if (type === 'meteo') {
-meteoFrame.style.display = 'block';
-const legend = document.getElementById('radar-legend');
-if (legend) legend.style.display = 'none';
-const meteoIframe = document.getElementById('meteo-radar-iframe');
-meteoIframe.src =
-`https://radar.wo-cloud.com/pwa/?bounds=49,20,41,30` +
-`&tz=UTC&tf=HH:mm&windunit=kmh&lang=ro-RO` +
-`&safeAreaTop=true&safeAreaBottom=true&desktop=true&fadeTop=false`;
-meteoIframe.setAttribute('referrerpolicy', 'no-referrer');
-/* Fallback error handling */
-meteoIframe.onerror = function() {
-showToast(t('toast_radar_error'), 'error');
-};
-/* Timeout de siguranță pentru încărcare */
-setTimeout(() => {
-if (!meteoIframe.contentDocument && !meteoIframe.contentWindow?.document) {
-console.warn('MeteoRadar iframe nu s-a încărcat');
-}
-}, 8000);
+  meteoFrame.style.display = 'block';
+  if (legend) legend.style.display = 'none';
+  refreshMeteoRadarEmbed();
 } else if (type === 'windy') {
-windyFrame.style.display = 'block';
-const legend = document.getElementById('radar-legend');
-if (legend) legend.style.display = 'none';
-const { lat, lon } = currentCoords;
-document.getElementById('windy-iframe').src =
-`https://embed.windy.com/embed.html?type=map&location=coordinates` +
-`&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h` +
-`&zoom=8&overlay=radar&product=radar&level=surface` +
-`&lat=${lat}&lon=${lon}`;
+  windyFrame.style.display = 'block';
+  if (legend) legend.style.display = 'none';
+  refreshWindyEmbed();
 }
+}
+function radarCoords() {
+const lat = Number(currentCoords && currentCoords.lat);
+const lon = Number(currentCoords && currentCoords.lon);
+return {
+lat: Number.isFinite(lat) ? lat : 47.17,
+lon: Number.isFinite(lon) ? lon : 26.36
+};
+}
+function refreshMeteoRadarEmbed() {
+const meteoIframe = document.getElementById('meteo-radar-iframe');
+if (!meteoIframe) return;
+const { lat, lon } = radarCoords();
+const north = Math.min(55, lat + 1.65).toFixed(3);
+const south = Math.max(35, lat - 1.65).toFixed(3);
+const west = Math.max(10, lon - 2.25).toFixed(3);
+const east = Math.min(36, lon + 2.25).toFixed(3);
+const nextSrc =
+`https://radar.wo-cloud.com/pwa/?bounds=${north},${west},${south},${east}` +
+`&tz=Europe%2FBucharest&tf=HH:mm&windunit=kmh&lang=ro-RO` +
+`&safeAreaTop=true&safeAreaBottom=true&desktop=true&fadeTop=false`;
+if (meteoIframe.src !== nextSrc) meteoIframe.src = nextSrc;
+meteoIframe.setAttribute('referrerpolicy', 'no-referrer');
+meteoIframe.onerror = function() { showToast(t('toast_radar_error'), 'error'); };
+}
+function refreshWindyEmbed() {
+const iframe = document.getElementById('windy-iframe');
+if (!iframe) return;
+const { lat, lon } = radarCoords();
+const latS = lat.toFixed(4);
+const lonS = lon.toFixed(4);
+const nextSrc =
+  `https://embed.windy.com/embed2.html?lat=${latS}&lon=${lonS}` +
+  `&detailLat=${latS}&detailLon=${lonS}&marker=true&message=true` +
+  `&type=map&location=coordinates` +
+  `&metricRain=mm&metricTemp=%C2%B0C&metricWind=km%2Fh` +
+  `&zoom=8&overlay=radar&product=radar&level=surface&calendar=now&disableGeolocation=true`;
+if (iframe.src !== nextSrc) iframe.src = nextSrc;
+}
+function refreshRadarEmbeds() {
+const meteoFrame = document.getElementById('meteo-radar-frame');
+const windyFrame = document.getElementById('windy-frame');
+if (meteoFrame && meteoFrame.style.display !== 'none') refreshMeteoRadarEmbed();
+if (windyFrame && windyFrame.style.display !== 'none') refreshWindyEmbed();
 }
 function toggleRadarFullscreen(elemId) {
 const el = document.getElementById(elemId);
@@ -2039,9 +2826,40 @@ return dirs[Math.round(deg / 22.5) % 16];
 * Calculează punctul de rouă (formula Magnus simplificată)
 */
 function calcDewPoint(tempC, humidity) {
+tempC = Number(tempC);
+humidity = Number(humidity);
+if (!Number.isFinite(tempC) || !Number.isFinite(humidity) || humidity <= 0) return null;
+humidity = Math.min(100, Math.max(1, humidity));
 const a = 17.27, b = 237.7;
 const alpha = ((a * tempC) / (b + tempC)) + Math.log(humidity / 100);
-return parseFloat(((b * alpha) / (a - alpha)).toFixed(1));
+const dew = (b * alpha) / (a - alpha);
+return Number.isFinite(dew) ? parseFloat(dew.toFixed(1)) : null;
+}
+function calcApparentTemp(tempC, windKph, humidity) {
+tempC = Number(tempC);
+windKph = Number(windKph);
+humidity = Number(humidity);
+if (!Number.isFinite(tempC)) return null;
+if (Number.isFinite(windKph) && tempC <= 10 && windKph > 4.8) {
+const wc = 13.12 + 0.6215 * tempC - 11.37 * Math.pow(windKph, 0.16) + 0.3965 * tempC * Math.pow(windKph, 0.16);
+return Number.isFinite(wc) ? parseFloat(wc.toFixed(1)) : tempC;
+}
+if (Number.isFinite(humidity) && tempC >= 27 && humidity >= 40) {
+const tF = tempC * 9 / 5 + 32;
+const hiF = -42.379 + 2.04901523 * tF + 10.14333127 * humidity - 0.22475541 * tF * humidity
+  - 0.00683783 * tF * tF - 0.05481717 * humidity * humidity
+  + 0.00122874 * tF * tF * humidity + 0.00085282 * tF * humidity * humidity
+  - 0.00000199 * tF * tF * humidity * humidity;
+return Number.isFinite(hiF) ? parseFloat(((hiF - 32) * 5 / 9).toFixed(1)) : tempC;
+}
+return parseFloat(tempC.toFixed(1));
+}
+function feelsSourceLabel(tempSrc, windSrc) {
+const tSrc = String(tempSrc || '').trim();
+const wSrc = String(windSrc || '').trim();
+if (tSrc && wSrc && tSrc === wSrc) return `${tSrc} + vânt`;
+if (tSrc && wSrc) return `${tSrc} + ${wSrc}`;
+return tSrc || wSrc || 'Model';
 }
 /* ================================================================
 GRAFIC ORAR SVG
@@ -2101,7 +2919,7 @@ const todayLocal = now.getFullYear() + '-' +
 String(now.getMonth() + 1).padStart(2, '0') + '-' +
 String(now.getDate()).padStart(2, '0');
 document.getElementById('forecast-section').querySelector('.section-title').innerHTML =
-'<i class="fas fa-calendar-days"></i> Prognoză 10 Zile <small style="font-size:0.5rem;opacity:0.7;font-weight:700;margin-left:4px;">ICON-EU + ECMWF</small>';
+`<i class="fas fa-calendar-days"></i> ${t('forecast_title_10d')} <small style="font-size:0.5rem;opacity:0.7;font-weight:700;margin-left:4px;">ICON-EU + ECMWF</small>`;
 /* Temperatura globală min/max din toate zilele pentru bara relativă */
 const allTemps = days.flatMap(d => [d.maxtemp_c, d.mintemp_c]).filter(v => v != null);
 const globalMin = allTemps.length ? Math.min(...allTemps) : 0;
@@ -2296,13 +3114,13 @@ const anmCond = condText.toLowerCase();
 const isDayAnm = new Date().getHours() >= 6 && new Date().getHours() < 21;
 applyDynamicBg(anmCond, isDayAnm);
 document.getElementById('city-title').innerText = cleanAnmText(p.nume);
-document.getElementById('sync-info').innerText =
-`ANM: ${cleanAnmText(p.nume)} | ${t('smart_updated_at')}: ${cleanAnmText(p.actualizat || 'N/A')}`;
-const mainTemp = p.tempe ? parseFloat(p.tempe).toFixed(1) : '--';
-document.getElementById('main-temp').innerText = mainTemp + '°C';
+document.getElementById('sync-info').innerHTML =
+`ANM: ${cleanAnmText(p.nume)} | ${t('smart_updated_at')}: ${cleanAnmText(p.actualizat || 'N/A')}` + refreshBadgeMarkup();
+const mainTemp = p.tempe ? parseFloat(p.tempe) : null;
+document.getElementById('main-temp').innerText = displayTemp(mainTemp);
 const _secW = document.getElementById('temp-secondary-wrap');
 if (_secW) _secW.style.display = 'none';
-document.getElementById('temp-feel').innerText = t('feels_like') + ': N/A ' + t('anm_only_note');
+	document.getElementById('temp-feel').innerText = t('feels_like') + ': N/A ' + t('anm_only_note');
 document.getElementById('main-desc').innerText = condText;
 const ico = getWeatherIcon(condText, isDayAnm);
 document.getElementById('big-icon').innerHTML = `<i class="fas ${ico.cls}" style="color:${ico.col}"></i>`;
@@ -2312,9 +3130,13 @@ document.getElementById('smart-text').innerHTML =
 t('smart_for_detail');
 /* ── PARSEAZĂ VÂNT ANM ── */
 const anmWind = parseAnmWind(p.vant);
-const vWindMs  = anmWind.speedMs;
-const vWindKmh = anmWind.speedKmh;
-const vDirAnm  = anmWind.direction;
+	const vWindMs  = anmWind.speedMs;
+	const vWindKmh = anmWind.speedKmh;
+	const vDirAnm  = anmWind.direction;
+	const anmFeelsLike = calcApparentTemp(mainTemp, vWindKmh, p.umezeala ? parseFloat(p.umezeala) : null);
+	if (anmFeelsLike !== null) {
+	document.getElementById('temp-feel').innerText = t('feels_like') + ': ' + displayTemp(anmFeelsLike) + ' [ANM + vânt]';
+	}
 /* ── PARSEAZĂ PRESIUNE ANM ── */
 const anmPressure = parseAnmPressure(p.presiunetext);
 /* ── Fetch Open-Meteo ÎNAINTE de a construi grila ──
@@ -2357,32 +3179,32 @@ const omSunrise    = (omD && omD.sunrise && omD.sunrise[omDIdx]) ? omD.sunrise[o
 const omSunset     = (omD && omD.sunset  && omD.sunset[omDIdx])  ? omD.sunset[omDIdx].slice(11,16)  : null;
 /* ── Date meteo detaliate — grila construită cu date OM integrate ── */
 const gridItems = [];
-gridItems.push({ label: t('temp_actual'), val: `${mainTemp}°C`, src: 'ANM' });
+gridItems.push({ label: t('temp_actual'), val: displayTemp(mainTemp), src: 'ANM' });
 /* Min/Max: ANM dacă are, altfel OM */
 if (anmVal(p.tempe_min) || anmVal(p.temp_min)) {
 gridItems.push({ label: t('minima'),
-val: `${parseFloat(anmVal(p.tempe_min)||anmVal(p.temp_min)).toFixed(1)}°C`, src: 'ANM' });
+val: displayTemp(parseFloat(anmVal(p.tempe_min)||anmVal(p.temp_min))), src: 'ANM' });
 } else if (omTodayMin !== null && omTodayMax !== null) {
 gridItems.push({ label: t('min_max_today'),
-val: `${omTodayMin.toFixed(1)}° / ${omTodayMax.toFixed(1)}°C`, src: 'OM/ICON-EU' });
+val: `${displayTemp(omTodayMin)} / ${displayTemp(omTodayMax)}`, src: 'OM/ICON-EU' });
 } else {
 gridItems.push({ label: t('min_max_today'), val: 'N/A', src: 'ANM' });
 }
 /* Maxima ANM sau La Noapte OM */
 if (anmVal(p.tempe_max) || anmVal(p.temp_max)) {
 gridItems.push({ label: t('maxima'),
-val: `${parseFloat(anmVal(p.tempe_max)||anmVal(p.temp_max)).toFixed(1)}°C`, src: 'ANM' });
+val: displayTemp(parseFloat(anmVal(p.tempe_max)||anmVal(p.temp_max))), src: 'ANM' });
 } else if (omTonightT !== null) {
-gridItems.push({ label: t('tonight_23'), val: `${omTonightT.toFixed(1)}°C`, src: 'OM/ICON-EU' });
+gridItems.push({ label: t('tonight_23'), val: displayTemp(omTonightT), src: 'OM/ICON-EU' });
 } else {
 gridItems.push({ label: t('tonight'), val: 'N/A', src: '—' });
 }
-/* Resimțit: OM întotdeauna (ANM nu oferă) */
-gridItems.push({
-label: t('feels_like'),
-val:   omFeelsLike !== null ? `${omFeelsLike.toFixed(1)}°C` : 'N/A',
-src:   omFeelsLike !== null ? 'OM/ICON-EU' : '—'
-});
+	/* Resimțit: calculat din temperatura/vântul ANM, cu fallback OM */
+	gridItems.push({
+	label: t('feels_like'),
+	val:   anmFeelsLike !== null ? displayTemp(anmFeelsLike) : (omFeelsLike !== null ? displayTemp(omFeelsLike) : 'N/A'),
+	src:   anmFeelsLike !== null ? 'ANM + vânt' : (omFeelsLike !== null ? 'OM/ICON-EU' : '—')
+	});
 gridItems.push({
 label: t('avg_wind'),
 val: vWindKmh !== null
@@ -2415,7 +3237,7 @@ src:   nebVal ? 'ANM' : (omCloudCover !== null ? 'OM/ICON-EU' : '—')
 const tempApaVal = anmVal(p.tempapa);
 gridItems.push({
 label: t('temp_apa'),
-val:   tempApaVal ? `${parseFloat(tempApaVal).toFixed(1)}°C` : 'N/A',
+val:   tempApaVal ? displayTemp(parseFloat(tempApaVal)) : 'N/A',
 src:   tempApaVal ? 'ANM' : '—'
 });
 /* Zăpadă ANM */
@@ -2490,7 +3312,7 @@ tempNoapteItems.forEach(item => {
 const label = item.querySelector('.item-label');
 if (label && label.innerText === t('min_max_today')) {
 label.innerText = t('tonight_23');
-item.querySelector('.item-val').innerText = tempNoapte + '°C';
+item.querySelector('.item-val').innerText = displayTemp(tempNoapte);
 item.querySelector('.item-src').innerText = '[METEOBLUE]';
 }
 });
@@ -2532,7 +3354,7 @@ omHours.push({ time: omh2.time[i], temp_c: omh2.temperature_2m[i] });
 if (omHours.length >= 2) {
 drawHourlyChart(omHours);
 document.querySelector('#hourly-section .section-title').innerHTML =
-'<i class="fas fa-chart-line"></i> Temperaturi Orare (8h) [Open-Meteo ICON-EU]';
+'<i class="fas fa-chart-line"></i> ' + t('hourly_title_om');
 }
 }
 /* Prognoză 7 zile */
@@ -2557,6 +3379,37 @@ showToast(`${cleanAnmText(p.nume)} — ${t('toast_anm_loaded')}`, 'success');
 drawWindCompass(vDirAnm || '--', vWindKmh || 0);
 renderMoon();
 renderAlerts(omDataANM);
+setTrustPanel({
+current: {
+source: 'ANM',
+mode: 'observed',
+freshness: cleanAnmText(p.actualizat || 'N/A'),
+detail: cleanAnmText(p.nume || '')
+},
+forecast: omDataANM ? {
+source: 'Open-Meteo ICON-EU',
+mode: 'model',
+freshness: 'Actualizat acum',
+    detail: t('trust_detail_forecast_comp')
+} : {
+source: 'N/A',
+mode: 'unavailable',
+freshness: 'N/A',
+    detail: t('trust_detail_no_forecast')
+},
+aqi: {
+source: 'N/A',
+mode: 'unavailable',
+freshness: 'N/A',
+    detail: t('trust_detail_aqi_unavailable_anm')
+},
+radar: {
+source: t('trust_source_radar'),
+mode: 'blend',
+freshness: 'Live',
+    detail: t('trust_detail_radar_live')
+}
+});
 startAutoRefresh();
 } catch(e) {
 console.error(e);
@@ -2665,12 +3518,11 @@ const ssRaw = omd && omd.sunset  && omd.sunset[dIdx]  ? omd.sunset[dIdx].slice(1
 applyDynamicBg(condText, isDay);
 document.getElementById('city-title').innerText = locationName;
 document.getElementById('sync-info').innerHTML =
-`Open-Meteo ICON-EU | ${new Date().toLocaleTimeString('ro-RO')}` +
-`<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 10:00</span>`;
-document.getElementById('main-temp').innerText  = mainTemp + '°C';
+`Open-Meteo ICON-EU | ${new Date().toLocaleTimeString('ro-RO')}` + refreshBadgeMarkup();
+document.getElementById('main-temp').innerText  = displayTemp(mainTemp);
 const _secWOM = document.getElementById('temp-secondary-wrap');
 if (_secWOM) _secWOM.style.display = 'none';
-document.getElementById('temp-feel').innerText  = t('feels_like') + ': ' + feelsLike + '°C [OM/ICON-EU]';
+document.getElementById('temp-feel').innerText  = t('feels_like') + ': ' + displayTemp(feelsLike) + ' [OM/ICON-EU]';
 document.getElementById('main-desc').innerText  = condText;
 const ico = getWeatherIcon(condText, isDay);
 document.getElementById('big-icon').innerHTML =
@@ -2679,27 +3531,27 @@ const windWarn = parseFloat(windKph) > 62 ? ' ⚠️ <b>' + t('wind_strong') + '
 document.getElementById('smart-text').innerHTML =
 `📍 <b>${locationName}</b> — ${condText}. ` +
 (omRainProb != null ? `${t('smart_precip')} <b>${omRainProb}%</b>. ` : '') +
-`${t('smart_minmax')} <b>${todayMin}° / ${todayMax}°C</b>.${windWarn}`;
+`${t('smart_minmax')} <b>${displayTemp(todayMin)} / ${displayTemp(todayMax)}</b>.${windWarn}`;
 const uvInfo = omUvNow !== null ? uvLabel(omUvNow) : { text: 'N/A', color: 'var(--muted)' };
 document.getElementById('full-grid').innerHTML = `
 <div class="data-item">
 <span class="item-label">${t('temp_actual')}</span>
-<span class="item-val">${mainTemp}°C</span>
+<span class="item-val">${displayTemp(mainTemp)}</span>
 <span class="item-src">[OM/ICON-EU]</span>
 </div>
 <div class="data-item">
 <span class="item-label">${t('min_max_today')}</span>
-<span class="item-val">${todayMin}° / ${todayMax}°C</span>
+<span class="item-val">${displayTemp(todayMin)} / ${displayTemp(todayMax)}</span>
 <span class="item-src">[OM/ICON-EU]</span>
 </div>
 <div class="data-item">
 <span class="item-label">${t('tonight_23')}</span>
-<span class="item-val">${tonightTemp}</span>
+<span class="item-val">${displayTemp(parseFloat(tonightTemp))}</span>
 <span class="item-src">[OM/ICON-EU]</span>
 </div>
 <div class="data-item">
 <span class="item-label">${t('feels_like')}</span>
-<span class="item-val">${feelsLike}°C</span>
+<span class="item-val">${displayTemp(feelsLike)}</span>
 <span class="item-src">[OM/ICON-EU]</span>
 </div>
 <div class="data-item">
@@ -2766,7 +3618,7 @@ omHours.push({ time: omh.time[i], temp_c: omh.temperature_2m[i] });
 if (omHours.length >= 2) {
 drawHourlyChart(omHours);
 document.querySelector('#hourly-section .section-title').innerHTML =
-'<i class="fas fa-chart-line"></i> Temperaturi Orare (8h) [Open-Meteo ICON-EU]';
+'<i class="fas fa-chart-line"></i> ' + t('hourly_title_om');
 }
 }
 /* Prognoză 7 zile */
@@ -2778,6 +3630,32 @@ if (srRaw !== '--:--') drawSunArc(srRaw, ssRaw);
 renderMoon();
 renderAqiDetail(null); // AQI nu e disponibil din OM gratuit
 renderAlerts(omData);
+setTrustPanel({
+current: {
+source: 'Open-Meteo ICON-EU',
+mode: 'model',
+freshness: 'Actualizat acum',
+    detail: t('trust_detail_primary_model')
+},
+forecast: {
+source: omData.ecmwfDaily ? 'ICON-EU + ECMWF' : 'ICON-EU',
+mode: omData.ecmwfDaily ? 'blend' : 'model',
+freshness: 'Actualizat acum',
+    detail: omData.ecmwfDaily ? t('trust_detail_blend_forecast') : t('trust_detail_forecast_model')
+},
+aqi: {
+source: 'N/A',
+mode: 'unavailable',
+freshness: 'N/A',
+    detail: t('trust_detail_aqi_unavailable_om')
+},
+radar: {
+source: t('trust_source_radar'),
+mode: 'blend',
+freshness: 'Live',
+    detail: t('trust_detail_radar_live')
+}
+});
 /* Confort termic simulat cu datele OM */
 const fakeWeatherForComfort = {
 current: {
@@ -3073,22 +3951,24 @@ if (p) syncParts.push(`ANM: ${cleanAnmText(p.actualizat || '')}`);
 if (dW) syncParts.push('W-API: AQI ✓');
 document.getElementById('sync-info').innerHTML =
 syncParts.join(' · ') +
-`<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 10:00</span>`;
+refreshBadgeMarkup();
 /* Temperatura principală + secundară */
-document.getElementById('main-temp').innerText = mainTemp + '°C';
+document.getElementById('main-temp').innerText = displayTemp(mainTemp);
 const secWrap = document.getElementById('temp-secondary-wrap');
 const secEl   = document.getElementById('temp-secondary');
 /* Dacă ANM e activ și ICON-EU diferă ≥ 0.3°C → arată ICON-EU secundar */
 if (p && omTempC != null && mainTempSrc === 'ANM') {
 const diff = Math.abs(omTempC - parseFloat(mainTemp));
 if (diff >= 0.3 && secWrap && secEl) {
-secEl.textContent = omTempC.toFixed(1) + '°C';
+secEl.textContent = displayTemp(omTempC);
 secWrap.style.display = 'block';
 } else if (secWrap) { secWrap.style.display = 'none'; }
 } else if (secWrap) { secWrap.style.display = 'none'; }
-const feelsVal = omFeelsLike != null ? omFeelsLike.toFixed(1) : (dW ? dW.current.feelslike_c : 'N/A');
-document.getElementById('temp-feel').innerText =
-t('feels_like') + ': ' + feelsVal + (feelsVal === 'N/A' ? ' [fără model]' : `°C [${omFeelsSrc}]`);
+	const computedFeels = calcApparentTemp(parseFloat(mainTemp), parseFloat(windKph), typeof humidity === 'number' ? humidity : parseFloat(humidity));
+	const feelsVal = computedFeels != null ? computedFeels.toFixed(1) : (omFeelsLike != null ? omFeelsLike.toFixed(1) : (dW ? dW.current.feelslike_c : 'N/A'));
+	const feelsSrc = computedFeels != null ? feelsSourceLabel(mainTempSrc, windSrc) : omFeelsSrc;
+	document.getElementById('temp-feel').innerText =
+	t('feels_like') + ': ' + (feelsVal === 'N/A' ? 'N/A [fără model]' : `${displayTemp(feelsVal)} [${feelsSrc}]`);
 document.getElementById('main-desc').innerText = condText;
 const ico = getWeatherIcon(condText, isDay);
 document.getElementById('big-icon').innerHTML =
@@ -3097,8 +3977,8 @@ document.getElementById('big-icon').innerHTML =
 const windWarn = parseFloat(windKph) > 62 ? ' ⚠️ <b>' + t('wind_strong') + '</b>' : '';
 const rainVal  = omRainProb != null ? omRainProb : (dW ? dW.forecast.forecastday[0].day.daily_chance_of_rain : '--');
 const minMaxStr = omTodayMin != null && omTodayMax != null
-? `${omTodayMin.toFixed(1)}° / ${omTodayMax.toFixed(1)}°C`
-: (dW ? `${dW.forecast.forecastday[0].day.mintemp_c}° / ${dW.forecast.forecastday[0].day.maxtemp_c}°C` : '--');
+? `${displayTemp(omTodayMin)} / ${displayTemp(omTodayMax)}`
+: (dW ? `${displayTemp(dW.forecast.forecastday[0].day.mintemp_c)} / ${displayTemp(dW.forecast.forecastday[0].day.maxtemp_c)}` : '--');
 document.getElementById('smart-text').innerHTML =
 `📍 <b>${p ? cleanAnmText(p.nume) : locationName}, ${locationCountry}</b> — ${condText}. ` +
 `${t('smart_precip')} <b>${rainVal}%</b> [ICON-EU]. ` +
@@ -3112,24 +3992,24 @@ const nebSrc = nebVal ? 'ANM' : (omCloud != null ? 'ICON-EU 3km' : '—');
 document.getElementById('full-grid').innerHTML = `
 <div class="data-item">
 <span class="item-label">${t('temp_actual')}</span>
-<span class="item-val">${mainTemp}°C</span>
+<span class="item-val">${displayTemp(mainTemp)}</span>
 <span class="item-src">[${mainTempSrc}]</span>
 </div>
 <div class="data-item">
 <span class="item-label">${t('min_max_today')}</span>
-<span class="item-val">${omTodayMin != null ? omTodayMin.toFixed(1) + '° / ' + omTodayMax.toFixed(1) + '°C' : (dW ? dW.forecast.forecastday[0].day.mintemp_c + '° / ' + dW.forecast.forecastday[0].day.maxtemp_c + '°C' : 'N/A')}</span>
+<span class="item-val">${omTodayMin != null ? displayTemp(omTodayMin) + ' / ' + displayTemp(omTodayMax) : (dW ? displayTemp(dW.forecast.forecastday[0].day.mintemp_c) + ' / ' + displayTemp(dW.forecast.forecastday[0].day.maxtemp_c) : 'N/A')}</span>
 <span class="item-src">[${omTodayMin != null ? omDailySrc : 'W-API'}]</span>
 </div>
 <div class="data-item">
 <span class="item-label">${t('tonight_23')}</span>
-<span class="item-val">${omTonightT != null ? omTonightT.toFixed(1) + '°C' : (mbHourlyData && mbHourlyData.temperature[23] ? mbHourlyData.temperature[23].toFixed(1) + '°C' : '--')}</span>
+<span class="item-val">${omTonightT != null ? displayTemp(omTonightT) : (mbHourlyData && mbHourlyData.temperature[23] ? displayTemp(mbHourlyData.temperature[23]) : '--')}</span>
 <span class="item-src">[${omTonightT != null ? omTonightSrc : 'METEOBLUE'}]</span>
 </div>
-<div class="data-item">
-<span class="item-label">${t('feels_like')}</span>
-<span class="item-val">${feelsVal === 'N/A' ? 'N/A' : feelsVal + '°C'}</span>
-<span class="item-src">[${feelsVal === 'N/A' ? '—' : omFeelsSrc}]</span>
-</div>
+	<div class="data-item">
+	<span class="item-label">${t('feels_like')}</span>
+	<span class="item-val">${feelsVal === 'N/A' ? 'N/A' : displayTemp(feelsVal)}</span>
+	<span class="item-src">[${feelsVal === 'N/A' ? '—' : feelsSrc}]</span>
+	</div>
 <div class="data-item">
 <span class="item-label">${t('avg_wind')}</span>
 <span class="item-val">${windKph} km/h (${windMs} m/s)</span>
@@ -3189,7 +4069,7 @@ document.getElementById('full-grid').innerHTML = `
 ${p && anmVal(p.nebulozitate) ? '' : ''}
 ${p && anmVal(p.tempapa) ? `<div class="data-item">
 <span class="item-label">${t('temp_apa')}</span>
-<span class="item-val">${parseFloat(p.tempapa).toFixed(1)}°C</span>
+<span class="item-val">${displayTemp(parseFloat(p.tempapa))}</span>
 <span class="item-src">[ANM]</span>
 </div>` : ''}
 ${p && anmVal(p.zapada) ? `<div class="data-item">
@@ -3214,21 +4094,25 @@ drawHourlyChart(mbHours);
 document.querySelector('#hourly-section .section-title').innerHTML =
 '<i class="fas fa-chart-line"></i> ' + t('hourly_title_mb');
 }
-} else if (omh && omh.temperature_2m) {
-/* ICON-EU — fallback grafic orar */
-const omHours = [];
+  } else if (omh && omh.temperature_2m) {
+  /* ICON-EU — fallback grafic orar */
+  const omHours = [];
 for (let i = omi; i < omi + 8 && i < omh.temperature_2m.length; i++) {
 omHours.push({ time: omh.time[i], temp_c: omh.temperature_2m[i] });
 }
 if (omHours.length >= 2) {
 drawHourlyChart(omHours);
-document.querySelector('#hourly-section .section-title').innerHTML =
-'<i class="fas fa-chart-line"></i> Temperaturi Orare (8h) [ICON-EU 3km]';
-}
-}
-/* ── PROGNOZĂ 7 ZILE — ICON-EU + ECMWF ensemble ── */
-if (omd && omd.temperature_2m_max) {
-renderForecastOM(buildOMDays(omd, omData.ecmwfDaily));
+  document.querySelector('#hourly-section .section-title').innerHTML =
+  '<i class="fas fa-chart-line"></i> ' + t('hourly_title_d2');
+  }
+  }
+  if (_hourlyDataFull && _hourlyDataFull.length) {
+  _hourlyView = ['24h','48h','120h'].includes(_hourlyView) ? _hourlyView : '24h';
+  renderHourlyCurrentView();
+  }
+  /* ── PROGNOZĂ 7 ZILE — ICON-EU + ECMWF ensemble ── */
+  if (omd && omd.temperature_2m_max) {
+  renderForecastOM(buildOMDays(omd, omData.ecmwfDaily));
 }
 /* ── WIDGET-URI ── */
 drawWindCompass(windDir, parseFloat(windKph));
@@ -3240,16 +4124,47 @@ drawSunArc(dW.forecast.forecastday[0].astro.sunrise, dW.forecast.forecastday[0].
 renderAqiDetail(dW ? dW.current.air_quality : null);
 renderMoon(dW ? dW.forecast.forecastday[0].astro : null);
 renderAlerts(omData);
-/* Confort termic cu date ICON-EU */
-renderComfort({
+setTrustPanel({
 current: {
-temp_c:      parseFloat(mainTemp),
-feelslike_c: parseFloat(feelsVal),
-dewpoint_c:  calcDewPoint(parseFloat(mainTemp), typeof humidity === 'number' ? humidity : parseFloat(humidity)),
-humidity:    typeof humidity === 'number' ? humidity : parseFloat(humidity),
-wind_kph:    parseFloat(windKph)
+source: p && anmVal(p.tempe) ? 'ANM' : omTempSrc,
+mode: p && anmVal(p.tempe) ? 'observed' : 'model',
+freshness: p ? cleanAnmText(p.actualizat || 'N/A') : 'Actualizat acum',
+    detail: p ? t('trust_detail_station_model') : t('trust_detail_primary_model')
+},
+forecast: {
+source: omData.ecmwfDaily ? 'ICON-EU + ECMWF' : 'ICON-EU',
+mode: omData.ecmwfDaily ? 'blend' : 'model',
+freshness: 'Actualizat acum',
+    detail: mbHourlyData ? t('trust_detail_forecast_mb') : t('trust_detail_forecast_model')
+},
+aqi: dW ? {
+source: 'WeatherAPI',
+mode: 'blend',
+freshness: 'Actualizat acum',
+detail: 'AQI și text localizat'
+} : {
+source: 'N/A',
+mode: 'unavailable',
+freshness: 'N/A',
+    detail: t('trust_detail_aqi_unavailable')
+},
+radar: {
+source: t('trust_source_radar'),
+mode: 'blend',
+freshness: 'Live',
+    detail: t('trust_detail_radar_live')
 }
 });
+/* Confort termic cu date ICON-EU */
+  renderComfort({
+  current: {
+  temp_c:      _toFiniteNumber(mainTemp),
+  feelslike_c: _toFiniteNumber(feelsVal),
+  dewpoint_c:  omc.dew_point_2m != null ? omc.dew_point_2m : calcDewPoint(_toFiniteNumber(mainTemp), _toFiniteNumber(humidity)),
+  humidity:    _toFiniteNumber(humidity),
+  wind_kph:    _toFiniteNumber(windKph)
+  }
+  });
 startAutoRefresh();
 updateProviderStatus();
 /* Toast surse active */
@@ -3285,12 +4200,11 @@ if (!map) { initMap(); } else { updateMapCenter(); }
 applyDynamicBg(dW.current.condition.text, dW.current.is_day);
 document.getElementById('city-title').innerText = dW.location.name;
 document.getElementById('sync-info').innerHTML =
-`W-API (fallback) | ${new Date().toLocaleTimeString('ro-RO')}` +
-`<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 10:00</span>`;
-document.getElementById('main-temp').innerText = dW.current.temp_c + '°C';
+`W-API (fallback) | ${new Date().toLocaleTimeString('ro-RO')}` + refreshBadgeMarkup();
+document.getElementById('main-temp').innerText = displayTemp(dW.current.temp_c);
 const secW = document.getElementById('temp-secondary-wrap');
 if (secW) secW.style.display = 'none';
-document.getElementById('temp-feel').innerText = t('feels_like') + ': ' + dW.current.feelslike_c + '°C [W-API]';
+document.getElementById('temp-feel').innerText = t('feels_like') + ': ' + displayTemp(dW.current.feelslike_c) + ' [W-API]';
 document.getElementById('main-desc').innerText = dW.current.condition.text;
 const ico = getWeatherIcon(dW.current.condition.text, dW.current.is_day);
 document.getElementById('big-icon').innerHTML = `<i class="fas ${ico.cls}" style="color:${ico.col}"></i>`;
@@ -3303,6 +4217,37 @@ renderMoon(dW.forecast.forecastday[0].astro);
 renderComfort(dW);
 drawSunArc(dW.forecast.forecastday[0].astro.sunrise, dW.forecast.forecastday[0].astro.sunset);
 renderAqiDetail(dW.current.air_quality);
+setTrustPanel({
+current: {
+source: 'WeatherAPI',
+mode: 'fallback',
+freshness: 'Actualizat acum',
+    detail: t('trust_detail_fallback_full')
+},
+forecast: {
+source: 'WeatherAPI',
+mode: 'fallback',
+freshness: 'Actualizat acum',
+    detail: t('trust_detail_forecast_fallback')
+},
+aqi: dW.current.air_quality ? {
+source: 'WeatherAPI',
+mode: 'fallback',
+freshness: 'Actualizat acum',
+    detail: t('trust_detail_aqi_active')
+} : {
+source: 'N/A',
+mode: 'unavailable',
+freshness: 'N/A',
+    detail: t('trust_detail_aqi_unavailable')
+},
+radar: {
+source: t('trust_source_radar'),
+mode: 'blend',
+freshness: 'Live',
+    detail: t('trust_detail_radar_live')
+}
+});
 startAutoRefresh();
 showToast(dW.location.name + ' — W-API fallback ⚠️', 'info');
 } catch(e) {
@@ -3561,15 +4506,18 @@ const newMoons = daysSinceNew / 29.53058867;
 const phase = newMoons - Math.floor(newMoons); // 0-1
 const age = phase * 29.53; // 0-29.53
 let name, icon;
-if (age < 1.85)      { name = 'Luna Noua';       icon = '🌑'; }
-else if (age < 5.55)  { name = 'Semiluna crescatoare'; icon = '🌒'; }
-else if (age < 9.25)  { name = 'Primul Patrar';  icon = '🌓'; }
-else if (age < 12.95) { name = 'Luna.Convexa';    icon = '🌔'; }
-else if (age < 16.65) { name = 'Luna Plina';       icon = '🌕'; }
-else if (age < 20.35) { name = 'Luna Convexa descreasca'; icon = '🌖'; }
-else if (age < 24.05) { name = 'Ultimul Patrar';  icon = '🌗'; }
-else if (age < 27.75) { name = 'Semiluna descreasca'; icon = '🌘'; }
-else                  { name = 'Luna Noua';       icon = '🌑'; }
+const roNames = ['Luna Nouă','Semilună Crescătoare','Primul Pătrar','Lună Convexă','Lună Plină','Lună Convexă Descrescătoare','Ultimul Pătrar','Semilună Descrescătoare'];
+const enNames = ['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'];
+const names = currentLang === 'en' ? enNames : roNames;
+if (age < 1.85)      { name = names[0]; icon = '🌑'; }
+else if (age < 5.55)  { name = names[1]; icon = '🌒'; }
+else if (age < 9.25)  { name = names[2]; icon = '🌓'; }
+else if (age < 12.95) { name = names[3]; icon = '🌔'; }
+else if (age < 16.65) { name = names[4]; icon = '🌕'; }
+else if (age < 20.35) { name = names[5]; icon = '🌖'; }
+else if (age < 24.05) { name = names[6]; icon = '🌗'; }
+else if (age < 27.75) { name = names[7]; icon = '🌘'; }
+else                  { name = names[0]; icon = '🌑'; }
 const illumination = Math.round((1 - Math.cos(2 * Math.PI * phase)) / 2 * 100);
 return { name, icon, illumination, age: age.toFixed(1) };
 }
@@ -3607,7 +4555,7 @@ name = moon.name;
 icon = moon.icon;
 illumination = moon.illumination;
 age = moon.age;
-source = 'Calcul';
+source = currentLang === 'en' ? 'Computed' : 'Calcul';
 }
 let extra = '';
 if (astroData) {
@@ -3668,8 +4616,8 @@ comfortCls = 'comfort-ok';
 }
 const windDiscomfortLabel = !windOk ? t('comfort_low') : wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
 el.innerHTML = `
-<div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dewOk ? dew.toFixed(1) + '°C' : 'N/A'}</span></div>
-<div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feelsOk ? feels.toFixed(1) + '°C' : 'N/A'}</span></div>
+<div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dewOk ? displayTemp(dew) : 'N/A'}</span></div>
+<div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feelsOk ? displayTemp(feels) : 'N/A'}</span></div>
 <div class="comfort-row"><span class="comfort-label">${t('wind_discomfort')}</span><span class="comfort-val">${windDiscomfortLabel}</span></div>
 <div class="comfort-text ${comfortCls}">${comfortText}</div>
 `;
@@ -3677,17 +4625,18 @@ el.innerHTML = `
 /* ================================================================
 AUTO REFRESH + COUNTDOWN
 ================================================================ */
-const REFRESH_INTERVAL = 600; // 10 minute în secunde
+let refreshIntervalSeconds = 600;
 let refreshTimer = null;
-let refreshCountdown = REFRESH_INTERVAL;
+let refreshCountdown = refreshIntervalSeconds;
 function startAutoRefresh() {
 if (refreshTimer) clearInterval(refreshTimer);
-refreshCountdown = REFRESH_INTERVAL;
+refreshCountdown = refreshIntervalSeconds;
+updateRefreshBadge();
 refreshTimer = setInterval(() => {
 refreshCountdown--;
 updateRefreshBadge();
 if (refreshCountdown <= 0) {
-refreshCountdown = REFRESH_INTERVAL;
+refreshCountdown = refreshIntervalSeconds;
 updateWeather();
 }
 }, 1000);
@@ -3696,7 +4645,7 @@ function updateRefreshBadge() {
 const m = Math.floor(refreshCountdown / 60);
 const s = refreshCountdown % 60;
 const el = document.getElementById('refresh-badge');
-if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+if (el) el.innerHTML = `<i class="fas fa-sync-alt"></i> ${m}:${String(s).padStart(2, '0')}`;
 }
 /* ================================================================
 INIT
@@ -3847,7 +4796,7 @@ function applyDynamicBg(condText, isDay) {
 /* ================================================================
  °C / °F TOGGLE
 ================================================================ */
-let currentUnit = localStorage.getItem('hub_unit') || 'C';
+let currentUnit = DEFAULT_APP_SETTINGS.unit;
 function toggleUnit() {
   currentUnit = currentUnit === 'C' ? 'F' : 'C';
   localStorage.setItem('hub_unit', currentUnit);
@@ -3860,6 +4809,11 @@ function displayTemp(cVal) {
   if (cVal==null||isNaN(cVal)) return 'N/A';
   if (currentUnit==='F') return toF(cVal)+'°F';
   return parseFloat(cVal).toFixed(1)+'°C';
+}
+function refreshBadgeMarkup() {
+  const m = Math.floor(refreshCountdown / 60);
+  const s = refreshCountdown % 60;
+  return `<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> ${m}:${String(s).padStart(2, '0')}</span>`;
 }
 /* init label */
 (function(){ const b=document.getElementById('btn-unit'); if(b) b.textContent = currentUnit==='C'?'°F':'°C'; })();
@@ -4046,18 +5000,18 @@ function openFcModal(dayIdx) {
   const modalBody=document.getElementById('fc-modal-body');
   if (!overlay||!modalTitle||!modalBody) return;
   const isToday=dayIdx===0;
-  const dayLabel=isToday?(currentLang==='ro'?'Astăzi':'Today'):dayName(d.date+'T00:00');
+  const dayLabel=isToday?t('today_full'):dayName(d.date+'T00:00');
   modalTitle.innerHTML=`<i class="fas ${ico.cls}" style="color:${ico.col};margin-right:6px"></i>${dayLabel} — ${d.date}`;
   const rows=[
-    {label:currentLang==='ro'?'Temperatură Max':'Max Temp', val:d.maxtemp_c!=null?displayTemp(d.maxtemp_c):'--'},
-    {label:currentLang==='ro'?'Temperatură Min':'Min Temp', val:d.mintemp_c!=null?displayTemp(d.mintemp_c):'--'},
-    {label:currentLang==='ro'?'Condiție':'Condition', val:condText},
-    {label:'Precipitații', val:(d.precip_mm||0).toFixed(1)+' mm'},
-    {label:currentLang==='ro'?'Șanse Ploaie':'Rain Chance', val:(d.rain_prob||0)+'%'},
-    {label:currentLang==='ro'?'Vânt Max':'Max Wind', val:d.wind_max?Math.round(d.wind_max)+' km/h':'--'},
-    {label:currentLang==='ro'?'Dir. Vânt':'Wind Dir', val:d.wind_dir||'--'},
-    {label:currentLang==='ro'?'Ore precipitații':'Precip hours', val:d.precip_hours!=null?d.precip_hours+'h':'--'},
-    {label:'Sursă / Source', val:d.source||'ICON-EU'},
+    {label:t('max_temp'), val:d.maxtemp_c!=null?displayTemp(d.maxtemp_c):'--'},
+    {label:t('min_temp'), val:d.mintemp_c!=null?displayTemp(d.mintemp_c):'--'},
+    {label:t('condition'), val:condText},
+    {label:t('legend_precip'), val:(d.precip_mm||0).toFixed(1)+' mm'},
+    {label:t('rain_chance_short'), val:(d.rain_prob||0)+'%'},
+    {label:t('max_wind'), val:d.wind_max?Math.round(d.wind_max)+' km/h':'--'},
+    {label:t('wind_dir'), val:d.wind_dir||'--'},
+    {label:t('precip_hours'), val:d.precip_hours!=null?d.precip_hours+'h':'--'},
+    {label:t('source_label'), val:d.source||'ICON-EU'},
   ];
   modalBody.innerHTML=`<div class="fc-modal-grid">${rows.map(r=>`<div class="fc-modal-item"><div class="fc-modal-item-label">${r.label}</div><div class="fc-modal-item-val">${r.val}</div></div>`).join('')}</div>`;
   overlay.classList.add('open');
@@ -4074,7 +5028,7 @@ window.renderForecastOM = function(days, ecmwfDailyData) {
   /* Store hourly precip for tab */
   const now=new Date(); const todayLocal=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
   document.getElementById('forecast-section').querySelector('.section-title').innerHTML=
-    '<i class="fas fa-calendar-days"></i> Prognoză 10 Zile <small style="font-size:0.5rem;opacity:0.7;font-weight:700;margin-left:4px;">ICON-EU+ECMWF · click=detalii</small>';
+    `<i class="fas fa-calendar-days"></i> ${t('forecast_title_10d')} <small style="font-size:0.5rem;opacity:0.7;font-weight:700;margin-left:4px;">ICON-EU+ECMWF · ${t('forecast_hint_click')}</small>`;
   const allTemps=days.flatMap(d=>[d.maxtemp_c,d.mintemp_c]).filter(v=>v!=null);
   const globalMin=allTemps.length?Math.min(...allTemps):0, globalMax=allTemps.length?Math.max(...allTemps):30, tempRange=globalMax-globalMin||1;
   document.getElementById('forecast-scroll').innerHTML=days.slice(0,10).map((d,i)=>{
@@ -4093,7 +5047,7 @@ window.renderForecastOM = function(days, ecmwfDailyData) {
     const srcBadge=d.source==='ECMWF'?`<div class="fc-ensemble" style="color:#0369a1">ECMWF</div>`:'';
     const windDirDeg={'N':0,'NE':45,'E':90,'SE':135,'S':180,'SV':225,'V':270,'NV':315};
     const windArrow=windDir?`<span style="display:inline-block;transform:rotate(${windDirDeg[windDir]||0}deg);font-size:0.7rem">↑</span> `:'';
-    return `<div class="forecast-card ${isToday?'today':''}" onclick="openFcModal(${i})" title="Click pt. detalii">
+    return `<div class="forecast-card ${isToday?'today':''}" onclick="openFcModal(${i})" title="${t('forecast_click_title')}">
 <div class="fc-day">${dayLabel}</div>
 <div class="fc-icon"><i class="fas ${ico.cls}" style="color:${ico.col}"></i></div>
 <div class="fc-max">${maxT}${unitSym}</div>
@@ -4198,7 +5152,12 @@ let _omCompositeCache = null;
 let _hourlySourceMeta = null;
 
 function _isNum(v) {
-  return typeof v === 'number' && !Number.isNaN(v);
+  return typeof v === 'number' && Number.isFinite(v);
+}
+function _toFiniteNumber(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 }
 function _seriesValue(arr, idx) {
   return Array.isArray(arr) && idx >= 0 && arr[idx] != null ? arr[idx] : null;
@@ -4227,9 +5186,27 @@ function _avgMembers(container, base) {
 }
 function _pickValue(candidates) {
   for (const c of candidates) {
-    if (_isNum(c.value)) return { value: c.value, source: c.source };
+    if (_isNum(c.value) || (typeof c.value === 'string' && c.value !== '')) return { value: c.value, source: c.source };
   }
   return { value: null, source: null };
+}
+function _fusionValue(candidates, field) {
+  const discrete = ['weather_code', 'is_day', 'sunrise', 'sunset', 'wind_direction_10m', 'wind_direction_10m_dominant'].includes(field);
+  if (discrete) return _pickValue(candidates);
+  const valid = candidates
+    .map(c => ({ value: _toFiniteNumber(c.value), source: c.source }))
+    .filter(c => c.value !== null);
+  if (!valid.length) return { value: null, source: null };
+  if (valid.length === 1) return valid[0];
+  const weights = { 'ICON-D2': 0.5, 'ICON-EU': 0.32, ECMWF: 0.18 };
+  let sum = 0, weightSum = 0;
+  valid.forEach(c => {
+    const w = weights[c.source] || 0.2;
+    sum += c.value * w;
+    weightSum += w;
+  });
+  const value = parseFloat((sum / weightSum).toFixed(field === 'precipitation_probability' ? 0 : 2));
+  return { value, source: valid.map(c => c.source).join('/') };
 }
 function _formatHour(ts) {
   return typeof ts === 'string' ? ts.slice(11, 16) : '--:--';
@@ -4248,21 +5225,21 @@ function _ensureHourlyLegend() {
   const el = document.getElementById('hourly-legend');
   if (!el) return;
   el.innerHTML = `
-    <div class="legend-item"><span class="legend-swatch precip"></span> Precipitații (mm/h)</div>
-    <div class="legend-item"><span class="legend-swatch temp"></span> Temperatură</div>
-    <div class="legend-item"><span class="legend-swatch dew"></span> Punct de rouă</div>
+    <div class="legend-item"><span class="legend-swatch precip"></span> ${t('legend_precip')}</div>
+    <div class="legend-item"><span class="legend-swatch temp"></span> ${t('legend_temp')}</div>
+    <div class="legend-item"><span class="legend-swatch dew"></span> ${t('legend_dew')}</div>
     <div class="legend-item"><span class="legend-swatch cape"></span> CAPE</div>
   `;
 }
 function _updateHourlyTitle(mode, hours) {
-  const prefix = mode === '120h' ? 'Prognoză Orară 5 Zile (120h)' : mode === '48h' ? 'Prognoză Orară 48h' : 'Prognoză Orară 24h';
+  const prefix = mode === '120h' ? t('hourly_prefix_120h') : mode === '48h' ? t('hourly_prefix_48h') : t('hourly_prefix_24h');
   let label = document.getElementById('hourly-title-label');
   const titleWrap = document.querySelector('#hourly-section .section-title');
   if (!label && titleWrap) {
     titleWrap.innerHTML = '<i class="fas fa-chart-line"></i> <span id="hourly-title-label"></span>';
     label = document.getElementById('hourly-title-label');
   }
-  if (label) label.textContent = `${prefix} · Temp / Dew / Precip / CAPE`;
+  if (label) label.textContent = `${prefix} · ${t('hourly_suffix')}`;
 }
 function _sampleLabels(hours, mode) {
   const lbls = document.getElementById('hourly-labels');
@@ -4271,7 +5248,7 @@ function _sampleLabels(hours, mode) {
     const date = new Date(h.time);
     const hh = _formatHour(h.time);
     const dayMarker = mode === '120h' && i % 24 === 0
-      ? `<small style="display:block;font-size:0.47rem;opacity:0.72">${date.toLocaleDateString('ro-RO', { weekday: 'short', day: '2-digit' })}</small>`
+      ? `<small style="display:block;font-size:0.47rem;opacity:0.72">${date.toLocaleDateString(currentLang === 'en' ? 'en-US' : 'ro-RO', { weekday: 'short', day: '2-digit' })}</small>`
       : '';
     return `<span>${dayMarker}${hh}</span>`;
   });
@@ -4290,8 +5267,8 @@ async function fetchOpenMeteoD2(lat, lon) {
     temperature_unit: 'celsius',
     precipitation_unit: 'mm',
     timezone: 'Europe/Bucharest',
-    forecast_days: 3,
-    forecast_hours: 48
+    forecast_days: 5,
+    forecast_hours: 120
   });
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
   if (!res.ok) throw new Error(`ICON-D2 HTTP ${res.status}`);
@@ -4400,11 +5377,12 @@ async function fetchOpenMeteoAll(lat, lon) {
     mergedHourly[field] = [];
     sourceHourly[field] = [];
     hourlyMaster.forEach((time, idx) => {
-      const pick = _pickValue([
+      const candidates = [
         { value: d2 && d2.hourly ? _seriesValue(d2.hourly[field], d2Map[time]) : null, source: 'ICON-D2' },
         { value: eu && eu.hourly ? _seriesValue(eu.hourly[field], euMap[time]) : null, source: 'ICON-EU' },
         { value: ecmwf && ecmwf.hourly ? _seriesValue(ecmwf.hourly[field], ecMap[time]) : null, source: 'ECMWF' }
-      ]);
+      ];
+      const pick = _fusionValue(candidates, field);
       mergedHourly[field][idx] = pick.value;
       sourceHourly[field][idx] = pick.source;
     });
@@ -4454,13 +5432,13 @@ async function fetchOpenMeteoAll(lat, lon) {
   dailyMaster.forEach((date, idx) => {
     const badges = new Set();
     dailyFields.forEach(field => {
-      const pick = _pickValue([
+      const pick = _fusionValue([
         { value: idx < 2 && d2 && d2.daily ? _seriesValue(d2.daily[field], d2DailyMap[date]) : null, source: 'ICON-D2' },
         { value: eu && eu.daily ? _seriesValue(eu.daily[field], euDailyMap[date]) : null, source: 'ICON-EU' },
         { value: ecmwf && ecmwf.daily ? _seriesValue(ecmwf.daily[field], ecDailyMap[date]) : null, source: 'ECMWF' }
-      ]);
+      ], field);
       mergedDaily[field][idx] = pick.value;
-      if (pick.source) badges.add(pick.source);
+      if (pick.source) String(pick.source).split('/').forEach(src => badges.add(src));
     });
     const tempSource = _pickValue([
       { value: idx < 2 && d2 && d2.daily ? _seriesValue(d2.daily.temperature_2m_max, d2DailyMap[date]) : null, source: 'ICON-D2' },
@@ -4574,11 +5552,11 @@ function enhanceDataGrid(omData) {
       if (src) src.textContent = '[ICON-D2/EU]';
     }
   });
-  _upsertGridCard('Punct de rouă', dew != null ? `${dew.toFixed(1)}°C` : 'Date incomplete', 'ICON-D2/EU/ECMWF');
+  _upsertGridCard(t('legend_dew'), dew != null ? displayTemp(dew) : t('incomplete_data'), 'ICON-D2/EU/ECMWF');
   const capeCls = cape != null ? _severityClass(cape) : '';
-  const capeText = cape != null ? `<span class="cape-pill ${capeCls}">${Math.round(cape)} J/kg</span>` : 'Date incomplete';
+  const capeText = cape != null ? `<span class="cape-pill ${capeCls}">${Math.round(cape)} J/kg</span>` : t('incomplete_data');
   _upsertGridCard('CAPE', capeText, 'ICON-D2/EU/ECMWF');
-  _upsertGridCard('Presiune detaliată', currentPressure != null ? `${currentPressure.toFixed(1)} hPa · <span class="press-trend-arrow ${pressTrend.className}">${pressTrend.arrow} ${pressTrend.label}</span>` : 'Date incomplete', 'ICON-D2/EU');
+  _upsertGridCard(currentLang === 'en' ? 'Pressure Detail' : 'Presiune detaliată', currentPressure != null ? `${currentPressure.toFixed(1)} hPa · <span class="press-trend-arrow ${pressTrend.className}">${pressTrend.arrow} ${pressTrend.label}</span>` : t('incomplete_data'), 'ICON-D2/EU');
 }
 
 function _chartPath(points) {
@@ -4708,7 +5686,7 @@ window.renderForecastOM = function(days) {
   const now = new Date();
   const todayLocal = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
   const title = document.getElementById('forecast-section') && document.getElementById('forecast-section').querySelector('.section-title');
-  if (title) title.innerHTML = '<i class="fas fa-calendar-days"></i> Prognoză 5 Zile (120h) <small style="font-size:0.5rem;opacity:0.72;font-weight:700;margin-left:4px;">ICON-D2 / ICON-EU / ECMWF</small>';
+  if (title) title.innerHTML = `<i class="fas fa-calendar-days"></i> ${t('forecast_title')} <small style="font-size:0.5rem;opacity:0.72;font-weight:700;margin-left:4px;">ICON-D2 / ICON-EU / ECMWF</small>`;
   const allTemps = days.flatMap(d => [d.maxtemp_c, d.mintemp_c]).filter(v => v != null);
   const globalMin = allTemps.length ? Math.min(...allTemps) : 0;
   const globalMax = allTemps.length ? Math.max(...allTemps) : 30;
@@ -4731,7 +5709,7 @@ window.renderForecastOM = function(days) {
     const dayLabel = isToday ? t('today') : dayName(d.date + 'T00:00');
     const probColor = prob >= 70 ? '#1d4ed8' : prob >= 40 ? '#3b82f6' : '#93c5fd';
     const badges = (d.sourceBadges || [d.source]).map(src => `<span class="fc-src-badge ${_sourceBadgeClass(src)}">${src}</span>`).join('');
-    return `<div class="forecast-card ${isToday ? 'today' : ''}" onclick="openFcModal(${i})" title="Click pt. detalii">
+    return `<div class="forecast-card ${isToday ? 'today' : ''}" onclick="openFcModal(${i})" title="${t('forecast_click_title')}">
       <div class="fc-day">${dayLabel}</div>
       <div class="fc-icon"><i class="fas ${ico.cls}" style="color:${ico.col}"></i></div>
       <div class="fc-max">${maxT}${unitSym}</div>
@@ -4767,68 +5745,142 @@ window.generateAlerts = function(omData) {
     }
     return { value: bestVal, idx: bestIdx };
   };
+
+  /* ── VÂNT CURENT ── */
   if (_isNum(omc.wind_gusts_10m)) {
-    if (omc.wind_gusts_10m >= 90) push({ level: 'red', icon: '🌪️', title: 'Cod roșu vânt', msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
-    else if (omc.wind_gusts_10m >= 62) push({ level: 'orange', icon: '💨', title: 'Avertizare vânt', msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
-    else if (omc.wind_gusts_10m >= 40) push({ level: 'yellow', icon: '💨', title: 'Atenționare vânt', msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
+    if (omc.wind_gusts_10m >= 90)      push({ level: 'red',    icon: '🌪️', title: 'Cod roșu vânt',     msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h — pericol extrem`, src: 'ICON-D2/EU' });
+    else if (omc.wind_gusts_10m >= 62) push({ level: 'orange', icon: '💨', title: 'Avertizare vânt',    msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
+    else if (omc.wind_gusts_10m >= 40) push({ level: 'yellow', icon: '💨', title: 'Atenționare vânt',  msg: `Rafale până la ${omc.wind_gusts_10m.toFixed(0)} km/h`, src: 'ICON-D2/EU' });
   }
+
+  /* ── VÂNT MAXIM ZILNIC (daily) ── */
+  if (omd && omd.wind_gusts_10m_max) {
+    const todayGust = omd.wind_gusts_10m_max[0];
+    if (_isNum(todayGust) && (!_isNum(omc.wind_gusts_10m) || todayGust > omc.wind_gusts_10m + 15)) {
+      if (todayGust >= 90)      push({ level: 'red',    icon: '🌪️', title: 'Cod roșu vânt (zi)',  msg: `Rafale maxime până la ${todayGust.toFixed(0)} km/h prognozate azi`, src: 'ICON-EU/ECMWF' });
+      else if (todayGust >= 62) push({ level: 'orange', icon: '💨', title: 'Vânt puternic (zi)',   msg: `Rafale maxime până la ${todayGust.toFixed(0)} km/h prognozate azi`, src: 'ICON-EU/ECMWF' });
+    }
+  }
+
+  /* ── PRECIPITAȚII ORARE MAXIME ÎN 24H ── */
   if (omh.precipitation) {
     const maxP = maxNext(omh.precipitation, 24);
     if (_isNum(maxP.value)) {
       const when = maxP.idx >= 0 ? _futureHourLabel(omh.time[maxP.idx]) : '';
-      if (maxP.value >= 20) push({ level: 'red', icon: '🌊', title: 'Ploaie torențială în 24h', msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
-      else if (maxP.value >= 10) push({ level: 'orange', icon: '🌧️', title: 'Ploaie intensă în 24h', msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
-      else if (maxP.value >= 5) push({ level: 'yellow', icon: '🌦️', title: 'Ploaie moderată în 24h', msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+      if (maxP.value >= 20)      push({ level: 'red',    icon: '🌊', title: 'Ploaie torențială în 24h', msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxP.value >= 10) push({ level: 'orange', icon: '🌧️', title: 'Ploaie intensă în 24h',    msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxP.value >= 5)  push({ level: 'yellow', icon: '🌦️', title: 'Ploaie moderată în 24h',   msg: `${maxP.value.toFixed(1)} mm/h estimat la ${when}`, src: 'ICON-D2/EU/ECMWF' });
     }
   }
+
+  /* ── CAPE / INSTABILITATE CONVECTIVĂ ── */
   if (omh.cape) {
     const maxCape = maxNext(omh.cape, 6);
     if (_isNum(maxCape.value)) {
       const when = maxCape.idx >= 0 ? _futureHourLabel(omh.time[maxCape.idx]) : '';
-      if (maxCape.value >= 3500) push({ level: 'red', icon: '⛈️', title: 'Instabilitate extremă CAPE', msg: `${Math.round(maxCape.value)} J/kg posibil la ${when}`, src: 'ICON-D2/EU/ECMWF' });
-      else if (maxCape.value >= 2000) push({ level: 'orange', icon: '⛈️', title: 'CAPE ridicat', msg: `${Math.round(maxCape.value)} J/kg în următoarele 6h (${when})`, src: 'ICON-D2/EU/ECMWF' });
-      else if (maxCape.value >= 1000) push({ level: 'yellow', icon: '⚡', title: 'Instabilitate convectivă', msg: `${Math.round(maxCape.value)} J/kg în următoarele 6h (${when})`, src: 'ICON-D2/EU/ECMWF' });
+      if (maxCape.value >= 3500)      push({ level: 'red',    icon: '⛈️', title: 'Instabilitate extremă CAPE', msg: `${Math.round(maxCape.value)} J/kg posibil la ${when}`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxCape.value >= 2000) push({ level: 'orange', icon: '⛈️', title: 'CAPE ridicat',               msg: `${Math.round(maxCape.value)} J/kg în următoarele 6h (${when})`, src: 'ICON-D2/EU/ECMWF' });
+      else if (maxCape.value >= 1000) push({ level: 'yellow', icon: '⚡',  title: 'Instabilitate convectivă',  msg: `${Math.round(maxCape.value)} J/kg în următoarele 6h (${when})`, src: 'ICON-D2/EU/ECMWF' });
     }
   }
+
+  /* ── COD WMO ── */
   if (_isNum(omc.weather_code)) {
-    if (omc.weather_code === 99) push({ level: 'red', icon: '⛈️', title: 'Furtună severă', msg: 'Semnal convectiv sever în datele brute OM', src: 'ICON-D2/EU' });
-    else if (omc.weather_code === 96 || omc.weather_code === 95) push({ level: 'orange', icon: '⛈️', title: 'Furtună', msg: 'Descărcări electrice sau grindină posibile', src: 'ICON-D2/EU' });
-    else if ([75, 86].includes(omc.weather_code)) push({ level: 'orange', icon: '❄️', title: 'Ninsoare intensă', msg: 'Precipitații solide semnificative', src: 'ICON-D2/EU' });
-    else if ([73, 71].includes(omc.weather_code)) push({ level: 'yellow', icon: '🌨️', title: 'Ninsoare', msg: 'Ninsoare în curs sau iminentă', src: 'ICON-D2/EU' });
-    else if (omc.weather_code === 48) push({ level: 'orange', icon: '🌫️', title: 'Ceață densă', msg: 'Vizibilitate foarte redusă', src: 'ICON-D2/EU' });
-    else if (omc.weather_code === 45) push({ level: 'yellow', icon: '🌫️', title: 'Ceață', msg: 'Vizibilitate redusă', src: 'ICON-D2/EU' });
+    if (omc.weather_code === 99)                          push({ level: 'red',    icon: '⛈️', title: 'Furtună severă + grindină', msg: 'Furtună violentă în zonă — stați în interior', src: 'ICON-D2/EU' });
+    else if ([95, 96].includes(omc.weather_code))         push({ level: 'orange', icon: '⛈️', title: 'Furtună electrică',          msg: 'Descărcări electrice sau grindină posibile', src: 'ICON-D2/EU' });
+    else if ([75, 86].includes(omc.weather_code))         push({ level: 'orange', icon: '❄️', title: 'Ninsoare intensă',           msg: 'Precipitații solide semnificative', src: 'ICON-D2/EU' });
+    else if ([71, 73].includes(omc.weather_code))         push({ level: 'yellow', icon: '🌨️', title: 'Ninsoare',                   msg: 'Ninsoare în curs sau iminentă', src: 'ICON-D2/EU' });
+    else if (omc.weather_code === 48)                     push({ level: 'orange', icon: '🌫️', title: 'Ceață densă',                msg: 'Vizibilitate foarte redusă — prudență pe drumuri', src: 'ICON-D2/EU' });
+    else if (omc.weather_code === 45)                     push({ level: 'yellow', icon: '🌫️', title: 'Ceață',                     msg: 'Vizibilitate redusă', src: 'ICON-D2/EU' });
   }
+
+  /* ── VIZIBILITATE CRITICĂ ── */
   if (_isNum(omc.visibility) && omc.visibility < 500) {
-    push({ level: 'orange', icon: '🚗', title: 'Vizibilitate critică', msg: `${omc.visibility.toFixed(0)} m`, src: 'ICON-D2/EU' });
+    push({ level: 'orange', icon: '🚗', title: 'Vizibilitate critică', msg: `${omc.visibility.toFixed(0)} m — condiții periculoase`, src: 'ICON-D2/EU' });
   }
+
+  /* ── TREND PRESIUNE ── */
+  const pressTrend = getPressureTrend(omData);
+  if (_isNum(pressTrend.delta) && pressTrend.delta <= -3) {
+    push({ level: 'yellow', icon: '📉', title: 'Presiune în scădere rapidă', msg: `${pressTrend.delta.toFixed(1)} hPa / 3h — vreme instabilă posibilă`, src: 'ICON-D2/EU/ECMWF' });
+  }
+
+  /* ── RISC CEAȚĂ (punct de rouă) ── */
+  if (_isNum(omc.relative_humidity_2m) && omc.relative_humidity_2m >= 92 &&
+      _isNum(omc.dew_point_2m) && _isNum(omc.temperature_2m) &&
+      Math.abs(omc.temperature_2m - omc.dew_point_2m) <= 1.5) {
+    push({ level: 'yellow', icon: '🌫️', title: 'Risc de ceață', msg: 'Temperatura foarte aproape de punctul de rouă', src: 'ICON-D2/EU/ECMWF' });
+  }
+
+  /* ── UV INDEX ── */
+  const uvNow = omh.uv_index ? omh.uv_index[start] : null;
+  const uvMax = omd && omd.uv_index_max ? omd.uv_index_max[0] : null;
+  const uvVal = _isNum(uvMax) ? uvMax : (_isNum(uvNow) ? uvNow : null);
+  if (_isNum(uvVal)) {
+    if (uvVal >= 11)     push({ level: 'red',    icon: '☀️', title: 'UV Extrem',          msg: `Indice UV ${uvVal.toFixed(1)} — protecție solară obligatorie, evitați expunerea directă`, src: 'ECMWF' });
+    else if (uvVal >= 8) push({ level: 'orange', icon: '🕶️', title: 'UV Foarte ridicat',  msg: `Indice UV ${uvVal.toFixed(1)} — cremă SPF 50+, umbrar între 11-17`, src: 'ECMWF' });
+    else if (uvVal >= 6) push({ level: 'yellow', icon: '🧴', title: 'UV Ridicat',         msg: `Indice UV ${uvVal.toFixed(1)} — protecție solară recomandată`, src: 'ECMWF' });
+  }
+
+  /* ── TEMPERATURI EXTREME AZI ── */
   if (omd && omd.temperature_2m_max && omd.temperature_2m_min) {
     const todayMax = omd.temperature_2m_max[0];
     const todayMin = omd.temperature_2m_min[0];
     if (_isNum(todayMax)) {
-      if (todayMax >= 40) push({ level: 'red', icon: '🌡️', title: 'Caniculă extremă', msg: `Maxima urcă la ${todayMax.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
-      else if (todayMax >= 36) push({ level: 'orange', icon: '🌡️', title: 'Caniculă', msg: `Maxima urcă la ${todayMax.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
-      else if (todayMax >= 33) push({ level: 'yellow', icon: '☀️', title: 'Căldură accentuată', msg: `Maxima urcă la ${todayMax.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      if (todayMax >= 40)      push({ level: 'red',    icon: '🌡️', title: 'Caniculă extremă',    msg: `Maxima urcă la ${todayMax.toFixed(0)}°C — pericol pentru sănătate`, src: 'ICON-EU/ECMWF' });
+      else if (todayMax >= 36) push({ level: 'orange', icon: '🌡️', title: 'Caniculă',            msg: `Maxima urcă la ${todayMax.toFixed(0)}°C azi`, src: 'ICON-EU/ECMWF' });
+      else if (todayMax >= 33) push({ level: 'yellow', icon: '☀️',  title: 'Căldură accentuată', msg: `Maxima urcă la ${todayMax.toFixed(0)}°C azi`, src: 'ICON-EU/ECMWF' });
     }
     if (_isNum(todayMin)) {
-      if (todayMin <= -20) push({ level: 'red', icon: '🥶', title: 'Ger extrem', msg: `Minima coboară la ${todayMin.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      if (todayMin <= -20)      push({ level: 'red',    icon: '🥶', title: 'Ger extrem',    msg: `Minima coboară la ${todayMin.toFixed(0)}°C — îngheț sever`, src: 'ICON-EU/ECMWF' });
       else if (todayMin <= -10) push({ level: 'orange', icon: '🥶', title: 'Ger puternic', msg: `Minima coboară la ${todayMin.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
-      else if (todayMin <= -3) push({ level: 'yellow', icon: '❄️', title: 'Îngheț', msg: `Minima coboară la ${todayMin.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      else if (todayMin <= -3)  push({ level: 'yellow', icon: '❄️', title: 'Îngheț nocturn', msg: `Minima coboară la ${todayMin.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
     }
+
+    /* ── PROGNOZA ZILELE 2-5 (ploi, caniculă, ninsoare, vânt) ── */
     for (let i = 1; i < Math.min(5, omd.time.length); i++) {
-      const rain = omd.precipitation_sum ? omd.precipitation_sum[i] : null;
-      const maxT = omd.temperature_2m_max ? omd.temperature_2m_max[i] : null;
       const dayShort = new Date(omd.time[i] + 'T12:00').toLocaleDateString('ro-RO', { weekday: 'short', day: '2-digit' });
+      const rain  = omd.precipitation_sum        ? omd.precipitation_sum[i]        : null;
+      const maxT  = omd.temperature_2m_max        ? omd.temperature_2m_max[i]        : null;
+      const minT  = omd.temperature_2m_min        ? omd.temperature_2m_min[i]        : null;
+      const gust  = omd.wind_gusts_10m_max        ? omd.wind_gusts_10m_max[i]        : null;
+      const wcode = omd.weather_code              ? omd.weather_code[i]              : null;
+
+      /* ploi viitoare */
       if (_isNum(rain) && rain >= 20) {
-        push({ level: rain >= 45 ? 'orange' : 'yellow', icon: '🛰️', title: `Ploi prognozate ${dayShort}`, msg: `${rain.toFixed(0)} mm în datele zilelor 2-5`, src: 'ICON-EU/ECMWF' });
+        push({ level: rain >= 45 ? 'orange' : 'yellow', icon: '🛰️', title: `Ploi prognozate — ${dayShort}`, msg: `${rain.toFixed(0)} mm prognozat`, src: 'ICON-EU/ECMWF' });
       }
+      /* caniculă viitoare */
       if (_isNum(maxT) && maxT >= 38) {
-        push({ level: 'orange', icon: '🌡️', title: `Caniculă prognozată ${dayShort}`, msg: `Maxima ajunge la ${maxT.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+        push({ level: 'orange', icon: '🌡️', title: `Caniculă prognozată — ${dayShort}`, msg: `Maxima ajunge la ${maxT.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      }
+      /* ger viitor */
+      if (_isNum(minT) && minT <= -10) {
+        push({ level: 'orange', icon: '🥶', title: `Ger prognozat — ${dayShort}`, msg: `Minima coboară la ${minT.toFixed(0)}°C`, src: 'ICON-EU/ECMWF' });
+      }
+      /* ninsoare viitoare (cod WMO) */
+      if (_isNum(wcode) && [71, 73, 75, 77, 85, 86].includes(wcode)) {
+        const snowLevel = (wcode >= 75 || wcode === 86) ? 'orange' : 'yellow';
+        const snowLabel = (wcode >= 75 || wcode === 86) ? 'Ninsoare intensă prognozată' : 'Ninsoare prognozată';
+        push({ level: snowLevel, icon: '❄️', title: `${snowLabel} — ${dayShort}`, msg: _isNum(rain) && rain > 0 ? `~${rain.toFixed(0)} mm echiv. precipitații` : '', src: 'ICON-EU/ECMWF' });
+      }
+      /* vânt viitor */
+      if (_isNum(gust) && gust >= 75) {
+        push({ level: gust >= 90 ? 'red' : 'orange', icon: '💨', title: `Vânt puternic prognozat — ${dayShort}`, msg: `Rafale maxime ${gust.toFixed(0)} km/h`, src: 'ICON-EU/ECMWF' });
       }
     }
   }
+
+  /* Sortare: red > orange > yellow; deduplicare titlu */
+  const seen = new Set();
   const ord = { red: 0, orange: 1, yellow: 2 };
   alerts.sort((a, b) => ord[a.level] - ord[b.level]);
-  return alerts.slice(0, 8);
+  return alerts.filter(a => {
+    const key = a.title.slice(0, 28);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 10);
 };
 window.renderAlerts = function(omData) {
   enhanceDataGrid(omData);
@@ -4854,17 +5906,17 @@ window.renderComfort = function(dW) {
   if (!el) return;
   const current = dW && dW.current ? dW.current : null;
   if (!current) {
-    el.innerHTML = '<div class="comfort-text comfort-ok">Date incomplete</div>';
+    el.innerHTML = `<div class="comfort-text comfort-ok">${t('incomplete_data')}</div>`;
     return;
   }
-  const temp = parseFloat(current.temp_c);
-  const feels = parseFloat(current.feelslike_c);
-  const hum = parseFloat(current.humidity);
-  const wind = parseFloat(current.wind_kph);
-  let dew = parseFloat(current.dewpoint_c);
-  if (Number.isNaN(dew) && _isNum(temp) && _isNum(hum)) dew = calcDewPoint(temp, hum);
+  const temp = _toFiniteNumber(current.temp_c);
+  const feels = _toFiniteNumber(current.feelslike_c);
+  const hum = _toFiniteNumber(current.humidity);
+  const wind = _toFiniteNumber(current.wind_kph);
+  let dew = _toFiniteNumber(current.dewpoint_c != null ? current.dewpoint_c : current.dew_point_2m);
+  if (dew === null && _isNum(temp) && _isNum(hum)) dew = calcDewPoint(temp, hum);
   if (!_isNum(temp) || !_isNum(hum)) {
-    el.innerHTML = '<div class="comfort-text comfort-ok">Date incomplete</div>';
+    el.innerHTML = `<div class="comfort-text comfort-ok">${t('incomplete_data')}</div>`;
     return;
   }
   const feelsOk = _isNum(feels);
@@ -4883,8 +5935,8 @@ window.renderComfort = function(dW) {
   }
   const windDiscomfortLabel = !windOk ? t('comfort_low') : wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
   el.innerHTML = `
-    <div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dewOk ? dew.toFixed(1) + '°C' : 'Date incomplete'}</span></div>
-    <div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feelsOk ? feels.toFixed(1) + '°C' : 'Date incomplete'}</span></div>
+    <div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dewOk ? displayTemp(dew) : t('incomplete_data')}</span></div>
+    <div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feelsOk ? displayTemp(feels) : t('incomplete_data')}</span></div>
     <div class="comfort-row"><span class="comfort-label">${t('wind_discomfort')}</span><span class="comfort-val">${windDiscomfortLabel}</span></div>
     <div class="comfort-text ${comfortCls}">${comfortText}</div>
   `;
@@ -4895,8 +5947,527 @@ setTimeout(() => {
   const btn = document.querySelector('.hourly-tab.active') || document.querySelector('.hourly-tab');
   if (btn) setHourlyView('24h', btn);
 }, 0);
+
+/* ================================================================
+APP STATE LAYER — favorites + settings
+================================================================ */
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function sameCoords(a, b) {
+  if (!a || !b) return false;
+  return Math.abs(Number(a.lat) - Number(b.lat)) < 0.01 && Math.abs(Number(a.lon) - Number(b.lon)) < 0.01;
+}
+function favoriteIdFromData(name, lat, lon) {
+  return String((name || 'loc').toLowerCase().trim()).replace(/[^a-z0-9]+/g, '-') + '_' + Number(lat).toFixed(2) + '_' + Number(lon).toFixed(2);
+}
+function loadAppState() {
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(APP_STATE_KEY) || 'null');
+  } catch (e) {
+    saved = null;
+  }
+  appState = {
+    favorites: Array.isArray(saved && saved.favorites) ? saved.favorites : [],
+    currentLocation: saved && saved.currentLocation ? saved.currentLocation : null,
+    settings: {
+      ...DEFAULT_APP_SETTINGS,
+      ...(saved && saved.settings ? saved.settings : {})
+    }
+  };
+}
+function saveAppState() {
+  localStorage.setItem(APP_STATE_KEY, JSON.stringify(appState));
+  localStorage.setItem('hub_theme', appState.settings.theme);
+  localStorage.setItem('hub_lang', appState.settings.lang);
+  localStorage.setItem('hub_unit', appState.settings.unit);
+}
+function applyThemeSilently(mode) {
+  isDark = mode === 'dark';
+  document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  const themeIcon = document.getElementById('theme-icon');
+  if (themeIcon) themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+  localStorage.setItem('hub_theme', isDark ? 'dark' : 'light');
+  if (map && baseTileLayer) {
+    map.removeLayer(baseTileLayer);
+    const tileUrl = isDark
+      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    baseTileLayer = L.tileLayer(tileUrl, { attribution:'© OSM/Carto', maxZoom:18, opacity:0.85 }).addTo(map);
+    if (cityMarker) { cityMarker.remove(); cityMarker.addTo(map); }
+  }
+}
+function applyLangSilently(lang) {
+  currentLang = lang === 'en' ? 'en' : 'ro';
+  localStorage.setItem('hub_lang', currentLang);
+  applyStaticTranslations();
+  updateProviderStatus();
+  setTrustPanel(trustPanelState);
+  const btnLang = document.getElementById('btn-lang');
+  if (btnLang) btnLang.textContent = currentLang.toUpperCase();
+}
+function applyUnitSilently(unit) {
+  currentUnit = unit === 'F' ? 'F' : 'C';
+  localStorage.setItem('hub_unit', currentUnit);
+  const btnU = document.getElementById('btn-unit');
+  if (btnU) btnU.textContent = currentUnit === 'C' ? '°F' : '°C';
+}
+function setRefreshIntervalSeconds(seconds) {
+  const parsed = Number(seconds);
+  refreshIntervalSeconds = [300, 600, 900, 1800].includes(parsed) ? parsed : 600;
+  updateRefreshBadge();
+  if (refreshTimer) startAutoRefresh();
+}
+function syncSettingsForm() {
+  const themeEl = document.getElementById('settings-theme');
+  const langEl = document.getElementById('settings-lang');
+  const unitEl = document.getElementById('settings-unit');
+  const refreshEl = document.getElementById('settings-refresh');
+  if (themeEl) themeEl.value = appState.settings.theme;
+  if (langEl) langEl.value = appState.settings.lang;
+  if (unitEl) unitEl.value = appState.settings.unit;
+  if (refreshEl) refreshEl.value = String(appState.settings.autoRefreshSec);
+}
+function currentFavoriteDraft() {
+  const cityTitle = (document.getElementById('city-title') || {}).innerText || '';
+  const inputValue = (document.getElementById('city-in') || {}).value || '';
+  if (!cityTitle || cityTitle === '--' || currentCoords.lat == null || currentCoords.lon == null) return null;
+  return {
+    id: favoriteIdFromData(cityTitle, currentCoords.lat, currentCoords.lon),
+    name: cityTitle,
+    query: inputValue.trim() || `${Number(currentCoords.lat).toFixed(4)},${Number(currentCoords.lon).toFixed(4)}`,
+    lat: Number(currentCoords.lat),
+    lon: Number(currentCoords.lon)
+  };
+}
+function isFavoriteCurrentLocation() {
+  const draft = currentFavoriteDraft();
+  if (!draft) return false;
+  return appState.favorites.some(f => sameCoords(f, draft));
+}
+function updateFavoriteButtonState() {
+  const btn = document.getElementById('btn-favorite');
+  const icon = document.getElementById('favorite-icon');
+  const active = isFavoriteCurrentLocation();
+  if (btn) btn.classList.toggle('active', active);
+  if (icon) icon.className = active ? 'fas fa-star' : 'far fa-star';
+}
+function renderFavoritesBar() {
+  const strip = document.getElementById('favorites-strip');
+  const list = document.getElementById('favorites-list');
+  if (!strip || !list) return;
+  if (!appState.favorites.length) {
+    strip.classList.remove('visible');
+    list.innerHTML = '';
+    return;
+  }
+  const current = currentFavoriteDraft();
+  strip.classList.add('visible');
+  list.innerHTML = appState.favorites.map(f => {
+    const active = current && sameCoords(f, current);
+    return `<div class="favorite-chip ${active ? 'active' : ''}">
+      <span style="cursor:pointer" onclick="selectFavorite('${escapeHtml(f.id)}')">${escapeHtml(f.name)}</span>
+      <button class="favorite-chip-remove" onclick="event.stopPropagation(); removeFavoriteById('${escapeHtml(f.id)}')" title="${t('delete_btn')}">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>`;
+  }).join('');
+}
+function renderFavoritesModal() {
+  const list = document.getElementById('favorites-modal-list');
+  if (!list) return;
+  if (!appState.favorites.length) {
+    list.innerHTML = `<div class="favorites-empty">${t('favorites_empty')}</div>`;
+    return;
+  }
+  list.innerHTML = appState.favorites.map(f => `
+    <div class="favorites-modal-item">
+      <div>
+        <div class="favorites-modal-name">${escapeHtml(f.name)}</div>
+        <div class="favorites-modal-meta">${Number(f.lat).toFixed(2)}, ${Number(f.lon).toFixed(2)}</div>
+      </div>
+      <div class="favorites-modal-actions">
+        <button class="favorites-manage-btn" onclick="selectFavorite('${escapeHtml(f.id)}')">${t('open_btn')}</button>
+        <button class="favorites-manage-btn" style="color:#dc2626" onclick="removeFavoriteById('${escapeHtml(f.id)}')">${t('delete_btn')}</button>
+      </div>
+    </div>
+  `).join('');
+}
+function openFavoritesModal() {
+  renderFavoritesModal();
+  const el = document.getElementById('favorites-modal-overlay');
+  if (el) el.classList.add('open');
+}
+function closeFavoritesModal() {
+  const el = document.getElementById('favorites-modal-overlay');
+  if (el) el.classList.remove('open');
+}
+function openSettingsModal() {
+  syncSettingsForm();
+  const el = document.getElementById('settings-modal-overlay');
+  if (el) el.classList.add('open');
+}
+function closeSettingsModal() {
+  const el = document.getElementById('settings-modal-overlay');
+  if (el) el.classList.remove('open');
+}
+function removeFavoriteById(id) {
+  appState.favorites = appState.favorites.filter(f => f.id !== id);
+  saveAppState();
+  renderFavoritesBar();
+  renderFavoritesModal();
+  updateFavoriteButtonState();
+  showToast(t('favorite_removed'), 'info');
+}
+function toggleCurrentFavorite() {
+  const draft = currentFavoriteDraft();
+  if (!draft) {
+    showToast(t('invalid_current_location'), 'error');
+    return;
+  }
+  const existing = appState.favorites.find(f => sameCoords(f, draft));
+  if (existing) {
+    removeFavoriteById(existing.id);
+    return;
+  }
+  appState.favorites.unshift(draft);
+  appState.favorites = appState.favorites.slice(0, 8);
+  saveAppState();
+  renderFavoritesBar();
+  renderFavoritesModal();
+  updateFavoriteButtonState();
+  showToast(t('favorite_added'), 'success');
+}
+function selectFavorite(id) {
+  const fav = appState.favorites.find(f => f.id === id);
+  if (!fav) return;
+  document.getElementById('city-in').value = `${Number(fav.lat).toFixed(4)},${Number(fav.lon).toFixed(4)}`;
+  currentCoords = { lat: Number(fav.lat), lon: Number(fav.lon) };
+  selectedAnmStation = null;
+  closeFavoritesModal();
+  updateWeather();
+}
+function saveSettingsFromModal() {
+  const nextSettings = {
+    theme: (document.getElementById('settings-theme') || {}).value || appState.settings.theme,
+    lang: (document.getElementById('settings-lang') || {}).value || appState.settings.lang,
+    unit: (document.getElementById('settings-unit') || {}).value || appState.settings.unit,
+    autoRefreshSec: Number((document.getElementById('settings-refresh') || {}).value || appState.settings.autoRefreshSec)
+  };
+  appState.settings = {
+    theme: nextSettings.theme === 'dark' ? 'dark' : 'light',
+    lang: nextSettings.lang === 'en' ? 'en' : 'ro',
+    unit: nextSettings.unit === 'F' ? 'F' : 'C',
+    autoRefreshSec: [300, 600, 900, 1800].includes(nextSettings.autoRefreshSec) ? nextSettings.autoRefreshSec : 600
+  };
+  applyThemeSilently(appState.settings.theme);
+  applyLangSilently(appState.settings.lang);
+  applyUnitSilently(appState.settings.unit);
+  setRefreshIntervalSeconds(appState.settings.autoRefreshSec);
+  saveAppState();
+  closeSettingsModal();
+  showToast(t('saved_settings'), 'success');
+  updateWeather();
+}
+function syncCurrentLocationState() {
+  const cityTitle = (document.getElementById('city-title') || {}).innerText || '';
+  if (!cityTitle || cityTitle === '--' || currentCoords.lat == null || currentCoords.lon == null) return;
+  appState.currentLocation = {
+    name: cityTitle,
+    query: (document.getElementById('city-in') || {}).value || cityTitle,
+    lat: Number(currentCoords.lat),
+    lon: Number(currentCoords.lon)
+  };
+  saveAppState();
+  renderFavoritesBar();
+  renderFavoritesModal();
+  updateFavoriteButtonState();
+}
+function trustCopy() {
+  return currentLang === 'en'
+    ? {
+        title: 'Data Trust',
+        note: 'Observation vs model vs fallback',
+        current: 'Current',
+        forecast: 'Forecast',
+        aqi: 'Air Quality',
+        radar: 'Radar',
+        source: 'Source',
+        freshness: 'Freshness',
+        state: 'State',
+        observed: 'Observed',
+        model: 'Model',
+        blend: 'Blend',
+        fallback: 'Fallback',
+        unavailable: 'Unavailable'
+      }
+    : {
+        title: 'Încredere Date',
+        note: 'Observație vs model vs fallback',
+        current: 'Curent',
+        forecast: 'Prognoză',
+        aqi: 'AQI',
+        radar: 'Radar',
+        source: 'Sursă',
+        freshness: 'Vechime',
+        state: 'Tip',
+        observed: 'Observație',
+        model: 'Model',
+        blend: 'Blend',
+        fallback: 'Fallback',
+        unavailable: 'Lipsă'
+      };
+}
+function renderTrustCard(label, item) {
+  const copy = trustCopy();
+  const mode = item && item.mode ? item.mode : 'unavailable';
+  const source = item && item.source ? item.source : 'N/A';
+  const freshness = item && item.freshness ? item.freshness : 'N/A';
+  const detail = item && item.detail ? item.detail : '';
+  const modeLabel = copy[mode] || mode;
+  return `<div class="trust-card">
+    <div class="trust-card-top">
+      <span class="trust-card-label">${label}</span>
+      <span class="trust-card-badge ${mode}">${modeLabel}</span>
+    </div>
+    <div class="trust-source">${escapeHtml(source)}</div>
+    <div class="trust-meta">
+      <span class="trust-meta-line">${copy.freshness}: ${escapeHtml(freshness)}</span>
+      <span class="trust-meta-line">${copy.state}: ${escapeHtml(modeLabel)}</span>
+      ${detail ? `<span class="trust-meta-line">${escapeHtml(detail)}</span>` : ''}
+    </div>
+  </div>`;
+}
+function renderTrustSummary(copy, payload) {
+  const item = (label, data) => {
+    const source = data && data.source ? data.source : 'N/A';
+    const mode = data && data.mode ? data.mode : 'unavailable';
+    const modeLabel = copy[mode] || mode;
+    return `<span class="trust-chip">${escapeHtml(label)} <b>${escapeHtml(source)}</b> ${escapeHtml(modeLabel)}</span>`;
+  };
+  return [
+    item(copy.current, payload.current),
+    item(copy.forecast, payload.forecast),
+    item(copy.radar, payload.radar)
+  ].join('');
+}
+function toggleTrustPanel() {
+  const panel = document.getElementById('trust-panel');
+  if (panel) panel.classList.toggle('expanded');
+}
+function setTrustPanel(meta) {
+  const grid = document.getElementById('trust-grid');
+  const panel = document.getElementById('trust-panel');
+  const summary = document.getElementById('trust-summary');
+  const title = document.querySelector('.trust-panel-title');
+  const note = document.getElementById('trust-panel-note');
+  if (!grid) return;
+  trustPanelState = meta || trustPanelState;
+  const copy = trustCopy();
+  if (panel) panel.classList.add('compact');
+  if (title) title.textContent = copy.title;
+  if (note) note.textContent = currentLang === 'en' ? 'Tap for details' : 'Atinge pentru detalii';
+  const payload = trustPanelState || {};
+  if (summary) summary.innerHTML = renderTrustSummary(copy, payload);
+  grid.innerHTML = [
+    renderTrustCard(copy.current, payload.current),
+    renderTrustCard(copy.forecast, payload.forecast),
+    renderTrustCard(copy.aqi, payload.aqi),
+    renderTrustCard(copy.radar, payload.radar)
+  ].join('');
+}
+function wrapLocationSync(fnName) {
+  const original = window[fnName];
+  if (typeof original !== 'function') return;
+  window[fnName] = async function(...args) {
+    const result = await original.apply(this, args);
+    syncCurrentLocationState();
+    return result;
+  };
+}
+window.toggleTheme = function() {
+  appState.settings.theme = isDark ? 'light' : 'dark';
+  applyThemeSilently(appState.settings.theme);
+  saveAppState();
+  syncSettingsForm();
+};
+window.toggleLang = function() {
+  appState.settings.lang = currentLang === 'ro' ? 'en' : 'ro';
+  applyLangSilently(appState.settings.lang);
+  saveAppState();
+  syncSettingsForm();
+  if (!providers.wapi) updateWeatherANMOnly();
+  else updateWeather();
+};
+window.toggleUnit = function() {
+  appState.settings.unit = currentUnit === 'C' ? 'F' : 'C';
+  applyUnitSilently(appState.settings.unit);
+  saveAppState();
+  syncSettingsForm();
+  updateWeather();
+};
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  closeFavoritesModal();
+  closeSettingsModal();
+});
+loadAppState();
+applyThemeSilently(appState.settings.theme);
+applyLangSilently(appState.settings.lang);
+applyUnitSilently(appState.settings.unit);
+setRefreshIntervalSeconds(appState.settings.autoRefreshSec);
+setTrustPanel(null);
+syncSettingsForm();
+renderFavoritesBar();
+updateFavoriteButtonState();
+wrapLocationSync('updateWeather');
+wrapLocationSync('updateWeatherANMOnly');
+wrapLocationSync('updateWeatherOMOnly');
+wrapLocationSync('updateWeatherWAPIFallback');
+/* ================================================================
+   SISTEM NOTIFICĂRI BROWSER — Hub Meteo PRO
+   ================================================================ */
+const HubNotif = (() => {
+  const STORAGE_KEY  = 'hub_notif_enabled';
+  const SENT_KEY     = 'hub_notif_sent';
+  const COOLDOWN_MS  = 30 * 60 * 1000; // 30 min între notificări duplicate
+
+  let _enabled = localStorage.getItem(STORAGE_KEY) === '1';
+  let _sentMap  = {};
+  try { _sentMap = JSON.parse(localStorage.getItem(SENT_KEY) || '{}'); } catch(e) {}
+
+  function _saveSent() {
+    try { localStorage.setItem(SENT_KEY, JSON.stringify(_sentMap)); } catch(e) {}
+  }
+
+  function _canSend(key) {
+    const last = _sentMap[key];
+    if (!last) return true;
+    return (Date.now() - last) > COOLDOWN_MS;
+  }
+
+  function _markSent(key) {
+    _sentMap[key] = Date.now();
+    // curăță intrările vechi (>2 zile)
+    const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+    Object.keys(_sentMap).forEach(k => { if (_sentMap[k] < cutoff) delete _sentMap[k]; });
+    _saveSent();
+  }
+
+  function _levelToIcon(level) {
+    return level === 'red' ? '🔴' : level === 'orange' ? '🟠' : '🟡';
+  }
+
+  function _updateBtn() {
+    const btn = document.getElementById('btn-notif');
+    if (!btn) return;
+    const perm = Notification.permission;
+    btn.classList.remove('granted', 'denied');
+    if (perm === 'granted' && _enabled) {
+      btn.classList.add('granted');
+      btn.title = 'Notificări active — apasă pentru a dezactiva';
+    } else if (perm === 'denied') {
+      btn.classList.add('denied');
+      btn.title = 'Notificările sunt blocate în browser';
+    } else {
+      btn.title = 'Activează notificări alerte meteo';
+    }
+  }
+
+  function requestAndEnable() {
+    if (!('Notification' in window)) {
+      showToast('Browserul nu suportă notificări', 'error');
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      showToast('Notificările sunt blocate. Permite-le din setările browserului.', 'error');
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      _enabled = !_enabled;
+      localStorage.setItem(STORAGE_KEY, _enabled ? '1' : '0');
+      _updateBtn();
+      showToast(_enabled ? '🔔 Notificări activate' : '🔕 Notificări dezactivate', 'success');
+      return;
+    }
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        _enabled = true;
+        localStorage.setItem(STORAGE_KEY, '1');
+        showToast('🔔 Notificări activate', 'success');
+        // notificare de test
+        new Notification('Hub Meteo PRO', {
+          body: 'Vei primi alerte pentru condiții meteo severe.',
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">⛈️</text></svg>'
+        });
+      } else {
+        showToast('Permisiune refuzată pentru notificări', 'error');
+      }
+      _updateBtn();
+    });
+  }
+
+  function fireAlerts(alerts) {
+    if (!_enabled) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    // trimite doar alertele red și orange; yellow sunt vizuale
+    alerts.filter(a => a.level === 'red' || a.level === 'orange').forEach(a => {
+      const key = a.title.slice(0, 40);
+      if (!_canSend(key)) return;
+      _markSent(key);
+      try {
+        new Notification(`${_levelToIcon(a.level)} ${a.title} — Hub Meteo PRO`, {
+          body: a.msg || '',
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">⚠️</text></svg>',
+          tag: key,
+          renotify: false,
+          silent: a.level === 'orange'
+        });
+      } catch(e) { /* cross-origin sau permisiune revocată */ }
+    });
+  }
+
+  function updateBadge(alerts) {
+    const btn = document.getElementById('btn-notif');
+    if (!btn) return;
+    const hasSevere = alerts.some(a => a.level === 'red' || a.level === 'orange');
+    btn.classList.toggle('has-alert', hasSevere && _enabled && Notification.permission === 'granted');
+  }
+
+  // init
+  _updateBtn();
+
+  return { requestAndEnable, fireAlerts, updateBadge, updateBtn: _updateBtn };
+})();
+
+window.toggleNotifications = function() {
+  HubNotif.requestAndEnable();
+};
+
+/* Patch renderAlerts să declanșeze notificările */
+(function() {
+  const _origRender = window.renderAlerts;
+  window.renderAlerts = function(omData) {
+    if (typeof _origRender === 'function') _origRender(omData);
+    try {
+      const alerts = window.generateAlerts ? window.generateAlerts(omData) : [];
+      HubNotif.fireAlerts(alerts);
+      HubNotif.updateBadge(alerts);
+    } catch(e) {}
+  };
+})();
+
+setTimeout(syncCurrentLocationState, 2500);
+setTimeout(syncCurrentLocationState, 5000);
 </script>
-</body>
-</html>
+
+
  
  
+</body><extension-wraper id="extension-wraper" style="direction: ltr;"><extension-mask id="extension-mask"></extension-mask><extension-ui id="extension-root"></extension-ui></extension-wraper><div id="immersive-translate-popup" style="all: initial"></div></html>
