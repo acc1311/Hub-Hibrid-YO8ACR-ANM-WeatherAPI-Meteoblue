@@ -26,7 +26,7 @@ Aplicația rezolvă problema erorilor de localizare (ex: confuzia între orașe 
 
 | Sursă | Rol | Date furnizate |
 |-------|-----|---------------|
-| **Open-Meteo ICON-EU** | 🎯 Sursă primară | Temperaturi, vânt, precipitații, UV, prognoză 7-10 zile (rezoluție 3km) |
+| **Open-Meteo ICON-EU** | 🎯 Sursă primară | Temperaturi, vânt, precipitații, UV, prognoză 5 zile (120h, rezoluție 3km) |
 | **Open-Meteo ECMWF** | 🌍 Ensemble fallback | UV Index, precipitații ensemble, extensie prognoză |
 | **WeatherAPI (W-API)** | 🌐 Global + AQI | Condiții text localizat, calitate aer, date astro |
 | **Meteoblue** | 📈 Grafic orar | Temperaturi orare detaliate pentru următoarele 8h |
@@ -114,9 +114,8 @@ updateWeather();
 ### Structura Codului
 ```javascript
 // Config API (la începutul script-ului)
-const W_KEY = "your_weatherapi_key";      // WeatherAPI
-const M_KEY = "your_meteoblue_key";       // Meteoblue  
-const ANM_PROXY = "https://your-proxy";   // Proxy ANM
+// Cheile API NU mai există în client — totul trece prin Cloudflare Worker
+const API_PROXY = "https://hubmeteoacr.brm-laser-veronese.workers.dev"; // /anm, /wapi/*, /mb/*
 
 // Provider state management
 const providers = { wapi: true, anm: true, mb: true, om: true };
@@ -125,22 +124,73 @@ const providers = { wapi: true, anm: true, mb: true, om: true };
 - updateWeather()          // Flux principal hibrid
 - updateWeatherANMOnly()   // Mod ANM exclusiv
 - updateWeatherOMOnly()    // Mod Open-Meteo exclusiv
-- fetchOpenMeteo()         // Fetch ICON-EU + ECMWF
+- fetchOpenMeteo()         // Fuziune ICON-D2 + ICON-EU + ECMWF
 - showRadarTab()           // Comutare tab-uri radar
-- renderForecastOM()       // Randare prognoză 10 zile
+- renderForecastOM()       // Randare prognoză 5 zile (120h)
 - generateAlerts()         // Generare alerte automate
 ```
 
+### Cloudflare Worker (proxy API)
+Worker-ul din `cloudflare-worker.js` rutează 3 API-uri, ținând cheile **server-side**:
+* `/anm` → meteoromania.ro (fără cache, ca înainte)
+* `/wapi/*` → api.weatherapi.com (cheia din secretul `WAPI_KEY`)
+* `/mb/*` → my.meteoblue.com (cheia din secretul `MB_KEY`)
+
+Deploy + configurare secrete:
+```bash
+# 1. Instalează Wrangler (dacă nu ai): npm i -g wrangler
+# 2. Login: wrangler login
+# 3. Deploy: wrangler deploy
+# 4. Configurează secretele (cheile tale personale):
+wrangler secret put WAPI_KEY
+wrangler secret put MB_KEY
+```
+După deploy, actualizează `API_PROXY` din `index.html` cu URL-ul worker-ului tău.
+
 ### Logica de Mapare Locații
-În cod există o constantă `CITY_MAP` care poate fi extinsă. Aceasta leagă numele uzual al unui oraș de numele exact al stației ANM pentru a preveni rezultatele false:
+În cod există constanta `CITY_MAP` (lângă `findStationByName`) care leagă numele uzual al unui oraș de numele exact al stației ANM, prevenind rezultate false (ex: *Târgu Neamț* vs *Târgu Jiu*, *Sinaia* vs *Sinaia 1500*):
 ```javascript
-// Exemplu extensie CITY_MAP
+// Exemplu CITY_MAP (deja implementat în index.html)
 const CITY_MAP = {
-  "SINAIA": "SINAIA 1500",
-  "PREDEAL": "PREDEAL",
-  // Adaugă aici mapările tale
+  'sinaia': 'SINAIA 1500',
+  'targu neamt': 'TARGU NEAMT',
+  'targu jiu': 'TARGU JIU',
+  'bucuresti': 'BUCURESTI FILARET',
+  // Adaugă aici mapările tale (chei normalizate: fără diacritice, lowercase)
 };
 ```
+
+---
+
+## 🛡️ Modificări Recente (v1.3 — Securitate & Curățenie)
+
+### ✅ Ce s-a schimbat:
+| Modificare | Detalii |
+|------------|---------|
+| 🔑 **Chei API mutate server-side** | WeatherAPI + Meteoblue nu mai sunt în `index.html`; totul trece prin Cloudflare Worker (`/wapi/*`, `/mb/*`) cu chei ca secrete |
+| 🐛 **Fix grafic orar Meteoblue** | Graficul afișa date ICON cu titlu „[Meteoblue]"; acum folosește mereu fuziunea ICON (24h/48h/120h) cu titlu corect |
+| 🐛 **Fix date precipitații** | `_hourlyPrecipData` folosea mm în loc de probabilitate %; acum citește `precipitation_probability` |
+| 🌐 **Mesaje de eroare localizate** | Erorile de rețea nu mai afișează text brut; folosesc `error_generic` în RO/EN/IT/FR |
+| 🗺️ **CITY_MAP implementat** | Mapare oraș → stație ANM exactă (Târgu Neamț vs Târgu Jiu, Sinaia 1500 etc.) |
+| 🧹 **Cod duplicat eliminat** | ~215 linii de funcții moarte/duplicate (drawHourlyChart, renderForecastOM, generateAlerts, renderComfort, applyDynamicBg, setHourlyView, wrapper-e `_orig*`) |
+| 🛡️ **Robustețe W-API** | Toate accesările `dW.current` / `dW.forecast` sunt acum protejate (`dW && dW.current && …`); un răspuns neașteptat de la proxy nu mai blochează întregul flux — restul datelor (ICON-EU, ANM, Meteoblue) se afișează normal |
+
+### ⚠️ Pas necesar după actualizare:
+Redeploy worker-ul și configurează secretele (vezi secțiunea „Cloudflare Worker" de mai sus), altfel WeatherAPI și Meteoblue nu vor funcționa.
+
+---
+
+## 📱 Modificări Recente (v1.4 — PWA & Alerte ANM)
+
+### ✅ Ce s-a schimbat:
+| Modificare | Detalii |
+|------------|---------|
+| 📱 **PWA complet** | `manifest.json` + `sw.js` (service worker cu cache offline) + iconițe 192/512/maskable generate din logo; aplicația se poate instala pe telefon/PC („Adaugă pe ecranul de pornire") |
+| 🚨 **Alerte ANM oficiale** | Integrare cu endpoint-ul oficial `avertizari-generale` al Meteoromania (prin worker, ruta `/anm-warnings`): coduri **galben/portocaliu/roșu** cu mesaj și valabilitate, afișate împreună cu alertele locale ICON-EU |
+| 🧹 **Duplicat eliminat** | Definiția veche `window.renderAlerts` (fără alerte ANM) eliminată; `enhanceDataGrid` păstrat în versiunea nouă |
+
+### ⚠️ Pas necesar:
+Redeploy worker-ul cu noul cod (`cloudflare-worker.js` conține acum și ruta `/anm-warnings`) — altfel alertele ANM oficiale nu vor apărea.
 
 ---
 

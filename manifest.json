@@ -1,0 +1,33 @@
+{
+  "name": "Hub Meteo PRO — Radar & Prognoză România",
+  "short_name": "Hub Meteo",
+  "description": "Vremea în România: radar live, prognoză orară 5 zile, stații ANM, calitatea aerului și alerte meteo oficiale.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "lang": "ro",
+  "categories": ["weather", "news", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
