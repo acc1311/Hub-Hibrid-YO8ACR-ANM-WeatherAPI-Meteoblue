@@ -1411,6 +1411,13 @@ body { background: white; padding: 0; }
 </select>
 </div>
 <div class="settings-field">
+<label class="settings-label" data-i18n="push_title">Notificări Push (alerte ANM)</label>
+<div style="display:flex;align-items:center;gap:10px;">
+<button class="settings-btn primary" id="btn-push" style="flex:0 0 auto;padding:8px 14px;" onclick="HubPush.toggle()"><i class="fas fa-bell"></i> <span id="btn-push-label">Activează</span></button>
+<span style="font-size:0.65rem;color:var(--muted);" id="push-status">Primește alerte ANM și cu aplicația închisă</span>
+</div>
+</div>
+<div class="settings-field">
 <label class="settings-label" data-i18n="credits_label">Credite &amp; Linkuri</label>
 <div style="display:flex;flex-direction:column;gap:8px;font-size:0.75rem;">
 <a href="https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:6px;">
@@ -2098,6 +2105,18 @@ credits_anm: 'ANM Meteoromania — pentru datele meteorologice oficiale din Rom�
 credits_openmeteo: 'Open-Meteo — pentru API-ul gratuit și precis ICON-EU/ECMWF.',
 credits_oss: 'Comunitatea open-source — pentru librăriile și inspirația oferită.',
 credits_export: 'Mulțumiri: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo',
+push_title: 'Notificări Push (alerte ANM)',
+push_enable: 'Activează',
+push_disable: 'Dezactivează',
+push_on_hint: 'Primești alerte ANM și cu aplicația închisă',
+push_off_hint: 'Primește alerte ANM și cu aplicația închisă',
+push_unsupported: 'Nesuportat',
+push_blocked: 'Blocate',
+push_blocked_hint: 'Permite notificările din setările browserului, apoi reîncearcă',
+push_denied: 'Permisiune refuzată pentru notificări',
+push_enabled_toast: 'Notificări push activate',
+push_disabled_toast: 'Notificări push dezactivate',
+push_error: 'Eroare la activarea push',
 share_title: 'Distribuie Vremea',
 share_desc: 'Salvează ca imagine sau distribuie',
 export_btn: 'Exportă Imagine',
@@ -2700,6 +2719,11 @@ credits_anm:'ANM Meteoromania — for the official weather data of Romania.',
 credits_openmeteo:'Open-Meteo — for the free and accurate ICON-EU/ECMWF API.',
 credits_oss:'The open-source community — for the libraries and inspiration.',
 credits_export:'Acknowledgements: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo',
+push_title:'Push Notifications (ANM alerts)', push_enable:'Enable', push_disable:'Disable',
+push_on_hint:'You receive ANM alerts even with the app closed', push_off_hint:'Receive ANM alerts even with the app closed',
+push_unsupported:'Unsupported', push_blocked:'Blocked', push_blocked_hint:'Allow notifications in browser settings, then retry',
+push_denied:'Notification permission denied', push_enabled_toast:'Push notifications enabled',
+push_disabled_toast:'Push notifications disabled', push_error:'Failed to enable push',
 export_btn:'📸 Export Image'
 });
 LANG.de = Object.assign({}, LANG.en, {
@@ -2736,7 +2760,12 @@ credits_catalin:'Cătălin Ardei (YO8ACR) — für den Zugang zu den gesammelten
 credits_anm:'ANM Meteoromania — für die offiziellen Wetterdaten Rumäniens.',
 credits_openmeteo:'Open-Meteo — für die kostenlose und präzise ICON-EU/ECMWF-API.',
 credits_oss:'Die Open-Source-Community — für Bibliotheken und Inspiration.',
-credits_export:'Danksagungen: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo'
+credits_export:'Danksagungen: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo',
+push_title:'Push-Benachrichtigungen (ANM-Warnungen)', push_enable:'Aktivieren', push_disable:'Deaktivieren',
+push_on_hint:'Du erhältst ANM-Warnungen auch bei geschlossener App', push_off_hint:'ANM-Warnungen auch bei geschlossener App erhalten',
+push_unsupported:'Nicht unterstützt', push_blocked:'Blockiert', push_blocked_hint:'Erlaube Benachrichtigungen in den Browser-Einstellungen und versuche es erneut',
+push_denied:'Benachrichtigungsberechtigung verweigert', push_enabled_toast:'Push-Benachrichtigungen aktiviert',
+push_disabled_toast:'Push-Benachrichtigungen deaktiviert', push_error:'Push konnte nicht aktiviert werden'
 });
 LANG.es = Object.assign({}, LANG.en, {
 search_placeholder:'Buscar ciudad (ej: Iași, Cluj...)', provider_label:'Proveedores:',
@@ -2772,7 +2801,12 @@ credits_catalin:'Cătălin Ardei (YO8ACR) — por facilitar el acceso a los dato
 credits_anm:'ANM Meteoromania — por los datos meteorológicos oficiales de Rumanía.',
 credits_openmeteo:'Open-Meteo — por la API gratuita y precisa ICON-EU/ECMWF.',
 credits_oss:'La comunidad open-source — por las librerías y la inspiración.',
-credits_export:'Agradecimientos: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo'
+credits_export:'Agradecimientos: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo',
+push_title:'Notificaciones Push (avisos ANM)', push_enable:'Activar', push_disable:'Desactivar',
+push_on_hint:'Recibes avisos ANM incluso con la app cerrada', push_off_hint:'Recibe avisos ANM incluso con la app cerrada',
+push_unsupported:'No compatible', push_blocked:'Bloqueadas', push_blocked_hint:'Permite las notificaciones en la configuración del navegador y reintenta',
+push_denied:'Permiso de notificaciones denegado', push_enabled_toast:'Notificaciones push activadas',
+push_disabled_toast:'Notificaciones push desactivadas', push_error:'Error al activar push'
 });
 LANG.hu = Object.assign({}, LANG.en, {
 search_placeholder:'Város keresése (pl.: Iași, Cluj...)', provider_label:'Szolgáltatók:',
@@ -2808,7 +2842,12 @@ credits_catalin:'Cătălin Ardei (YO8ACR) — az összegyűjtött adatokhoz val�
 credits_anm:'ANM Meteoromania — Románia hivatalos meteorológiai adataiért.',
 credits_openmeteo:'Open-Meteo — az ingyenes és pontos ICON-EU/ECMWF API-ért.',
 credits_oss:'A nyílt forráskódú közösség — a könyvtárakért és az inspirációért.',
-credits_export:'Köszönet: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo'
+credits_export:'Köszönet: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo',
+push_title:'Push értesítések (ANM riasztások)', push_enable:'Bekapcsolás', push_disable:'Kikapcsolás',
+push_on_hint:'ANM riasztásokat kapsz zárt alkalmazás mellett is', push_off_hint:'ANM riasztások zárt alkalmazás mellett is',
+push_unsupported:'Nem támogatott', push_blocked:'Letiltva', push_blocked_hint:'Engedélyezd az értesítéseket a böngésző beállításaiban, majd próbáld újra',
+push_denied:'Értesítési engedély megtagadva', push_enabled_toast:'Push értesítések bekapcsolva',
+push_disabled_toast:'Push értesítések kikapcsolva', push_error:'Push engedélyezése sikertelen'
 });
 function t(key) {
 const keys = key.split('.');
@@ -6995,6 +7034,113 @@ const HubNotif = (() => {
 window.toggleNotifications = function() {
   HubNotif.requestAndEnable();
 };
+
+/* ================================================================
+   WEB PUSH — alerte ANM și cu aplicația închisă
+   Abonare PushManager + trimitere abonare la worker; workerul
+   trimite „tickle push" la schimbarea avertizărilor (Cron 15 min),
+   iar SW-ul afișează notificarea cu date proaspete.
+   ================================================================ */
+const HubPush = (() => {
+  const WORKER = 'https://hubmeteoacr.brm-laser-veronese.workers.dev';
+  const VAPID_PUBLIC = 'BL65fORtxWkvw8fD2koz8Kjl4iueVYayPxJEyIHe1J9AgV57Na8cGYkO9b4NIexsorG9FEFBMsvIx4OniI_Uk_Q';
+  const KEY = 'hub_push_enabled';
+
+  function supported() {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+
+  function _updateUI() {
+    const label = document.getElementById('btn-push-label');
+    const status = document.getElementById('push-status');
+    if (!label || !status) return;
+    const on = localStorage.getItem(KEY) === '1';
+    if (!supported()) {
+      label.textContent = t('push_unsupported');
+      status.textContent = '';
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      label.textContent = t('push_blocked');
+      status.textContent = t('push_blocked_hint');
+      return;
+    }
+    label.textContent = on ? t('push_disable') : t('push_enable');
+    status.textContent = on ? t('push_on_hint') : t('push_off_hint');
+  }
+
+  async function enable() {
+    if (!supported()) { showToast(t('push_unsupported'), 'error'); return; }
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { showToast(t('push_denied'), 'error'); return; }
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+        });
+      }
+      const res = await fetch(WORKER + '/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub.toJSON())
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      localStorage.setItem(KEY, '1');
+      showToast('🔔 ' + t('push_enabled_toast'), 'success');
+    } catch (e) {
+      showToast(t('push_error') + ' (' + e.message + ')', 'error');
+    }
+    _updateUI();
+  }
+
+  async function disable() {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await fetch(WORKER + '/push/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint })
+        }).catch(() => {});
+        await sub.unsubscribe();
+      }
+    } catch (e) {}
+    localStorage.setItem(KEY, '0');
+    showToast('🔕 ' + t('push_disabled_toast'), 'success');
+    _updateUI();
+  }
+
+  async function toggle() {
+    if (localStorage.getItem(KEY) === '1') await disable(); else await enable();
+  }
+
+  // sincronizare stare la pornire (ex: abonare expirată în browser)
+  (async () => {
+    try {
+      if (supported() && localStorage.getItem(KEY) === '1') {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (!sub) localStorage.setItem(KEY, '0');
+      }
+    } catch (e) {}
+    _updateUI();
+  })();
+
+  return { toggle, enable, disable };
+})();
 
 /* ════════════════════════════════════════════════════════════════
    PRO PACK — fundal dinamic ✓(există), skeleton, tooltip grafic,
