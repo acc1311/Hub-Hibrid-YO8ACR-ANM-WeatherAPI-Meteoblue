@@ -4,9 +4,6 @@
 > ### 🔗 [Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
 
 **Hub Hibrid PRO** este o aplicație web meteo ușoară (single-file), dezvoltată pentru a oferi cea mai precisă prognoză și stare a vremii, combinând date de la furnizori globali cu stațiile meteorologice locale din România (ANM).
-
-Aplicația rezolvă problema erorilor de localizare (ex: confuzia între orașe cu nume similare precum *Târgu Neamț* și *Târgu Jiu*) printr-un sistem de mapare și filtrare strictă.
-
 ---
 
 ## ✨ Funcționalități Principale
@@ -175,9 +172,6 @@ const CITY_MAP = {
 | 🧹 **Cod duplicat eliminat** | ~215 linii de funcții moarte/duplicate (drawHourlyChart, renderForecastOM, generateAlerts, renderComfort, applyDynamicBg, setHourlyView, wrapper-e `_orig*`) |
 | 🛡️ **Robustețe W-API** | Toate accesările `dW.current` / `dW.forecast` sunt acum protejate (`dW && dW.current && …`); un răspuns neașteptat de la proxy nu mai blochează întregul flux — restul datelor (ICON-EU, ANM, Meteoblue) se afișează normal |
 
-### ⚠️ Pas necesar după actualizare:
-Redeploy worker-ul și configurează secretele (vezi secțiunea „Cloudflare Worker" de mai sus), altfel WeatherAPI și Meteoblue nu vor funcționa.
-
 ---
 
 ## 📱 Modificări Recente (v1.4 — PWA & Alerte ANM)
@@ -238,14 +232,6 @@ Aprecierile și contribuțiile sunt binevenite! Proiectul a fost dezvoltat cu pa
 3.  Commit modificările (`git commit -m 'Adaugă feature X'`)
 4.  Push pe branch (`git push origin feature/nume-feature`)
 5.  Deschide un Pull Request
-
-### Idei pentru viitoare îmbunătățiri:
-- [ ] Adăugare suport PWA (installable app)
-- [ ] Export date meteo în CSV/JSON
-- [ ] Notificări push pentru alerte meteo
-- [ ] Istoric temperaturi cu grafic interactiv
-- [ ] Suport pentru mai multe limbi (EN, FR, DE)
-
 ---
 
 ## 📄 Licență
