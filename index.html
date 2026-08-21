@@ -22,19 +22,31 @@
 --card: #ffffffee; --text: #1e293b; --muted: #64748b;
 --grid: #f1f5f9; --info-box: #eff6ff;
 --shadow: 0 25px 60px -12px rgba(0,0,0,0.15);
+--accent-sun: #f59e0b;
+--accent-rain: #3b82f6;
+--accent-storm: #7c3aed;
+--accent-snow: #e0f2fe;
+--accent-fog: #94a3b8;
 }
 [data-theme="dark"] {
 --primary: #818cf8;
 --bg-start: #0f172a; --bg-end: #1e293b;
 --card: #1e293bee; --text: #f8fafc; --muted: #94a3b8;
 --grid: #334155; --info-box: rgba(129,140,248,0.1);
+--accent-sun: #fbbf24;
+--accent-rain: #60a5fa;
+--accent-storm: #a78bfa;
+--accent-snow: #1e293b;
+--accent-fog: #475569;
 }
+
 /* ── WEATHER PARTICLE CANVAS ── */
 #weather-canvas {
 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
 pointer-events: none; z-index: 0; opacity: 0.55;
 transition: opacity 1s ease;
 }
+
 /* ── DYNAMIC BACKGROUND GRADIENTS ── */
 body.bg-clear-day    { background: linear-gradient(160deg,#fde68a,#fed7aa,#bae6fd) !important; }
 body.bg-clear-night  { background: linear-gradient(160deg,#0f172a,#1e1b4b,#0c2a4a) !important; }
@@ -45,6 +57,189 @@ body.bg-cloudy       { background: linear-gradient(160deg,#94a3b8,#64748b,#47556
 body.bg-fog          { background: linear-gradient(160deg,#cbd5e1,#e2e8f0,#f1f5f9) !important; }
 body.bg-dawn         { background: linear-gradient(160deg,#fde68a,#fb923c,#f97316) !important; }
 body.bg-dusk         { background: linear-gradient(160deg,#fb923c,#c2410c,#7c3aed) !important; }
+
+/* Animated gradient shift for dynamic backgrounds */
+@keyframes gradientShift {
+0%, 100% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+}
+body[class^="bg-"] {
+background-size: 200% 200% !important;
+animation: gradientShift 20s ease infinite;
+}
+
+/* ── SKELETON LOADING ── */
+.skeleton {
+background: linear-gradient(90deg, var(--grid) 25%, var(--card) 50%, var(--grid) 75%);
+background-size: 200% 100%;
+animation: shimmer 1.5s ease-in-out infinite;
+border-radius: 8px;
+}
+@keyframes shimmer {
+0% { background-position: 200% 0; }
+100% { background-position: -200% 0; }
+}
+.skeleton-text { height: 1rem; width: 60%; }
+.skeleton-text-sm { height: 0.75rem; width: 40%; }
+.skeleton-temp { height: 3.5rem; width: 80px; border-radius: 4px; }
+.skeleton-icon { width: 4.5rem; height: 4.5rem; border-radius: 50%; margin: 0 auto; }
+.skeleton-card { height: 100px; border-radius: 14px; }
+.skeleton-bar { height: 3px; border-radius: 99px; }
+.skeleton-circle { width: 40px; height: 40px; border-radius: 50%; }
+
+/* ── MICRO-INTERACTIONS ── */
+@keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scaleIn { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes slideInRight { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pulseSoft { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+@keyframes countUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* Staggered entry for cards */
+.stagger-in > * { opacity: 0; animation: fadeInUp 0.5s ease forwards; }
+.stagger-in > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-in > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-in > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-in > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-in > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-in > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-in > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-in > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* Ripple effect for buttons */
+.btn-action, .ps-chip, .radar-tab, .layer-btn, .hourly-tab, .forecast-card, .settings-btn, .btn-update {
+position: relative; overflow: hidden;
+}
+.btn-action::after, .ps-chip::after, .radar-tab::after, .layer-btn::after, .hourly-tab::after, .forecast-card::after, .settings-btn::after, .btn-update::after {
+content: ''; position: absolute; top: 50%; left: 50%;
+width: 0; height: 0; border-radius: 50%;
+background: rgba(255,255,255,0.3); transform: translate(-50%,-50%);
+transition: width 0.3s, height 0.3s; pointer-events: none;
+}
+.btn-action:active::after, .ps-chip:active::after, .radar-tab:active::after, .layer-btn:active::after, .hourly-tab:active::after, .forecast-card:active::after, .settings-btn:active::after, .btn-update:active::after {
+width: 300px; height: 300px; opacity: 0; transition: 0s;
+}
+
+/* Hover lift for cards */
+.card, .widget-card, .forecast-card, .trust-card, .aqi-item, .data-item, .alert-item {
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover, .widget-card:hover, .forecast-card:hover, .trust-card:hover, .aqi-item:hover {
+transform: translateY(-4px);
+box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+outline: 2px solid var(--primary);
+outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+*, *::before, *::after {
+animation-duration: 0.01ms !important;
+animation-iteration-count: 1 !important;
+transition-duration: 0.01ms !important;
+}
+}
+
+/* ── INSTALL PROMPT BANNER ── */
+.install-banner {
+position: fixed; bottom: 20px; left: 20px; right: 20px; max-width: 400px;
+margin: 0 auto; z-index: 10000;
+background: var(--card); border-radius: 16px; padding: 16px;
+box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+display: none; flex-direction: column; gap: 12px;
+animation: slideInRight 0.4s ease;
+border: 1px solid var(--grid);
+}
+.install-banner.visible { display: flex; }
+.install-banner-content { display: flex; align-items: center; gap: 12px; }
+.install-banner-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg,var(--primary),#7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; flex-shrink: 0; }
+.install-banner-text { flex: 1; }
+.install-banner-title { font-weight: 800; font-size: 0.9rem; color: var(--text); }
+.install-banner-desc { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.install-banner-actions { display: flex; gap: 8px; margin-top: 4px; }
+.install-banner-btn { flex: 1; padding: 10px 16px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; border: none; cursor: pointer; transition: transform 0.15s; }
+.install-banner-btn:active { transform: scale(0.96); }
+.install-banner-btn.primary { background: var(--primary); color: white; }
+.install-banner-btn.secondary { background: var(--grid); color: var(--text); }
+
+/* ── PWA BADGE ON ICON (via JS) ── */
+
+/* ── MODEL COMPARISON TABLE ── */
+.model-comparison {
+background: var(--grid); border-radius: 20px; padding: 16px; margin-bottom: 18px;
+}
+.model-comparison .section-title { margin-bottom: 12px; }
+.model-comp-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+.model-comp-table th, .model-comp-table td { padding: 8px 6px; text-align: center; }
+.model-comp-table th { font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid var(--grid); }
+.model-comp-table td { font-weight: 700; color: var(--text); }
+.model-comp-table tr:not(:last-child) td { border-bottom: 1px solid var(--grid); }
+.model-comp-table td:first-child { text-align: left; font-weight: 800; color: var(--muted); }
+.model-comp-badge { display: inline-block; padding: 2px 6px; border-radius: 99px; font-size: 0.55rem; font-weight: 800; }
+.model-comp-badge.best { background: #dcfce7; color: #166534; }
+[data-theme="dark"] .model-comp-badge.best { background: #064e3b; color: #4ade80; }
+/* secțiuni pliabile (comparativă + istoric) */
+.collapsible-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; }
+.collapsible-header .chev { transition: transform .25s ease; font-size:.7rem; color:var(--muted); }
+.collapsible-header.open .chev { transform: rotate(180deg); }
+@media (max-width:480px){
+.model-comp-table{font-size:.6rem}
+.model-comp-table th,.model-comp-table td{padding:6px 3px}
+.history-trend-canvas{width:100%!important;height:auto}
+}
+
+/* ── HISTORICAL TREND ── */
+.history-trend { background: var(--grid); border-radius: 20px; padding: 16px; margin-bottom: 18px; }
+/* ── HARTA AVERTIZĂRILOR ANM ── */
+.anm-map-section { background: var(--grid); border-radius: 20px; padding: 16px; margin-bottom: 18px; }
+.anm-map-section .section-title { margin-bottom: 12px; }
+.anm-map-holder { position: relative; }
+#anm-map { height: 340px; border-radius: 14px; z-index: 1; background: var(--grid); overflow: hidden; }
+.anm-map-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; font-size: .62rem; font-weight: 800; color: var(--muted); }
+.anm-map-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+@media (max-width: 480px) {
+#anm-map { height: 280px; }
+.anm-map-legend { gap: 8px; font-size: .58rem; }
+}
+/* ── TABURI GRILĂ DATE ── */
+.grid-tabs {
+display: flex; gap: 4px; margin-bottom: 12px;
+background: var(--card); border-radius: 12px; padding: 4px;
+max-width: 100%; overflow-x: auto; scrollbar-width: none;
+}
+.grid-tabs::-webkit-scrollbar { display: none; }
+.gtab {
+padding: 6px 12px; border-radius: 9px; font-size: 0.62rem;
+font-weight: 700; border: none; cursor: pointer;
+background: transparent; color: var(--muted); transition: all 0.2s;
+white-space: nowrap; flex: 0 0 auto;
+}
+.gtab.active { background: var(--primary); color: white; }
+.history-trend .section-title { margin-bottom: 12px; }
+.history-trend-canvas { width: 100%; height: 180px; }
+
+/* ── SHARE/EXPORT BUTTON ── */
+.btn-share { background: #0ea5e9; color: white; }
+.btn-share:hover { opacity: 0.85; }
+
+/* ── TOAST IMPROVEMENTS ── */
+.toast { animation: toastIn 0.3s ease; }
+.toast.removing { animation: toastOut 0.3s ease forwards; }
+
+/* ── SCROLLBAR STYLING ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+
+/* ── HIGH CONTRAST MODE ── */
+@media (prefers-contrast: more) {
+:root { --card: #ffffff; --text: #000000; --muted: #333333; --grid: #cccccc; --primary: #0000ee; }
+[data-theme="dark"] { --card: #000000; --text: #ffffff; --muted: #cccccc; --grid: #333333; --primary: #8888ff; }
+}
 
 /* ── SHARE BUTTON ── */
 .btn-share { background: #0ea5e9; color: white; }
@@ -372,6 +567,8 @@ font-size: 0.7rem; font-weight: 700; color: var(--primary);
 background: var(--info-box); border-radius: 8px; padding: 2px 8px;
 margin-bottom: 12px; width: 100%; justify-content: center;
 }
+.live-clock-sep { color: var(--muted); opacity: .6; }
+#live-clock-date { color: var(--muted); font-weight: 600; }
 /* ── WIND GUST INDICATOR ── */
 .wind-gust-bar {
 height: 3px; border-radius: 99px; margin-top: 4px;
@@ -1141,6 +1338,20 @@ body { background: white; padding: 0; }
 <body data-theme="dark" class="bg-cloudy">
 <canvas id="weather-canvas" width="406" height="796"></canvas>
 <button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Sus"><i class="fas fa-chevron-up"></i></button>
+<!-- INSTALL PROMPT BANNER -->
+<div class="install-banner" id="install-banner" role="dialog" aria-label="Instalează aplicația">
+<div class="install-banner-content">
+<div class="install-banner-icon"><i class="fas fa-cloud-sun"></i></div>
+<div class="install-banner-text">
+<div class="install-banner-title" data-i18n="install_title">Instalează Hub Meteo</div>
+<div class="install-banner-desc" data-i18n="install_desc">Acces rapid, offline, notificări alerte</div>
+</div>
+</div>
+<div class="install-banner-actions">
+<button class="install-banner-btn primary" onclick="installPWA()" data-i18n="install_btn">Instalează</button>
+<button class="install-banner-btn secondary" onclick="dismissInstallBanner()" data-i18n="later_btn">Mai târziu</button>
+</div>
+</div>
 <!-- FORECAST DETAIL MODAL -->
 <div class="fc-modal-overlay" id="fc-modal-overlay" onclick="if(event.target===this)closeFcModal()">
 <div class="fc-modal" id="fc-modal">
@@ -1157,7 +1368,7 @@ body { background: white; padding: 0; }
 <div class="hub-modal-title" data-i18n="favorites_title">Locații Favorite</div>
 <button class="hub-modal-close" onclick="closeFavoritesModal()"><i class="fas fa-times"></i></button>
 </div>
-<div class="favorites-modal-list" id="favorites-modal-list"><div class="favorites-empty">Nu ai încă locații favorite. Apasă steaua de lângă căutare pentru a salva locația curentă.</div></div>
+<div class="favorites-modal-list" id="favorites-modal-list"><div class="favorites-empty" data-i18n="favorites_empty">Nu ai încă locații favorite. Apasă steaua de lângă căutare pentru a salva locația curentă.</div></div>
 </div>
 </div>
 <div class="hub-modal-overlay" id="settings-modal-overlay" onclick="if(event.target===this)closeSettingsModal()">
@@ -1200,21 +1411,21 @@ body { background: white; padding: 0; }
 </select>
 </div>
 <div class="settings-field">
-<label class="settings-label">Credite & Linkuri</label>
+<label class="settings-label" data-i18n="credits_label">Credite &amp; Linkuri</label>
 <div style="display:flex;flex-direction:column;gap:8px;font-size:0.75rem;">
 <a href="https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:6px;">
-<i class="fab fa-github" style="font-size:0.9rem;"></i> GitHub Repo
+<i class="fab fa-github" style="font-size:0.9rem;"></i> <span data-i18n="credits_repo">GitHub Repo</span>
 </a>
 <a href="https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases/download/1/Hub_Hibrid_PRO_-_Meteo_Multi-Surs__v1.0.1.APK" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:6px;">
-<i class="fas fa-download" style="font-size:0.9rem;"></i> Descarcă APK (v1.0.1)
+<i class="fas fa-download" style="font-size:0.9rem;"></i> <span data-i18n="credits_apk">Descarcă APK (v1.0.1)</span>
 </a>
-<span style="color:var(--muted);font-size:0.65rem;">Date meteo: ANM, Open-Meteo, WeatherAPI, Meteoblue</span>
+<span style="color:var(--muted);font-size:0.65rem;" data-i18n="credits_data">Date meteo: ANM, Open-Meteo, WeatherAPI, Meteoblue</span>
 <div style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border);font-size:0.65rem;color:var(--muted);line-height:1.6;">
-<strong>🙏 Mulțumiri</strong><br>
-Cătălin Ardei (YO8ACR) — pentru furnizarea accesului la datele colectate și suport tehnic.<br>
-ANM Meteoromania — pentru datele meteorologice oficiale din România.<br>
-Open-Meteo — pentru API-ul gratuit și precis ICON-EU/ECMWF.<br>
-Comunitatea open-source — pentru librăriile și inspirația oferită.
+<strong data-i18n="credits_thanks">🙏 Mulțumiri</strong><br>
+<span data-i18n="credits_catalin">Cătălin Ardei (YO8ACR) — pentru furnizarea accesului la datele colectate și suport tehnic.</span><br>
+<span data-i18n="credits_anm">ANM Meteoromania — pentru datele meteorologice oficiale din România.</span><br>
+<span data-i18n="credits_openmeteo">Open-Meteo — pentru API-ul gratuit și precis ICON-EU/ECMWF.</span><br>
+<span data-i18n="credits_oss">Comunitatea open-source — pentru librăriile și inspirația oferită.</span>
 </div>
 </div>
 </div>
@@ -1278,7 +1489,7 @@ Comunitatea open-source — pentru librăriile și inspirația oferită.
 </div>
 <div id="main-content" style="opacity: 1;">
 <!-- LIVE CLOCK -->
-<div class="live-clock" id="live-clock"><i class="fas fa-clock"></i> <span id="live-clock-time">06:37:02</span></div>
+<div class="live-clock" id="live-clock"><i class="fas fa-clock"></i> <span id="live-clock-time">06:37:02</span><span class="live-clock-sep">·</span><span id="live-clock-date"></span></div>
 <div id="city-title" class="city-name">TARGU NEAMT</div>
 <div id="sync-info" class="time-sync">OM: ICON-EU | 06:35:54 · ANM: 24-04-2026 ora 06:00 · W-API: AQI ✓<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 28:52</span></div>
 <div class="weather-main">
@@ -1345,6 +1556,13 @@ Comunitatea open-source — pentru librăriile și inspirația oferită.
       <span class="trust-meta-line">Radar vizual live</span>
     </div>
   </div></div>
+</div>
+<div class="grid-tabs" id="grid-tabs">
+<button class="gtab active" data-g="all" data-i18n="gtab_all">Toate</button>
+<button class="gtab" data-g="acum" data-i18n="gtab_now">Acum</button>
+<button class="gtab" data-g="vant" data-i18n="gtab_wind">Vânt &amp; Presiune</button>
+<button class="gtab" data-g="cer" data-i18n="gtab_sky">Cer &amp; Soare</button>
+<button class="gtab" data-g="aer" data-i18n="gtab_air">Aer</button>
 </div>
 <div class="data-grid" id="full-grid">
 <div class="data-item">
@@ -1439,6 +1657,57 @@ Comunitatea open-source — pentru librăriile și inspirația oferită.
     <span class="item-val ">964.7 hPa · <span class="press-trend-arrow press-trend-stable">→ Stabil</span></span>
     <span class="item-src">[ICON-D2/EU]</span>
   </div></div>
+<!-- MODEL COMPARISON -->
+<div class="model-comparison" id="model-comparison" style="display: none;">
+<div class="section-title collapsible-header" id="mc-toggle" role="button" tabindex="0" aria-expanded="false">
+<span><i class="fas fa-balance-scale"></i> <span data-i18n="model_comp_title">Comparativă Modele</span></span>
+<i class="fas fa-chevron-down chev"></i>
+</div>
+<div id="mc-body-wrap" style="display:none;">
+<div style="overflow-x: auto;">
+<table class="model-comp-table" id="model-comp-table">
+<thead>
+<tr id="model-comp-head">
+<th data-i18n="model_comp_param">Parametru</th>
+<th data-i18n="model_comp_icon_eu">ICON-EU</th>
+<th data-i18n="model_comp_ecmwf">ECMWF</th>
+<th data-i18n="model_comp_icon_d2">ICON-D2</th>
+<th title="Valoarea afișată în aplicație">Hub</th>
+</tr>
+</thead>
+<tbody id="model-comp-body"></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- HISTORICAL TREND -->
+<div class="history-trend" id="history-trend" style="display: none;">
+<div class="section-title collapsible-header" id="hist-toggle" role="button" tabindex="0" aria-expanded="false">
+<span><i class="fas fa-chart-area"></i> <span data-i18n="history_title">Istoric 7 Zile vs Medii Climatice</span></span>
+<i class="fas fa-chevron-down chev"></i>
+</div>
+<div id="hist-body-wrap" style="display:none;">
+<canvas class="history-trend-canvas" id="history-trend-canvas"></canvas>
+</div>
+</div>
+<!-- HARTA AVERTIZĂRILOR ANM -->
+<div class="anm-map-section" id="anm-map-section" style="display: none;">
+<div class="section-title collapsible-header" id="map-toggle" role="button" tabindex="0" aria-expanded="false">
+<span><i class="fas fa-map-marked-alt"></i> <span data-i18n="warn_map_title">Harta Avertizărilor</span></span>
+<i class="fas fa-chevron-down chev"></i>
+</div>
+<div id="map-body-wrap" style="display:none;">
+<div class="anm-map-holder">
+<div id="anm-map"></div>
+<div class="anm-map-legend">
+<span><i style="background:#22c55e"></i> Verde — fără avertizare</span>
+<span><i style="background:#eab308"></i> Galben</span>
+<span><i style="background:#f97316"></i> Portocaliu</span>
+<span><i style="background:#ef4444"></i> Roșu</span>
+</div>
+</div>
+</div>
+</div>
 <!-- BUSOLA VANT + ARC SOARE -->
 <div class="widgets-row">
 <div class="widget-card">
@@ -1721,7 +1990,7 @@ Comunitatea open-source — pentru librăriile și inspirația oferită.
 /* ================================================================
 I18N — Internationalization System
 ================================================================ */
-const SUPPORTED_LANGS = ['ro', 'en', 'it', 'fr'];
+const SUPPORTED_LANGS = ['ro', 'en', 'it', 'fr', 'de', 'es', 'hu'];
 function normalizeLang(lang) {
 return SUPPORTED_LANGS.includes(lang) ? lang : 'ro';
 }
@@ -1751,6 +2020,11 @@ theme_light: 'Light',
 theme_dark: 'Dark',
 lang_ro: 'Română',
 lang_en: 'English',
+lang_it: 'Italiano',
+lang_fr: 'Français',
+lang_de: 'Deutsch',
+lang_es: 'Español',
+lang_hu: 'Magyar',
 refresh_5m: '5 minute',
 refresh_10m: '10 minute',
 refresh_15m: '15 minute',
@@ -1797,6 +2071,37 @@ strat_zapada: 'Strat de Zăpadă',
 minima: 'Minima',
 maxima: 'Maxima',
 smart_precip: 'Șanse precipitații:',
+install_title: 'Instalează Hub Meteo',
+install_desc: 'Acces rapid, offline, notificări alerte',
+install_btn: 'Instalează',
+later_btn: 'Mai târziu',
+model_comp_title: 'Comparativă Modele',
+model_comp_param: 'Parametru',
+model_comp_icon_eu: 'ICON-EU',
+model_comp_ecmwf: 'ECMWF',
+model_comp_icon_d2: 'ICON-D2',
+model_comp_anm: 'ANM',
+history_title: 'Istoric 7 Zile vs Medii Climatice',
+warn_map_title: 'Harta Avertizărilor ANM',
+gtab_all: 'Toate',
+gtab_now: 'Acum',
+gtab_wind: 'Vânt & Presiune',
+gtab_sky: 'Cer & Soare',
+gtab_air: 'Aer',
+credits_label: 'Credite & Linkuri',
+credits_repo: 'GitHub Repo',
+credits_apk: 'Descarcă APK (v1.0.1)',
+credits_data: 'Date meteo: ANM, Open-Meteo, WeatherAPI, Meteoblue',
+credits_thanks: '🙏 Mulțumiri',
+credits_catalin: 'Cătălin Ardei (YO8ACR) — pentru furnizarea accesului la datele colectate și suport tehnic.',
+credits_anm: 'ANM Meteoromania — pentru datele meteorologice oficiale din România.',
+credits_openmeteo: 'Open-Meteo — pentru API-ul gratuit și precis ICON-EU/ECMWF.',
+credits_oss: 'Comunitatea open-source — pentru librăriile și inspirația oferită.',
+credits_export: 'Mulțumiri: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo',
+share_title: 'Distribuie Vremea',
+share_desc: 'Salvează ca imagine sau distribuie',
+export_btn: 'Exportă Imagine',
+copy_btn: 'Copiază Link',
 smart_minmax: 'Min/Max:',
 wind_strong: 'Vânt puternic!',
 smart_anm_station: 'Stație oficială ANM Meteoromania.',
@@ -2378,7 +2683,133 @@ press_down: 'En baisse',
 press_stable: 'Stable',
 trust_tap_details: 'Toucher pour détails',
 trust_note: 'Observation vs modèle vs fallback'
-};
+ };
+/* ── Limbi noi: chei suplimentare EN + DE / ES / HU ── */
+Object.assign(LANG.en, {
+install_title:'Install Hub Meteo', install_desc:'Quick access, offline, alert notifications',
+install_btn:'Install', later_btn:'Later',
+model_comp_title:'Model Comparison', model_comp_param:'Parameter',
+model_comp_icon_eu:'ICON-EU', model_comp_ecmwf:'ECMWF', model_comp_icon_d2:'ICON-D2', model_comp_anm:'ANM',
+history_title:'7-Day History vs Climate Normals',
+warn_map_title:'ANM Warnings Map',
+gtab_all:'All', gtab_now:'Now', gtab_wind:'Wind & Pressure', gtab_sky:'Sky & Sun', gtab_air:'Air',
+credits_label:'Credits & Links', credits_repo:'GitHub Repo', credits_apk:'Download APK (v1.0.1)',
+credits_data:'Weather data: ANM, Open-Meteo, WeatherAPI, Meteoblue', credits_thanks:'🙏 Acknowledgements',
+credits_catalin:'Cătălin Ardei (YO8ACR) — for providing access to the collected data and technical support.',
+credits_anm:'ANM Meteoromania — for the official weather data of Romania.',
+credits_openmeteo:'Open-Meteo — for the free and accurate ICON-EU/ECMWF API.',
+credits_oss:'The open-source community — for the libraries and inspiration.',
+credits_export:'Acknowledgements: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo',
+export_btn:'📸 Export Image'
+});
+LANG.de = Object.assign({}, LANG.en, {
+search_placeholder:'Stadt suchen (z.B. Iași, Cluj...)', provider_label:'Anbieter:',
+favorites_title:'Favoriten', saved_locations:'Gespeicherte Orte', manage_btn:'Verwalten',
+settings_title:'Einstellungen', settings_theme:'Design', settings_language:'Sprache',
+settings_unit:'Temperatureinheit', settings_refresh:'Auto-Aktualisierung',
+close_btn:'Schließen', save_btn:'Speichern', theme_light:'Hell', theme_dark:'Dunkel',
+lang_ro:'Rumänisch', lang_en:'Englisch', lang_it:'Italienisch', lang_fr:'Französisch',
+lang_de:'Deutsch', lang_es:'Spanisch', lang_hu:'Ungarisch',
+refresh_5m:'5 Minuten', refresh_10m:'10 Minuten', refresh_15m:'15 Minuten', refresh_30m:'30 Minuten',
+provider_all_active:'Alle Quellen aktiv', loading_text:'Daten werden geladen...',
+compass_title:'Windkompass', sunarc_title:'Sonnenbogen', aqi_title:'Luftqualität — Detail',
+moon_title:'Mondphase', comfort_title:'Thermischer Komfort',
+hourly_title:'Stündliche Temperaturen (8h)', forecast_title:'5-Tage-Vorhersage (120h)',
+radar_title:'Live Regenradar', update_btn:'Daten aktualisieren',
+today:'Heute', today_full:'Heute', sunrise:'Sonnenaufgang', sunset:'Sonnenuntergang',
+feels_like:'Gefühlt', pressure:'Druck', humidity:'Feuchtigkeit', visibility:'Sichtweite',
+uv_index:'UV-Index', min_max_today:'Min / Max Heute', temp_actual:'Aktuelle Temp.',
+avg_wind:'Ø Wind', rain_chance:'Regenwahrscheinlichkeit', nebulozitate:'Bewölkung',
+smart_precip:'Regenwahrsch.:', smart_minmax:'Min/Max:', saved_settings:'Einstellungen gespeichert',
+favorites_empty:'Noch keine Favoriten. Drücke den Stern neben der Suche.',
+favorite_added:'Zu Favoriten hinzugefügt', favorite_removed:'Favorit entfernt',
+error_generic:'Fehler beim Laden der Daten. Bitte erneut versuchen.',
+install_title:'Hub Meteo installieren', install_desc:'Schneller Zugriff, offline, Warnungen',
+install_btn:'Installieren', later_btn:'Später',
+model_comp_title:'Modellvergleich', model_comp_param:'Parameter',
+history_title:'7-Tage-Verlauf vs Klimanormale', export_btn:'📸 Bild exportieren',
+warn_map_title:'ANM-Warnkarte',
+gtab_all:'Alle', gtab_now:'Jetzt', gtab_wind:'Wind & Druck', gtab_sky:'Himmel & Sonne', gtab_air:'Luft',
+credits_label:'Credits & Links', credits_repo:'GitHub Repo', credits_apk:'APK herunterladen (v1.0.1)',
+credits_data:'Wetterdaten: ANM, Open-Meteo, WeatherAPI, Meteoblue', credits_thanks:'🙏 Danksagungen',
+credits_catalin:'Cătălin Ardei (YO8ACR) — für den Zugang zu den gesammelten Daten und den technischen Support.',
+credits_anm:'ANM Meteoromania — für die offiziellen Wetterdaten Rumäniens.',
+credits_openmeteo:'Open-Meteo — für die kostenlose und präzise ICON-EU/ECMWF-API.',
+credits_oss:'Die Open-Source-Community — für Bibliotheken und Inspiration.',
+credits_export:'Danksagungen: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo'
+});
+LANG.es = Object.assign({}, LANG.en, {
+search_placeholder:'Buscar ciudad (ej: Iași, Cluj...)', provider_label:'Proveedores:',
+favorites_title:'Ubicaciones Favoritas', saved_locations:'Ubicaciones Guardadas', manage_btn:'Gestionar',
+settings_title:'Ajustes Hub', settings_theme:'Tema', settings_language:'Idioma',
+settings_unit:'Unidad de Temperatura', settings_refresh:'Actualización Auto',
+close_btn:'Cerrar', save_btn:'Guardar', theme_light:'Claro', theme_dark:'Oscuro',
+lang_ro:'Rumano', lang_en:'Inglés', lang_it:'Italiano', lang_fr:'Francés',
+lang_de:'Alemán', lang_es:'Español', lang_hu:'Húngaro',
+refresh_5m:'5 minutos', refresh_10m:'10 minutos', refresh_15m:'15 minutos', refresh_30m:'30 minutos',
+provider_all_active:'Todas las fuentes activas', loading_text:'Cargando datos...',
+compass_title:'Brújula del Viento', sunarc_title:'Arco Solar', aqi_title:'Calidad del Aire — Detalle',
+moon_title:'Fase Lunar', comfort_title:'Confort Térmico',
+hourly_title:'Temperaturas Horarias (8h)', forecast_title:'Pronóstico 5 Días (120h)',
+radar_title:'Radar de Lluvia en Vivo', update_btn:'Actualizar Datos',
+today:'Hoy', today_full:'Hoy', sunrise:'Amanecer', sunset:'Atardecer',
+feels_like:'Sensación', pressure:'Presión', humidity:'Humedad', visibility:'Visibilidad',
+uv_index:'Índice UV', min_max_today:'Min / Max Hoy', temp_actual:'Temp. Actual',
+avg_wind:'Viento Medio', rain_chance:'Prob. Precipitación', nebulozitate:'Nubosidad',
+smart_precip:'Prob. precip.:', smart_minmax:'Min/Max:', saved_settings:'Ajustes guardados',
+favorites_empty:'Aún no hay favoritos. Pulsa la estrella junto a la búsqueda.',
+favorite_added:'Añadido a favoritos', favorite_removed:'Favorito eliminado',
+error_generic:'Error al cargar los datos. Inténtalo de nuevo.',
+install_title:'Instalar Hub Meteo', install_desc:'Acceso rápido, sin conexión, alertas',
+install_btn:'Instalar', later_btn:'Más tarde',
+model_comp_title:'Comparación de Modelos', model_comp_param:'Parámetro',
+history_title:'Historial 7 Días vs Normales Climáticas', export_btn:'📸 Exportar Imagen',
+warn_map_title:'Mapa de Avisos ANM',
+gtab_all:'Todo', gtab_now:'Ahora', gtab_wind:'Viento y Presión', gtab_sky:'Cielo y Sol', gtab_air:'Aire',
+credits_label:'Créditos y Enlaces', credits_repo:'Repositorio GitHub', credits_apk:'Descargar APK (v1.0.1)',
+credits_data:'Datos meteorológicos: ANM, Open-Meteo, WeatherAPI, Meteoblue', credits_thanks:'🙏 Agradecimientos',
+credits_catalin:'Cătălin Ardei (YO8ACR) — por facilitar el acceso a los datos recopilados y el soporte técnico.',
+credits_anm:'ANM Meteoromania — por los datos meteorológicos oficiales de Rumanía.',
+credits_openmeteo:'Open-Meteo — por la API gratuita y precisa ICON-EU/ECMWF.',
+credits_oss:'La comunidad open-source — por las librerías y la inspiración.',
+credits_export:'Agradecimientos: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo'
+});
+LANG.hu = Object.assign({}, LANG.en, {
+search_placeholder:'Város keresése (pl.: Iași, Cluj...)', provider_label:'Szolgáltatók:',
+favorites_title:'Kedvenc Helyek', saved_locations:'Mentett Helyek', manage_btn:'Kezelés',
+settings_title:'Beállítások', settings_theme:'Téma', settings_language:'Nyelv',
+settings_unit:'Hőmérséklet Egység', settings_refresh:'Automatikus frissítés',
+close_btn:'Bezárás', save_btn:'Mentés', theme_light:'Világos', theme_dark:'Sötét',
+lang_ro:'Román', lang_en:'Angol', lang_it:'Olasz', lang_fr:'Francia',
+lang_de:'Német', lang_es:'Spanyol', lang_hu:'Magyar',
+refresh_5m:'5 perc', refresh_10m:'10 perc', refresh_15m:'15 perc', refresh_30m:'30 perc',
+provider_all_active:'Minden forrás aktív', loading_text:'Adatok betöltése...',
+compass_title:'Szélirány Iránytű', sunarc_title:'Nap Íve', aqi_title:'Levegőminőség — Részletes',
+moon_title:'Holdfázis', comfort_title:'Hőkomfort',
+hourly_title:'Óránkénti Hőmérséklet (8ó)', forecast_title:'5 Napos Előrejelzés (120ó)',
+radar_title:'Élő Esőradar', update_btn:'Adatok frissítése',
+today:'Ma', today_full:'Ma', sunrise:'Napkelte', sunset:'Napnyugta',
+feels_like:'Érzett', pressure:'Nyomás', humidity:'Páratartalom', visibility:'Látótávolság',
+uv_index:'UV-index', min_max_today:'Min / Max Ma', temp_actual:'Jelenlegi hőm.',
+avg_wind:'Átlagszél', rain_chance:'Csapadék valósz.', nebulozitate:'Felhőzet',
+smart_precip:'Csapadék valsz.:', smart_minmax:'Min/Max:', saved_settings:'Beállítások mentve',
+favorites_empty:'Még nincsenek kedvencek. Nyomd meg a csillagot a keresés mellett.',
+favorite_added:'Hozzáadva a kedvencekhez', favorite_removed:'Kedvenc eltávolítva',
+error_generic:'Hiba az adatok betöltésekor. Próbáld újra.',
+install_title:'Hub Meteo telepítése', install_desc:'Gyors hozzáférés, offline, riasztások',
+install_btn:'Telepítés', later_btn:'Később',
+model_comp_title:'Modell-összehasonlítás', model_comp_param:'Paraméter',
+history_title:'7 napos előzmény vs klimatológiai átlag', export_btn:'📸 Kép exportálása',
+warn_map_title:'ANM riasztási térkép',
+gtab_all:'Mind', gtab_now:'Most', gtab_wind:'Szél & Nyomás', gtab_sky:'Ég & Nap', gtab_air:'Levegő',
+credits_label:'Kreditek & Linkek', credits_repo:'GitHub Repo', credits_apk:'APK letöltése (v1.0.1)',
+credits_data:'Meteorológiai adatok: ANM, Open-Meteo, WeatherAPI, Meteoblue', credits_thanks:'🙏 Köszönet',
+credits_catalin:'Cătălin Ardei (YO8ACR) — az összegyűjtött adatokhoz való hozzáférésért és a műszaki támogatásért.',
+credits_anm:'ANM Meteoromania — Románia hivatalos meteorológiai adataiért.',
+credits_openmeteo:'Open-Meteo — az ingyenes és pontos ICON-EU/ECMWF API-ért.',
+credits_oss:'A nyílt forráskódú közösség — a könyvtárakért és az inspirációért.',
+credits_export:'Köszönet: Cătălin Ardei (YO8ACR) · ANM Meteoromania · Open-Meteo'
+});
 function t(key) {
 const keys = key.split('.');
 let val = LANG[currentLang] || LANG.ro;
@@ -4699,6 +5130,7 @@ let anmWarnings = [];
 try {
 const w = await fetchANMWarnings();
 anmWarnings = parseANMWarnings(w);
+window.anmParsed = anmWarnings; /* expus pentru harta județelor */
 } catch(e) { /* alertele ANM sunt opționale */ }
 const all = [...anmWarnings, ...alerts];
 if (!all.length) { panel.style.display = 'none'; return; }
@@ -4734,9 +5166,13 @@ const icon = culoare === '3' ? '🔴' : culoare === '2' ? '🟠' : '🟡';
 const tip = at.numeTipMesaj || 'Avertizare meteorologică';
 const title = (culoare === '3' ? 'Cod Roșu' : culoare === '2' ? 'Cod Portocaliu' : 'Cod Galben') + ' — ' + tip;
 const raw = at.mesaj || '';
-const msg = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220);
+const fullMsg = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const msg = fullMsg.slice(0, 220);
 const exp = at.dataExpirarii ? ' Valabil până: ' + at.dataExpirarii.replace('T', ' ') : '';
-out.push({ level, icon, title, msg: msg + exp, src: 'ANM — avertizare oficială' });
+/* județele afectate — extrase din textul complet (pentru hartă) */
+const counties = extractCounties(fullMsg);
+const national = /toat[ea]\s+(regiunile|ț)|cea mai mare parte|majoritatea\s+(regiunilor|zonelor)/i.test(fullMsg);
+out.push({ level, icon, title, msg: msg + exp, src: 'ANM — avertizare oficială', counties, national });
 }
 return out;
 }
@@ -5231,8 +5667,11 @@ window.startAutoRefresh = function() {
  LIVE CLOCK
 ================================================================ */
 function _updateLiveClock() {
+  const now=new Date();
   const el=document.getElementById('live-clock-time');
-  if (el) el.textContent=new Date().toLocaleTimeString(localeForLang(currentLang));
+  if (el) el.textContent=now.toLocaleTimeString(localeForLang(currentLang));
+  const ed=document.getElementById('live-clock-date');
+  if (ed) ed.textContent=now.toLocaleDateString(localeForLang(currentLang),{weekday:'short',day:'2-digit',month:'short'});
 }
 setInterval(_updateLiveClock, 1000);
 _updateLiveClock();
@@ -5386,6 +5825,8 @@ function _sampleLabels(hours, mode) {
   });
   lbls.style.setProperty('--hourly-label-count', String(Math.max(labels.length, 2)));
   lbls.innerHTML = labels.join('');
+  /* orele ISO expuse pentru tooltip (data + ora) */
+  try { window.__hourlyTimes = hours.map(h => h.time); } catch(e) {}
 }
 async function fetchOpenMeteoD2(lat, lon) {
   const params = new URLSearchParams({
@@ -6554,6 +6995,599 @@ const HubNotif = (() => {
 window.toggleNotifications = function() {
   HubNotif.requestAndEnable();
 };
+
+/* ════════════════════════════════════════════════════════════════
+   PRO PACK — fundal dinamic ✓(există), skeleton, tooltip grafic,
+   comparativă modele, istoric 7 zile, export imagine, install
+   prompt, PWA badge, ARIA, Escape, DE/ES/HU
+   ════════════════════════════════════════════════════════════════ */
+(function() {
+'use strict';
+
+/* ── CSS injectat pentru noile componente ── */
+const st = document.createElement('style');
+st.textContent = `
+.hourly-tooltip{position:absolute;pointer-events:none;background:var(--card);color:var(--text);
+border-radius:10px;padding:6px 10px;font-size:.68rem;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.2);
+z-index:50;display:none;white-space:nowrap;border:1px solid var(--grid)}
+.hourly-tooltip b{color:var(--primary)}
+.export-img-btn{width:100%;background:var(--grid);color:var(--text);border:none;padding:12px;
+border-radius:18px;font-weight:800;cursor:pointer;margin-bottom:14px;font-size:.8rem}
+.export-img-btn:hover{opacity:.85}
+.temp-pop{animation:tempPop .5s ease}
+@keyframes tempPop{0%{opacity:.2;transform:translateY(8px) scale(.96)}100%{opacity:1;transform:none}}
+#skel-ov .sk-row{display:flex;gap:12px;margin-bottom:14px}
+`;
+document.head.appendChild(st);
+
+/* ── 1. LIMBI NOI: DE / ES / HU — definite devreme (înainte de t());
+   aici doar opțiunile din select + traducerea lor ── */
+
+/* opțiuni noi în select-ul Limbă + traducerea lor */
+const selLang = document.getElementById('settings-lang');
+if (selLang && !document.getElementById('settingsLangDe')) {
+[['de','settingsLangDe'],['es','settingsLangEs'],['hu','settingsLangHu']].forEach(([v,id])=>{
+const o=document.createElement('option'); o.value=v; o.id=id;
+o.textContent=v.toUpperCase(); selLang.appendChild(o);
+});
+}
+const _origAST = applyStaticTranslations;
+applyStaticTranslations = function() {
+_origAST();
+['settingsLangDe','settingsLangEs','settingsLangHu'].forEach(id=>{
+const el=document.getElementById(id);
+if(el) el.textContent=t('lang_'+id.replace('settingsLang','').toLowerCase());
+});
+const eb=document.getElementById('export-img-btn');
+if(eb) eb.innerHTML='<i class="fas fa-camera"></i> '+t('export_btn');
+};
+const _origLFL = localeForLang;
+localeForLang = function(l){ return ({de:'de-DE',es:'es-ES',hu:'hu-HU'})[l] || _origLFL(l); };
+
+/* ── 2. INSTALL PROMPT (beforeinstallprompt + vizite) ── */
+let deferredPrompt = null;
+try { localStorage.setItem('hub_visits', String((parseInt(localStorage.getItem('hub_visits')||'0',10))+1)); } catch(e){}
+window.addEventListener('beforeinstallprompt', e => {
+e.preventDefault(); deferredPrompt = e;
+const visits = parseInt(localStorage.getItem('hub_visits')||'0',10);
+const dismissed = localStorage.getItem('hub_install_dismissed')==='1';
+const standalone = window.matchMedia('(display-mode: standalone)').matches;
+if (!standalone && visits >= 2 && !dismissed) {
+setTimeout(()=>document.getElementById('install-banner')?.classList.add('visible'), 4000);
+}
+});
+window.installPWA = async function() {
+if (!deferredPrompt) return;
+deferredPrompt.prompt();
+try { await deferredPrompt.userChoice; } catch(e){}
+deferredPrompt = null;
+document.getElementById('install-banner')?.classList.remove('visible');
+};
+window.dismissInstallBanner = function() {
+localStorage.setItem('hub_install_dismissed','1');
+document.getElementById('install-banner')?.classList.remove('visible');
+};
+
+/* ── 3. PWA BADGE — temperatura pe iconița app ── */
+function updateAppBadge(txt){
+try {
+const n = parseInt(String(txt).replace(/[^\-0-9]/g,''),10);
+if (navigator.setAppBadge && !isNaN(n)) navigator.setAppBadge(Math.abs(n));
+} catch(e){}
+}
+
+/* ── 4. OBSERVER #main-temp → badge + animație pop + skeleton off ── */
+const mainTempEl = document.getElementById('main-temp');
+let firstDataDone = !!localStorage.getItem('hub_loaded_once');
+if (mainTempEl) {
+new MutationObserver(()=>{
+updateAppBadge(mainTempEl.textContent);
+mainTempEl.classList.remove('temp-pop'); void mainTempEl.offsetWidth;
+mainTempEl.classList.add('temp-pop');
+if (!firstDataDone) {
+firstDataDone = true;
+localStorage.setItem('hub_loaded_once','1');
+document.getElementById('skel-ov')?.remove();
+buildModelComparison();
+addStagger();
+}
+}).observe(mainTempEl,{childList:true,characterData:true,subtree:true});
+}
+
+/* ── 5. SKELETON la prima încărcare ── */
+if (!firstDataDone) {
+const mc = document.getElementById('main-content');
+if (mc) {
+const ov=document.createElement('div'); ov.id='skel-ov';
+ov.innerHTML=`
+<div class="skeleton skeleton-text" style="margin:0 auto 12px;width:40%"></div>
+<div class="skeleton skeleton-icon"></div>
+<div class="skeleton skeleton-temp" style="margin:14px auto"></div>
+<div class="skeleton" style="height:60px;border-radius:16px;margin-bottom:14px"></div>
+<div class="sk-row">
+<div class="skeleton" style="flex:1;height:90px;border-radius:16px"></div>
+<div class="skeleton" style="flex:1;height:90px;border-radius:16px"></div>
+</div>
+<div class="skeleton" style="height:150px;border-radius:20px;margin-bottom:14px"></div>
+<div class="skeleton" style="height:120px;border-radius:20px"></div>`;
+mc.prepend(ov);
+}
+}
+
+/* ── 6. STAGGER entry pe griduri ── */
+function addStagger(){
+['full-grid','aqi-detail-grid'].forEach(id=>{
+document.getElementById(id)?.classList.add('stagger-in');
+});
+}
+
+/* ── 7. COMPARATIVĂ MODELE — fetch real pe fiecare model + cache 15 min ── */
+let _mcTimer=null;
+window.buildModelComparison = function(){
+clearTimeout(_mcTimer);
+_mcTimer=setTimeout(_buildModelComparisonNow,300);
+};
+let _mcRetries=0;
+async function _buildModelComparisonNow(){
+try{
+const c=currentCoords; const grid=document.getElementById('full-grid');
+if(!c||!grid){ if(_mcRetries++<10){clearTimeout(_mcTimer);_mcTimer=setTimeout(_buildModelComparisonNow,3000);} return; }
+const body=document.getElementById('model-comp-body'); if(!body) return;
+/* valori afișate în Hub (din DOM) pentru coloana Hub */
+const domVals={};
+grid.querySelectorAll('.data-item').forEach(it=>{
+const lbl=it.querySelector('.item-label')?.textContent.trim();
+const val=it.querySelector('.item-val')?.textContent.replace(/\s+/g,' ').trim();
+if(lbl&&val&&val!=='—') domVals[lbl]=val;
+});
+/* cache sessionStorage 15 min */
+let models=null;
+try{
+const cached=JSON.parse(sessionStorage.getItem('hub_model_comp')||'null');
+if(cached && Date.now()-cached.t<15*60*1000) models=cached;
+}catch(e){}
+if(!models){
+const base={latitude:c.lat.toFixed(4),longitude:c.lon.toFixed(4),
+current:'temperature_2m,relative_humidity_2m,wind_speed_10m,surface_pressure',
+daily:'temperature_2m_max,temperature_2m_min',forecast_days:1,
+timezone:'Europe/Bucharest',wind_speed_unit:'kmh'};
+const mk=m=>`https://api.open-meteo.com/v1/forecast?${new URLSearchParams(Object.assign({},base,{models:m}))}`;
+const [euR,ecR,d2R]=await Promise.allSettled([
+fetch(mk('icon_eu')).then(r=>r.ok?r.json():null),
+fetch(mk('ecmwf_ifs025')).then(r=>r.ok?r.json():null),
+fetch(mk('icon_d2')).then(r=>r.ok?r.json():null)
+]);
+const pick=x=>x.status==='fulfilled'?x.value:null;
+models={eu:pick(euR),ec:pick(ecR),d2:pick(d2R),t:Date.now()};
+try{sessionStorage.setItem('hub_model_comp',JSON.stringify(models));}catch(e){}
+}
+const cur=m=>(m&&m.current)||{};
+const dai=m=>(m&&m.daily)||{};
+const f1=(v,suf)=>v!=null?(Math.round(v*10)/10)+suf:'—';
+const mm=m=>{const d=dai(m);return d.temperature_2m_max!=null?f1(d.temperature_2m_min,'°')+' / '+f1(d.temperature_2m_max,'°'):'—';};
+const pct=m=>cur(m).relative_humidity_2m!=null?cur(m).relative_humidity_2m+'%':'—';
+/* coloane doar pentru modelele care au date (ex: ICON-D2 nu acoperă România) */
+const cols=[
+{id:'eu',name:t('model_comp_icon_eu'),ok:cur(models.eu).temperature_2m!=null},
+{id:'ec',name:t('model_comp_ecmwf'),ok:cur(models.ec).temperature_2m!=null},
+{id:'d2',name:t('model_comp_icon_d2'),ok:cur(models.d2).temperature_2m!=null}
+].filter(col=>col.ok);
+if(!cols.length) return;
+const head=document.getElementById('model-comp-head');
+if(head) head.innerHTML=`<th>${t('model_comp_param')}</th>`+cols.map(c=>`<th>${c.name}</th>`).join('')+`<th>Hub</th>`;
+const clean=s=>String(s).split('(')[0].replace(/[↑↓→]/g,'').trim();
+const row=(label,vals,hub)=>`<tr><td>${label}</td>${cols.map(c=>`<td>${vals[c.id]}</td>`).join('')}<td>${hub?clean(hub):'—'}</td></tr>`;
+body.innerHTML=[
+row(t('temp_actual'),{eu:f1(cur(models.eu).temperature_2m,'°C'),ec:f1(cur(models.ec).temperature_2m,'°C'),d2:f1(cur(models.d2).temperature_2m,'°C')},domVals[t('temp_actual')]),
+row(t('min_max_today'),{eu:mm(models.eu),ec:mm(models.ec),d2:mm(models.d2)},domVals[t('min_max_today')]),
+row(t('avg_wind'),{eu:f1(cur(models.eu).wind_speed_10m,' km/h'),ec:f1(cur(models.ec).wind_speed_10m,' km/h'),d2:f1(cur(models.d2).wind_speed_10m,' km/h')},domVals[t('avg_wind')]),
+row(t('humidity'),{eu:pct(models.eu),ec:pct(models.ec),d2:pct(models.d2)},domVals[t('humidity')]),
+row(t('pressure'),{eu:f1(cur(models.eu).surface_pressure,' mb'),ec:f1(cur(models.ec).surface_pressure,' mb'),d2:f1(cur(models.d2).surface_pressure,' mb')},domVals[t('pressure')])
+].join('');
+document.getElementById('model-comparison').style.display='block';
+}catch(e){ /* tabelul rămâne ascuns pe eroare */ }
+}
+
+/* ── 8. ISTORIC 7 ZILE vs MEDII CLIMATICE (Open-Meteo Archive, gratuit) ── */
+const CLIMATE_MAX=[1,3,9,15,21,25,27,27,22,16,9,3];
+const CLIMATE_MIN=[-5,-4,-1,3,8,12,14,14,10,5,1,-3];
+window.loadHistoryTrend = async function(){
+try{
+const c=currentCoords; if(!c) return;
+const end=new Date(Date.now()-24*3600*1000), start=new Date(Date.now()-8*24*3600*1000);
+const fmt=d=>d.toISOString().slice(0,10);
+const url=`https://archive-api.open-meteo.com/v1/archive?latitude=${c.lat}&longitude=${c.lon}`+
+`&start_date=${fmt(start)}&end_date=${fmt(end)}&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+const r=await fetch(url); if(!r.ok) throw 0;
+const j=await r.json();
+const d=j.daily; if(!d||!d.time||d.time.length<3) throw 0;
+const cv=document.getElementById('history-trend-canvas'); if(!cv) return;
+const panel=document.getElementById('history-trend');
+const W=cv.width=cv.offsetWidth*2||600, H=cv.height=360;
+const ctx=cv.getContext('2d');
+const css=getComputedStyle(document.body);
+const txt=css.getPropertyValue('--text').trim()||'#333';
+const mut=css.getPropertyValue('--muted').trim()||'#888';
+const prim=css.getPropertyValue('--primary').trim()||'#4f46e5';
+ctx.clearRect(0,0,W,H);
+const all=[...d.temperature_2m_max,...d.temperature_2m_min].filter(v=>v!=null);
+const mn=Math.min(...all)-2, mx=Math.max(...all)+2;
+const X=i=>40+(W-70)*i/(d.time.length-1);
+const Y=v=>H-40-(H-80)*(v-mn)/(mx-mn);
+/* linie medie climatică (luna curentă) */
+const m=new Date().getMonth();
+ctx.strokeStyle=mut; ctx.setLineDash([6,5]); ctx.lineWidth=1.5; ctx.globalAlpha=.55;
+ctx.beginPath(); ctx.moveTo(40,Y(CLIMATE_MAX[m])); ctx.lineTo(W-30,Y(CLIMATE_MAX[m]));
+ctx.moveTo(40,Y(CLIMATE_MIN[m])); ctx.lineTo(W-30,Y(CLIMATE_MIN[m])); ctx.stroke();
+ctx.setLineDash([]); ctx.globalAlpha=1;
+/* benzi max/min */
+const drawLine=(arr,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();
+arr.forEach((v,i)=>{if(v==null)return;i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));});ctx.stroke();};
+drawLine(d.temperature_2m_max,'#ef4444',3);
+drawLine(d.temperature_2m_min,'#3b82f6',3);
+/* puncte + etichete zi */
+ctx.font='bold 11px Segoe UI'; ctx.textAlign='center';
+d.time.forEach((tstr,i)=>{
+const dt=new Date(tstr+'T00:00');
+ctx.fillStyle=txt; ctx.fillText(dt.getDate(),X(i),H-18);
+const vmax=d.temperature_2m_max[i], vmin=d.temperature_2m_min[i];
+if(vmax!=null){ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(X(i),Y(vmax),4,0,7);ctx.fill();}
+if(vmin!=null){ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.arc(X(i),Y(vmin),4,0,7);ctx.fill();}
+});
+/* legendă */
+ctx.textAlign='left'; ctx.font='bold 11px Segoe UI';
+ctx.fillStyle='#ef4444'; ctx.fillText('■ max',W-140,20);
+ctx.fillStyle='#3b82f6'; ctx.fillText('■ min',W-90,20);
+ctx.fillStyle=mut; ctx.fillText('- - climat',W-46,20);
+panel.style.display='block';
+}catch(e){ /* ascuns pe eroare */ }
+};
+
+/* ── 9. EXPORT IMAGINE (canvas → share/download, cu textul avertizărilor) ── */
+window.exportWeatherImage = async function(){
+const x0=document.createElement('canvas').getContext('2d');
+try{
+const city=(document.getElementById('city-title')?.textContent||'Hub Meteo').trim();
+const temp=(document.getElementById('main-temp')?.textContent||'').trim();
+const desc=(document.getElementById('main-desc')?.textContent||'').trim();
+const feel=(document.getElementById('temp-feel')?.textContent||'').trim();
+const smart=(document.getElementById('smart-text')?.textContent||'').trim().slice(0,140);
+/* avertizările active: nivel + titlu + mesaj */
+const alerts=[...document.querySelectorAll('#alerts-panel .alert-item')].map(it=>({
+level:it.classList.contains('red')?'red':it.classList.contains('orange')?'orange':'yellow',
+title:(it.querySelector('.alert-title')?.textContent||'').replace(/\s+/g,' ').trim(),
+msg:(it.querySelector('.alert-msg')?.textContent||'').replace(/\s+/g,' ').trim()
+})).filter(a=>a.title).slice(0,3);
+const W=800;
+const alertBlockH=alerts.reduce((h,a)=>{const lines=a.msg?wrapLines(x0,a.msg,W-160):[];return h+(a.msg?36+Math.min(lines.length,3)*19+10:52);},alerts.length?34:0);
+const H=520+alertBlockH+48; /* +48 pentru blocul de credite */
+const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+const x=cv.getContext('2d');
+const dark=document.body.dataset.theme==='dark';
+const g=x.createLinearGradient(0,0,W,H);
+if(dark){g.addColorStop(0,'#0f172a');g.addColorStop(1,'#1e293b');}
+else{g.addColorStop(0,'#e0f2fe');g.addColorStop(1,'#bae6fd');}
+x.fillStyle=g;x.fillRect(0,0,W,H);
+/* card */
+x.fillStyle=dark?'rgba(30,41,59,.92)':'rgba(255,255,255,.92)';
+x.roundRect ? (x.beginPath(),x.roundRect(30,30,W-60,H-60,28),x.fill()) : x.fillRect(30,30,W-60,H-60);
+const txt=dark?'#f8fafc':'#1e293b', mut=dark?'#94a3b8':'#64748b';
+x.fillStyle='#4f46e5'; x.font='bold 26px Segoe UI'; x.textAlign='center';
+x.fillText(city.toUpperCase(),W/2,95);
+/* data + ora generării (ex: „Vineri, 21 august 2026 · 12:05") */
+const _now=new Date(); const _loc=localeForLang(currentLang);
+const _dateStr=_now.toLocaleDateString(_loc,{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+const _timeStr=_now.toLocaleTimeString(_loc,{hour:'2-digit',minute:'2-digit'});
+x.fillStyle=mut; x.font='600 17px Segoe UI';
+x.fillText(_dateStr.charAt(0).toUpperCase()+_dateStr.slice(1)+' · '+_timeStr,W/2,126);
+x.fillStyle=txt; x.font='bold 110px Segoe UI';
+x.fillText(temp,W/2,225);
+x.fillStyle=mut; x.font='600 24px Segoe UI';
+x.fillText(desc+' · '+feel,W/2,270);
+x.font='600 17px Segoe UI';
+wrapText(x,smart,W/2,315,W-140,24,mut);
+let y=400;
+if(alerts.length){
+x.fillStyle='#b45309'; x.font='bold 18px Segoe UI';
+x.fillText(`⚠️ ${alerts.length} ${alerts.length===1?'avertisment activ':'avertismente active'}`,W/2,y);
+y+=28;
+const boxCol={yellow:['#fefce8','#854d0e','#eab308'],orange:['#fff7ed','#c2410c','#f97316'],red:['#fef2f2','#b91c1c','#ef4444']};
+if(dark){boxCol.yellow=['#422006','#fbbf24','#a16207'];boxCol.orange=['#431407','#fb923c','#c2410c'];boxCol.red=['#450a0a','#f87171','#dc2626'];}
+alerts.forEach(a=>{
+const [bg,fg,bd]=boxCol[a.level];
+const lines=a.msg?wrapLines(x,a.msg,W-170):[];
+const bh=a.msg?36+lines.length*19+8:44;
+x.fillStyle=bg;x.strokeStyle=bd;x.lineWidth=2;
+x.roundRect?(x.beginPath(),x.roundRect(55,y,W-110,bh,12),x.fill(),x.stroke()):x.fillRect(55,y,W-110,bh);
+x.textAlign='left';x.fillStyle=fg;
+x.font='bold 15px Segoe UI';
+x.fillText(a.title.slice(0,62),75,y+23);
+x.font='600 13.5px Segoe UI';
+lines.forEach((ln,i)=>x.fillText(ln,75,y+43+i*19));
+x.textAlign='center';
+y+=bh+12;
+});
+}
+/* creditele din Setări — în limba curentă */
+x.fillStyle=mut; x.font='600 13px Segoe UI';
+x.fillText(t('credits_data'),W/2,H-78);
+x.font='600 12.5px Segoe UI';
+x.fillText(t('credits_export'),W/2,H-60);
+x.fillStyle=mut; x.font='700 14px Segoe UI';
+x.fillText('Hub Meteo PRO · acc1311.github.io',W/2,H-40);
+const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+const fname='hub-meteo-'+_now.toISOString().slice(0,10)+'.png';
+const file=new File([blob],fname,{type:'image/png'});
+if(navigator.canShare && navigator.canShare({files:[file]})){
+await navigator.share({files:[file],title:'Hub Meteo PRO'});
+}else{
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+a.download=fname;a.click();URL.revokeObjectURL(a.href);
+showToast(t('export_btn'),'success');
+}
+}catch(e){ showToast(t('error_generic'),'error'); }
+function wrapLines(ctx,text,maxW){
+ctx.font='600 13.5px Segoe UI';
+const words=text.split(' ');const lines=[];let line='';
+words.forEach(w=>{
+if(ctx.measureText(line+w).width>maxW&&line){lines.push(line.trim());line=w+' ';}
+else line+=w+' ';
+});
+if(line.trim())lines.push(line.trim());
+return lines.slice(0,3);
+}
+function wrapText(ctx,text,cx,y,maxW,lh,col){
+if(!text)return;
+const words=text.split(' ');let line='',yy=y;
+words.forEach(w=>{
+if(ctx.measureText(line+w).width>maxW){ctx.fillStyle=col;ctx.fillText(line,cx,yy);line=w+' ';yy+=lh;}
+else line+=w+' ';
+});
+ctx.fillStyle=col;ctx.fillText(line.trim(),cx,yy);
+}
+};
+/* buton export sub btn-update */
+const bu=document.querySelector('.btn-update');
+if(bu && !document.getElementById('export-img-btn')){
+const b=document.createElement('button');
+b.id='export-img-btn'; b.className='export-img-btn';
+b.innerHTML='<i class="fas fa-camera"></i> '+t('export_btn');
+b.onclick=exportWeatherImage;
+bu.parentNode.insertBefore(b,bu.nextSibling);
+}
+
+/* ── 10. TOOLTIP pe graficul orar (crosshair nativ) ── */
+(function(){
+const svg=document.getElementById('hourly-svg'); if(!svg) return;
+const wrap=svg.closest('.hourly-scroll-inner')||svg.parentNode;
+wrap.style.position='relative';
+const tip=document.createElement('div'); tip.className='hourly-tooltip'; wrap.appendChild(tip);
+const line=document.createElement('div');
+line.style.cssText='position:absolute;top:0;bottom:22px;width:2px;background:var(--primary);opacity:.5;display:none;pointer-events:none;z-index:40';
+wrap.appendChild(line);
+function move(ev){
+const r=svg.getBoundingClientRect();
+const px=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left;
+if(px<0||px>r.width){tip.style.display=line.style.display='none';return;}
+const frac=px/r.width;
+const labels=[...document.querySelectorAll('#hourly-labels span')];
+if(!labels.length) return;
+const idx=Math.min(labels.length-1,Math.max(0,Math.round(frac*(labels.length-1))));
+const temps=[...svg.querySelectorAll('text')].filter(t=>/^-?\d+°$/.test(t.textContent));
+const tv=temps.length?temps[Math.min(idx,temps.length-1)]?.textContent:'';
+/* data + ora (ex: „21 aug · 20:00") — din orele ISO ale graficului */
+let when=(labels[idx].textContent.match(/\d{1,2}:\d{2}/)||[labels[idx].textContent.trim()])[0];
+const iso=(window.__hourlyTimes||[])[idx];
+if(iso){
+try{
+const ds=new Date(iso).toLocaleDateString(localeForLang(currentLang),{day:'2-digit',month:'short'});
+when=ds+' · '+when;
+}catch(e){}
+}
+tip.innerHTML=`<b>${when}</b> · ${tv||''}`;
+tip.style.display='block'; line.style.display='block';
+const wr=wrap.getBoundingClientRect();
+const lx=wr.left+frac*wr.width-wr.left;
+line.style.left=Math.max(0,Math.min(wr.width-2,frac*wr.width))+'px';
+const tw=tip.offsetWidth;
+tip.style.left=Math.max(0,Math.min(wr.width-tw,frac*wr.width-tw/2))+'px';
+tip.style.top='2px';
+}
+svg.addEventListener('mousemove',move);
+svg.addEventListener('touchmove',move,{passive:true});
+svg.addEventListener('mouseleave',()=>{tip.style.display=line.style.display='none';});
+svg.style.cursor='crosshair';
+})();
+
+/* ── 11. ARIA + ESCAPE ── */
+document.getElementById('alerts-panel')?.setAttribute('role','alert');
+document.getElementById('alerts-panel')?.setAttribute('aria-live','assertive');
+document.getElementById('toast-container')?.setAttribute('aria-live','polite');
+document.getElementById('sync-info')?.setAttribute('aria-live','polite');
+[['btn-favorite','Adaugă/șterge favorite'],['btn-notif','Notificări'],
+['btn-share','Distribuie'],['btn-settings','Setări'],
+['btn-theme','Comută tema'],['play-btn','Redă radar'],
+['scroll-top-btn','Înapoi sus']].forEach(([id,l])=>{
+document.getElementById(id)?.setAttribute('aria-label',l);
+});
+document.addEventListener('keydown',e=>{
+if(e.key!=='Escape') return;
+['fc-modal-overlay','settings-modal-overlay','favorites-modal-overlay'].forEach(id=>{
+const o=document.getElementById(id);
+if(o && o.classList.contains('open')) o.classList.remove('open');
+});
+});
+
+/* ── 12. SECȚIUNI PLIABILE — comparativă & istoric apar doar la apăsare ── */
+function bindCollapse(toggleId,wrapId,onOpen){
+const tgl=document.getElementById(toggleId); const wrap=document.getElementById(wrapId);
+if(!tgl||!wrap) return;
+const setOpen=open=>{
+wrap.style.display=open?'block':'none';
+tgl.classList.toggle('open',open);
+tgl.setAttribute('aria-expanded',String(open));
+if(open&&onOpen)setTimeout(onOpen,60);
+};
+setOpen(false); /* implicit închis — conținutul se încarcă la cerere */
+tgl.addEventListener('click',()=>setOpen(wrap.style.display==='none'));
+tgl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl.click();}});
+}
+bindCollapse('mc-toggle','mc-body-wrap');
+bindCollapse('hist-toggle','hist-body-wrap',()=>loadHistoryTrend());
+/* redesenare istoric la redimensionarea ferestrei (doar dacă e deschis) */
+let _rsT;
+window.addEventListener('resize',()=>{clearTimeout(_rsT);_rsT=setTimeout(()=>{
+if(document.getElementById('hist-body-wrap')?.style.display!=='none')loadHistoryTrend();
+},300);});
+
+/* ── 13. re-randare comparativă când se schimbă gridul ── */
+const fg=document.getElementById('full-grid');
+if(fg){
+let deb,quick;
+new MutationObserver(()=>{
+/* trecere rapidă: rebuild-ul innerHTML șterge gruparea — refiltrare promptă */
+clearTimeout(quick);quick=setTimeout(tagGridGroups,60);
+clearTimeout(deb);deb=setTimeout(()=>{buildModelComparison();tagGridGroups();},800);
+})
+.observe(fg,{childList:true,subtree:true,characterData:true});
+}
+/* plasă de siguranță: datele pentru comparativă se pregătesc la 6s (cache previne spamul API);
+   istoricul își arată doar titlul pliabil — graficul se desenează la deschidere */
+setTimeout(()=>{
+buildModelComparison();
+const hp=document.getElementById('history-trend');
+if(hp && currentCoords) hp.style.display='block';
+const mp=document.getElementById('anm-map-section');
+if(mp) mp.style.display='block';
+}, 6000);
+
+/* ── 14. HARTA AVERTIZĂRILOR ANM — județe colorate după cod ── */
+const RO_COUNTIES=['Alba','Arad','Argeș','Bacău','Bihor','Bistrița-Nasaud','Botoșani','Brașov','Brăila','București','Buzău','Călărași','Caraș-Severin','Cluj','Constanța','Covasna','Dâmbovița','Dolj','Galați','Giurgiu','Gorj','Harghita','Hunedoara','Ialomița','Iași','Ilfov','Maramureș','Mehedinți','Mureș','Neamț','Olt','Prahova','Sălaj','Satu Mare','Sibiu','Suceava','Teleorman','Timiș','Tulcea','Vaslui','Vâlcea','Vrancea'];
+function normTok(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
+function extractCounties(text){
+if(!text)return[];
+const toks=new Set(normTok(text).split(/\s+/));
+const out=[];
+RO_COUNTIES.forEach(c=>{
+const parts=normTok(c).split(' ');
+if(parts.every(p=>toks.has(p)))out.push(normTok(c));
+});
+return out;
+}
+/* expuse global: parseANMWarnings (top-level) le apelează */
+window.normTok=normTok;
+window.extractCounties=extractCounties;
+let _anmMap=null,_anmLayer=null,_geoCache=null;
+const GEO_URL='https://raw.githubusercontent.com/GabrielRondelli/geojson/main/romania-counties.geojson';
+async function loadRoGeo(){
+if(_geoCache)return _geoCache;
+try{
+const cached=JSON.parse(localStorage.getItem('hub_ro_geo')||'null');
+if(cached&&cached.t&&Date.now()-cached.t<7*24*3600*1000){_geoCache=cached.g;return _geoCache;}
+}catch(e){}
+const r=await fetch(GEO_URL); if(!r.ok)throw new Error('geo http '+r.status);
+const g=await r.json();
+_geoCache=g;
+try{localStorage.setItem('hub_ro_geo',JSON.stringify({t:Date.now(),g}));}catch(e){}
+return g;
+}
+function countyLevels(){
+const RANK={yellow:1,orange:2,red:3};
+const lv={};
+RO_COUNTIES.forEach(c=>lv[normTok(c)]={level:null,rank:0,warnings:[]});
+const warns=(window.anmParsed&&Array.isArray(window.anmParsed))?window.anmParsed:[];
+warns.forEach(w=>{
+const rank=RANK[w.level]; if(!rank)return;
+/* național > județe extrase din text > nimic */
+const affected=w.national?Object.keys(lv):((w.counties&&w.counties.length)?w.counties:[]);
+affected.forEach(n=>{
+const e=lv[n]; if(!e)return;
+e.warnings.push(w);
+if(rank>e.rank){e.rank=rank;e.level=w.level;}
+});
+});
+return lv;
+}
+async function initAnmMap(){
+try{
+const holder=document.getElementById('anm-map');
+if(!holder)return;
+if(!window.L){
+holder.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-weight:700">Harta nu a putut fi încărcată.</div>';
+return;
+}
+if(!_anmMap){
+_anmMap=L.map(holder,{attributionControl:false,zoomControl:true,scrollWheelZoom:false}).setView([45.9,25],7);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:18,subdomains:'abcd'}).addTo(_anmMap);
+}
+setTimeout(()=>{try{_anmMap.invalidateSize();}catch(e){}},80);
+const geo=await loadRoGeo();
+/* așteaptă scurt primul parse ANM dacă nu e gata încă */
+if(!(window.anmParsed&&window.anmParsed.length)){
+await new Promise(res=>setTimeout(res,1200));
+}
+const lv=countyLevels();
+if(_anmLayer)_anmLayer.remove();
+_anmLayer=L.geoJSON(geo,{
+style:f=>{
+const e=lv[normTok(f.properties.NAME_1||'')]||{};
+const col=e.level==='red'?'#ef4444':e.level==='orange'?'#f97316':e.level==='yellow'?'#eab308':'#22c55e';
+return{color:'#ffffff',weight:1,fillColor:col,fillOpacity:.6};
+},
+onEachFeature:(f,layer)=>{
+const e=lv[normTok(f.properties.NAME_1||'')]||{warnings:[]};
+const name=f.properties.NAME_1||'?';
+const col=e.level==='red'?'🔴':e.level==='orange'?'🟠':e.level==='yellow'?'🟡':'🟢';
+let html=`<b>${col} ${name}</b>`;
+(e.warnings||[]).slice(0,3).forEach(w=>{html+=`<br><small>${w.title}</small>`;});
+layer.bindTooltip(html,{sticky:true});
+layer.on('mouseover',()=>layer.setStyle({weight:2.5,fillOpacity:.8}));
+layer.on('mouseout',()=>layer.setStyle({weight:1,fillOpacity:.6}));
+}
+}).addTo(_anmMap);
+}catch(err){
+const h=document.getElementById('anm-map');
+if(h)h.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-weight:700">Harta nu este disponibilă momentan.</div>';
+}
+}
+bindCollapse('map-toggle','map-body-wrap',()=>initAnmMap());
+
+/* ── 15. TABURI GRILĂ DATE ── */
+const GTAB_RULES=[
+['acum','temp actuala'],['acum','resimtit'],['acum','la noapte'],['acum','min max'],['acum','umiditate'],
+['vant','vant mediu'],['vant','directie'],['vant','presiune'],
+['cer','precipitatii'],['cer','nebulozitate'],['cer','uv'],['cer','vizibilitate'],['cer','rasarit'],['cer','apus'],
+['aer','calitate aer'],['aer','roua'],['aer','cape']
+];
+function tagGridGroups(){
+document.querySelectorAll('#full-grid .data-item').forEach(it=>{
+const lbl=normTok(it.querySelector('.item-label')?.textContent||'');
+let g='';
+for(const[grp,sub]of GTAB_RULES){if(lbl.indexOf(sub)!==-1){g=grp;break;}}
+if(g)it.dataset.g=g;
+});
+applyGridFilter();
+}
+function applyGridFilter(){
+const act=document.querySelector('#grid-tabs .gtab.active');
+const g=act?act.dataset.g:'all';
+document.querySelectorAll('#full-grid .data-item').forEach(it=>{
+it.style.display=(g==='all'||it.dataset.g===g)?'':'none';
+});
+}
+const gt=document.getElementById('grid-tabs');
+if(gt){
+gt.addEventListener('click',e=>{
+const b=e.target.closest('.gtab');
+if(!b)return;
+gt.querySelectorAll('.gtab').forEach(x=>x.classList.remove('active'));
+b.classList.add('active');
+applyGridFilter();
+});
+}
+tagGridGroups();
+})();
+
 
 setTimeout(syncCurrentLocationState, 2500);
 setTimeout(syncCurrentLocationState, 5000);

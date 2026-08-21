@@ -5,6 +5,8 @@
 
 **Hub Hibrid PRO** este o aplicație web meteo ușoară (single-file), dezvoltată pentru a oferi cea mai precisă prognoză și stare a vremii, combinând date de la furnizori globali cu stațiile meteorologice locale din România (ANM).
 
+Aplicația rezolvă problema erorilor de localizare (ex: confuzia între orașe cu nume similare precum *Târgu Neamț* și *Târgu Jiu*) printr-un sistem de mapare și filtrare strictă.
+
 ---
 
 ## ✨ Funcționalități Principale
@@ -102,6 +104,64 @@ updateWeather();
 
 ---
 
+## 🛠️ Detalii Tehnice pentru Dezvoltatori
+
+### Stack Tehnologic
+* **Frontend:** HTML5, CSS3 (CSS Variables, Flexbox, Grid, Animations), JavaScript ES6+
+* **Librării externe:** Leaflet.js (hărți), FontAwesome 6 (iconițe)
+* **Arhitectură:** Single-file, zero dependencies build, CSP headers pentru securitate
+
+### Structura Codului
+```javascript
+// Config API (la începutul script-ului)
+// Cheile API NU mai există în client — totul trece prin Cloudflare Worker
+const API_PROXY = "https://hubmeteoacr.brm-laser-veronese.workers.dev"; // /anm, /wapi/*, /mb/*
+
+// Provider state management
+const providers = { wapi: true, anm: true, mb: true, om: true };
+
+// Funcții principale
+- updateWeather()          // Flux principal hibrid
+- updateWeatherANMOnly()   // Mod ANM exclusiv
+- updateWeatherOMOnly()    // Mod Open-Meteo exclusiv
+- fetchOpenMeteo()         // Fuziune ICON-D2 + ICON-EU + ECMWF
+- showRadarTab()           // Comutare tab-uri radar
+- renderForecastOM()       // Randare prognoză 5 zile (120h)
+- generateAlerts()         // Generare alerte automate
+```
+
+### Cloudflare Worker (proxy API)
+Worker-ul din `cloudflare-worker.js` rutează 3 API-uri, ținând cheile **server-side**:
+* `/anm` → meteoromania.ro (fără cache, ca înainte)
+* `/wapi/*` → api.weatherapi.com (cheia din secretul `WAPI_KEY`)
+* `/mb/*` → my.meteoblue.com (cheia din secretul `MB_KEY`)
+
+Deploy + configurare secrete:
+```bash
+# 1. Instalează Wrangler (dacă nu ai): npm i -g wrangler
+# 2. Login: wrangler login
+# 3. Deploy: wrangler deploy
+# 4. Configurează secretele (cheile tale personale):
+wrangler secret put WAPI_KEY
+wrangler secret put MB_KEY
+```
+După deploy, actualizează `API_PROXY` din `index.html` cu URL-ul worker-ului tău.
+
+### Logica de Mapare Locații
+În cod există constanta `CITY_MAP` (lângă `findStationByName`) care leagă numele uzual al unui oraș de numele exact al stației ANM, prevenind rezultate false (ex: *Târgu Neamț* vs *Târgu Jiu*, *Sinaia* vs *Sinaia 1500*):
+```javascript
+// Exemplu CITY_MAP (deja implementat în index.html)
+const CITY_MAP = {
+  'sinaia': 'SINAIA 1500',
+  'targu neamt': 'TARGU NEAMT',
+  'targu jiu': 'TARGU JIU',
+  'bucuresti': 'BUCURESTI FILARET',
+  // Adaugă aici mapările tale (chei normalizate: fără diacritice, lowercase)
+};
+```
+
+---
+
 ## 🛡️ Modificări Recente (v1.3 — Securitate & Curățenie)
 
 ### ✅ Ce s-a schimbat:
@@ -128,6 +188,30 @@ Redeploy worker-ul și configurează secretele (vezi secțiunea „Cloudflare Wo
 | 📱 **PWA complet** | `manifest.json` + `sw.js` (service worker cu cache offline) + iconițe 192/512/maskable generate din logo; aplicația se poate instala pe telefon/PC („Adaugă pe ecranul de pornire") |
 | 🚨 **Alerte ANM oficiale** | Integrare cu endpoint-ul oficial `avertizari-generale` al Meteoromania (prin worker, ruta `/anm-warnings`): coduri **galben/portocaliu/roșu** cu mesaj și valabilitate, afișate împreună cu alertele locale ICON-EU |
 | 🧹 **Duplicat eliminat** | Definiția veche `window.renderAlerts` (fără alerte ANM) eliminată; `enhanceDataGrid` păstrat în versiunea nouă |
+
+### ⚠️ Pas necesar:
+Redeploy worker-ul cu noul cod (`cloudflare-worker.js` conține acum și ruta `/anm-warnings`) — altfel alertele ANM oficiale nu vor apărea.
+
+---
+
+## ✨ Modificări Recente (v1.5 — PRO Pack: UX & Funcționalități Avansate)
+
+### ✅ Ce s-a schimbat:
+| Modificare | Detalii |
+|------------|---------|
+| ⚖️ **Comparativă modele** *(opțional)* | Secțiune **pliabilă, închisă implicit**, sub grila de date — date reale din **ICON-EU, ECMWF** + coloana Hub; coloanele fără acoperire (ex. ICON-D2 în România) se ascund automat; cache 15 min |
+| 📈 **Istoric 7 zile** *(opțional)* | Secțiune pliabilă sub comparativă — grafic canvas max/min din **Open-Meteo Archive API** (gratuit) vs benzile mediilor climatice ale lunii; se desenează doar la deschidere |
+| 🗺️ **Harta Avertizărilor ANM** *(opțional)* | Secțiune pliabilă — harta României cu **județe colorate după cod** (verde/galben/portocaliu/roșu), ca pe meteoromania.ro; tooltip cu titlurile avertizărilor per județ; avertizările naționale colorează toată țara; GeoJSON cache 7 zile |
+| 🗂️ **Taburi grilă date** | Grila de 18 indicatori, direct sub „Încredere Date", organizată în taburi: **Toate / Acum / Vânt & Presiune / Cer & Soare / Aer**; filtrarea persistă la actualizările automate |
+| 📸 **Export imagine** | PNG cu oraș, **dată și oră**, temp., condiție **și textul complet al avertizărilor ANM active** (casete colorate galben/portocaliu/roșu) + **creditele din Setări** (sursele de date și mulțumiri); nume fișier cu dată (`hub-meteo-2026-08-21.png`); distribuie prin Web Share API sau download |
+| 🌐 **7 limbi** | Adăugate **Germană, Spaniolă, Maghiară** (ro/en/it/fr/de/es/hu) — ciclare cu butonul de limbă + select în Setări; **creditele & linkurile din Setări** și mesajul de favorite goale sunt traduse în toate limbile |
+| 🖱️ **Tooltip grafic orar** | Crosshair + tooltip cu ora și temperatura la hover/atingere pe graficul pe 8h |
+| 💀 **Skeleton loading** | Placeholder-e animate (shimmer) la prima încărcare până sosesc datele |
+| 🎨 **Fundal dinamic** | Gradient-ul paginii se schimbă după condiție: senin zi/noapte, ploaie, ninsoare, furtună, noros, ceață, zori, amurg |
+| 📲 **Install prompt** | Banner „Instalează Hub Meteo" după a -a vizită (beforeinstallprompt), cu posibilitate de amânare |
+| 🔢 **PWA badge** | Temperatura curentă afișată pe iconița aplicației (`setAppBadge`, unde e suportat) |
+| ♿ **Accesibilitate** | `role="alert"` pe panoul de alerte, `aria-live` pe toast/sincronizare, `aria-label` pe butoanele-icon, închidere modale cu **Escape**, `:focus-visible` |
+| 🎞️ **Micro-interacțiuni** | Animație pop la actualizarea temperaturii, stagger-in pe griduri, ripple la click pe butoane, respectă `prefers-reduced-motion` |
 
 ---
 
@@ -156,10 +240,11 @@ Aprecierile și contribuțiile sunt binevenite! Proiectul a fost dezvoltat cu pa
 5.  Deschide un Pull Request
 
 ### Idei pentru viitoare îmbunătățiri:
-- [ x ] Adăugare suport PWA (installable app)
+- [ ] Adăugare suport PWA (installable app)
 - [ ] Export date meteo în CSV/JSON
 - [ ] Notificări push pentru alerte meteo
 - [ ] Istoric temperaturi cu grafic interactiv
+- [ ] Suport pentru mai multe limbi (EN, FR, DE)
 
 ---
 
