@@ -3457,14 +3457,30 @@ syncSettingsForm();
 /* ================================================================
 TOAST
 ================================================================ */
-function showToast(msg, type = 'info') {
+function showToast(msg, type = 'info', duration = 3200) {
 const icons = { success:'fa-check-circle', error:'fa-triangle-exclamation', info:'fa-circle-info' };
 const el = document.createElement('div');
 el.className = `toast ${type}`;
 el.innerHTML = `<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
 document.getElementById('toast-container').appendChild(el);
-setTimeout(() => el.remove(), 3200);
+setTimeout(() => el.remove(), duration);
 }
+/* Mesaj de eroare prietenos + detaliu tehnic pentru diagnostic */
+function errToast(e) {
+const detail = e && e.message ? e.message : String(e || 'necunoscută');
+console.error('[Hub Meteo]', e);
+return escapeHtml(detail);
+}
+/* Plase de siguranță globale — orice eroare async ajunge vizibil în toast */
+window.addEventListener('unhandledrejection', ev => {
+console.error('[Hub Meteo] unhandled rejection:', ev.reason);
+try {
+showToast('⚠️ ' + escapeHtml(String((ev.reason && ev.reason.message) || ev.reason || 'promis respins')), 'error', 9000);
+} catch(_) {}
+});
+window.addEventListener('error', ev => {
+console.error('[Hub Meteo] error:', ev.message, '@', ev.filename + ':' + ev.lineno);
+});
 
 /* ================================================================
 HELPERS
@@ -3729,7 +3745,8 @@ return `OM/${model || 'ICON-EU'}`;
 function feelsSourceLabel(tempSrc, windSrc) {
 const tSrc = String(tempSrc || '').trim();
 const wSrc = String(windSrc || '').trim();
-if (tSrc && wSrc && tSrc === wSrc) return `${tSrc} + ${t('wind_source_suffix')}`;
+/* aceeași sursă pentru temp + vânt → afișăm doar sursa (ex: [ANM], nu [ANM + vânt]) */
+if (tSrc && wSrc && tSrc === wSrc) return tSrc;
 if (tSrc && wSrc) return `${tSrc} + ${wSrc}`;
 return tSrc || wSrc || 'Model';
 }
@@ -3909,7 +3926,7 @@ const anmWind = parseAnmWind(p.vant);
 	const vDirAnm  = anmWind.direction;
 	const anmFeelsLike = calcApparentTemp(mainTemp, vWindKmh, p.umezeala ? parseFloat(p.umezeala) : null);
 	if (anmFeelsLike !== null) {
-	document.getElementById('temp-feel').innerText = t('feels_like') + ': ' + displayTemp(anmFeelsLike) + ' [ANM + ' + t('wind_source_suffix') + ']';
+	document.getElementById('temp-feel').innerText = t('feels_like') + ': ' + displayTemp(anmFeelsLike) + ' [ANM]';
 	}
 /* ── PARSEAZĂ PRESIUNE ANM ── */
 const anmPressure = parseAnmPressure(p.presiunetext);
@@ -3977,7 +3994,7 @@ gridItems.push({ label: t('tonight'), val: 'N/A', src: '—' });
 	gridItems.push({
 	label: t('feels_like'),
 	val:   anmFeelsLike !== null ? displayTemp(anmFeelsLike) : (omFeelsLike !== null ? displayTemp(omFeelsLike) : 'N/A'),
-	src:   anmFeelsLike !== null ? 'ANM + ' + t('wind_source_suffix') : (omFeelsLike !== null ? 'OM/ICON-EU' : '—')
+	src:   anmFeelsLike !== null ? 'ANM' : (omFeelsLike !== null ? 'OM/ICON-EU' : '—')
 	});
 gridItems.push({
 label: t('avg_wind'),
@@ -4180,7 +4197,7 @@ freshness: 'Live',
 startAutoRefresh();
 } catch(e) {
 console.error(e);
-showToast(t('error_generic'), 'error');
+showToast(t('error_generic') + ' — ' + errToast(e), 'error', 9000);
 } finally {
 loader.style.display  = 'none';
 content.style.opacity = '1';
@@ -4439,7 +4456,7 @@ syncCurrentLocationState();
 showToast(`${locationName} — Open-Meteo ICON-EU ✓`, 'success');
 } catch(e) {
 console.error(e);
-showToast(t('error_generic'), 'error');
+showToast(t('error_generic') + ' — ' + errToast(e), 'error', 9000);
 } finally {
 loader.style.display  = 'none';
 content.style.opacity = '1';
@@ -4578,6 +4595,20 @@ return updateWeatherWAPIFallback(cityInput, loader, content);
 }
 throw new Error('ICON-EU indisponibil și W-API dezactivat');
 }
+const omc  = omData.current;
+const omh  = omData.hourly;
+const omd  = omData.daily;
+const omi  = omData.nowIdx;
+const t23i = omData.tonight23Idx;
+/* Index ziua de azi în daily */
+const todayStr = (() => {
+const n = new Date();
+return n.getFullYear() + '-' +
+String(n.getMonth()+1).padStart(2,'0') + '-' +
+String(n.getDate()).padStart(2,'0');
+})();
+const dIdx = (omd && omd.time)
+? Math.max(0, omd.time.findIndex(d => d === todayStr)) : 0;
 let mbHourlyData = null;
 if (mbRes.status === 'fulfilled' && mbRes.value && mbRes.value.ok) {
 try { const dM = await mbRes.value.json(); if (dM && dM.data_1h) mbHourlyData = dM.data_1h; }
@@ -4880,7 +4911,7 @@ if (omData.ecmwfDaily) activeSrcs.push('ECMWF ✓');
 showToast(`${p ? cleanAnmText(p.nume) : locationName} — ${activeSrcs.join(', ')}`, 'success');
 } catch(e) {
 console.error(e);
-showToast(t('error_generic'), 'error');
+showToast(t('error_generic') + ' — ' + errToast(e), 'error', 9000);
 } finally {
 loader.style.display  = 'none';
 content.style.opacity = '1';
@@ -4956,7 +4987,7 @@ startAutoRefresh();
 syncCurrentLocationState();
 showToast(dW.location.name + ' — W-API fallback ⚠️', 'info');
 } catch(e) {
-showToast(t('error_generic'), 'error');
+showToast(t('error_generic') + ' (fallback) — ' + errToast(e), 'error', 9000);
 } finally {
 loader.style.display  = 'none';
 content.style.opacity = '1';
@@ -5840,6 +5871,7 @@ window.addEventListener('scroll', () => {
  OPEN-METEO FUSION V3 — ICON-D2 + ICON-EU + ECMWF ENSEMBLE
 ================================================================ */
 let _omCompositeCache = null;
+let _omCompositeTime = 0;
 let _hourlySourceMeta = null;
 
 /* _isNum, _toFiniteNumber, _seriesValue, _buildTimeMap, _avgMembers -> js/app-logic.js */
@@ -5924,7 +5956,7 @@ async function fetchOpenMeteoD2(lat, lon) {
     models: 'icon_d2',
     current: 'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,surface_pressure,precipitation,cloud_cover,visibility,is_day,dew_point_2m',
     hourly: 'temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,surface_pressure,cloud_cover,visibility,snow_depth,cape',
-    minutely_15: 'precipitation',
+    /* fără minutely_15 — ICON-D2 nu acoperă România oricum ("no data" pentru lat>~26°E) */
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_hours,precipitation_probability_max,precipitation_probability_min,sunrise,sunset,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant',
     wind_speed_unit: 'kmh',
     temperature_unit: 'celsius',
@@ -6031,7 +6063,15 @@ async function fetchOpenMeteoAll(lat, lon) {
   const d2 = d2Res.status === 'fulfilled' ? d2Res.value : null;
   const eu = euRes.status === 'fulfilled' ? euRes.value : null;
   const ecmwf = ecmwfRes.status === 'fulfilled' ? ecmwfRes.value : null;
-  if (!d2 && !eu && !ecmwf) return null;
+  if (!d2 && !eu && !ecmwf) {
+    /* Eșec tranzitoriu total (ex: rate-limit) — refolosim fuziunea recentă
+       (max 60 min) ca UI-ul să nu se strice; ANM/radar rămân live oricum. */
+    if (_omCompositeCache && _omCompositeTime && Date.now() - _omCompositeTime < 60 * 60 * 1000) {
+      console.warn('Open-Meteo: toate modelele au eșuat — folosesc fuziunea din cache (<60min)');
+      return _omCompositeCache;
+    }
+    return null;
+  }
   const hourlyMaster = (eu && eu.hourly && eu.hourly.time) || (d2 && d2.hourly && d2.hourly.time) || (ecmwf && ecmwf.hourly && ecmwf.hourly.time) || [];
   const hourlyFields = ['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','precipitation','precipitation_probability','weather_code','wind_speed_10m','wind_gusts_10m','wind_direction_10m','surface_pressure','cloud_cover','visibility','snow_depth','cape','uv_index'];
   const d2Map = _buildTimeMap(d2 && d2.hourly ? d2.hourly.time : []);
@@ -6151,6 +6191,7 @@ async function fetchOpenMeteoAll(lat, lon) {
     nowIdx,
     tonight23Idx
   };
+  _omCompositeTime = Date.now();
   return _omCompositeCache;
 }
 window.fetchOpenMeteoD2 = fetchOpenMeteoD2;
