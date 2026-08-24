@@ -5170,6 +5170,7 @@ try {
 const w = await fetchANMWarnings();
 anmWarnings = parseANMWarnings(w);
 window.anmParsed = anmWarnings; /* expus pentru harta județelor */
+try { if (typeof window.refreshAnmMapData === 'function') window.refreshAnmMapData(); } catch(e) {}
 } catch(e) { /* alertele ANM sunt opționale */ }
 const all = [...anmWarnings, ...alerts];
 if (!all.length) { panel.style.display = 'none'; return; }
@@ -5179,8 +5180,8 @@ panel.innerHTML = all.map(a => `
 <div class="alert-icon">${a.icon}</div>
 <div class="alert-body">
 <div class="alert-title">${a.icon} ${a.title}</div>
-${a.msg ? `<div class="alert-msg">${a.msg}</div>` : ''}
-<div class="alert-src">${a.src}</div>
+${a.msg ? `<div class="alert-msg">${escapeHtml(a.msg).replace(/\n/g, '<br>')}</div>` : ''}
+<div class="alert-src">${a.src}${a.countyNames && a.countyNames.length && a.countyNames.length < 30 ? ' · Județe: ' + escapeHtml(a.countyNames.join(', ')) : ''}</div>
 </div>
 </div>
 `).join('');
@@ -5192,26 +5193,177 @@ HubNotif.updateBadge(all);
 } catch(e) {}
 }
 }
-/* Transformă JSON-ul oficial ANM (avertizari-generale) în alerte */
+/* ================================================================
+PARSARE OFICIALĂ AVERTIZĂRI ANM (wp-json/meteoapi/v2/avertizari-generale)
+Structura reală a API-ului (identică cu harta oficială meteoromania.ro):
+avertizare[] → @attributes { tipMesaj, numeTipMesaj, dataAparitiei,
+  dataExpirarii, culoare, numeCuloare, fenomeneVizate, intervalul,
+  zonaAfectata, mesaj<HTML> } + judet[] → @attributes { cod, culoare }
+Un singur mesaj poate conține MAI MULTE coduri de culoare — markerele
+sunt imaginile galben.gif / portocaliu.gif / rosu.gif din HTML.
+================================================================ */
+const RO_JUDET_COD = {
+AB:'Alba', AG:'Argeș', AR:'Arad', B:'București', BC:'Bacău', BH:'Bihor',
+BN:'Bistrița-Năsăud', BR:'Brăila', BT:'Botoșani', BV:'Brașov', BZ:'Buzău',
+CJ:'Cluj', CL:'Călărași', CS:'Caraș-Severin', CT:'Constanța', CV:'Covasna',
+DB:'Dâmbovița', DJ:'Dolj', GJ:'Gorj', GL:'Galați', GR:'Giurgiu',
+HD:'Hunedoara', HR:'Harghita', IF:'Ilfov', IL:'Ialomița', IS:'Iași',
+MH:'Mehedinți', MM:'Maramureș', MS:'Mureș', NT:'Neamț', OT:'Olt',
+PH:'Prahova', SB:'Sibiu', SJ:'Sălaj', SM:'Satu Mare', SV:'Suceava',
+TL:'Tulcea', TM:'Timiș', TR:'Teleorman', VL:'Vâlcea', VN:'Vrancea', VS:'Vaslui'
+};
+function _anmNorm(s) {
+try {
+if (typeof window !== 'undefined' && typeof window.normTok === 'function') return window.normTok(s);
+} catch(e) {}
+return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+function _anmLevelFromAttrs(at) {
+const c = String((at && at.culoare) != null ? at.culoare : '').trim();
+if (c === '3') return 3;
+if (c === '2') return 2;
+if (c === '1') return 1;
+/* atenționările au culoare="0" dar numeCuloare="galben" etc. */
+const n = String((at && at.numeCuloare) || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+if (n.includes('ros')) return 3;
+if (n.includes('portocaliu')) return 2;
+if (n.includes('galben')) return 1;
+return 0;
+}
+function _anmCleanText(html) {
+return String(html || '')
+.replace(/<img[^>]*>/gi, ' ')
+.replace(/<br\s*\/?>/gi, '\n')
+.replace(/<\/(p|div|li|tr|h[1-6])>/gi, '\n')
+.replace(/<[^>]+>/g, ' ')
+/* &amp; ÎNTÂI — mesajele ANM vin dublu-escapate (&amp;acirc; = &acirc;) */
+.replace(/&amp;/gi, '&')
+/* entități numerice (ex: &#537; = ș, &#x21B;) */
+.replace(/&#x([0-9a-f]+);/gi, (m, h) => { try { return String.fromCodePoint(parseInt(h, 16)); } catch(e) { return ' '; } })
+.replace(/&#(\d+);/g, (m, d) => { try { return String.fromCodePoint(parseInt(d, 10)); } catch(e) { return ' '; } })
+/* entități named — diacritice RO + semne comune */
+.replace(/&acirc;/gi, '\u00E2').replace(/&icirc;/gi, '\u00EE')
+.replace(/&abreve;/gi, '\u0103')
+.replace(/&scedil;/gi, '\u015F').replace(/&scaron;/gi, '\u0161')
+.replace(/&tcedil;/gi, '\u0163')
+.replace(/&nbsp;/gi, ' ').replace(/&ndash;/gi, '\u2013').replace(/&mdash;/gi, '\u2014')
+.replace(/&quot;/gi, '"').replace(/&#39;/gi, "'")
+.replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+.replace(/[ \t]+/g, ' ')
+.replace(/\n\s+/g, '\n')
+.trim();
+}
+/* Desparte mesajul HTML în secțiuni după markerele de culoare GIF */
+function _anmSplitSections(mesajHtml) {
+const marked = String(mesajHtml || '')
+.replace(/<img[^>]*?galben\.gif[^>]*>/gi, '\u0001GALBEN\u0001')
+.replace(/<img[^>]*?portocaliu\.gif[^>]*>/gi, '\u0001PORTOCALIU\u0001')
+.replace(/<img[^>]*?ros[uu]\.gif[^>]*>/gi, '\u0001ROSU\u0001');
+const plain = _anmCleanText(marked);
+const parts = plain.split(/\u0001\s*(GALBEN|PORTOCALIU|ROSU)\s*\u0001/i);
+const sections = [];
+if (parts.length === 1) {
+if (parts[0] && parts[0].trim()) sections.push({ colorKey: null, body: parts[0].trim() });
+} else {
+for (let i = 1; i < parts.length; i += 2) {
+let body = (parts[i + 1] || '').trim();
+body = body.replace(/^MESAJ\s*\d+\s*\/\s*\d+\s*/i, '');
+if (body) sections.push({ colorKey: parts[i].toUpperCase(), body });
+else sections.push({ colorKey: parts[i].toUpperCase(), body: '' });
+}
+}
+return sections;
+}
+function _anmField(text, re) {
+const m = String(text || '').match(re);
+return m ? m[1].replace(/^[\s:\-\u2013]+/, '').replace(/\s*[;,]\s*$/, '').trim() : null;
+}
+
 function parseANMWarnings(data) {
 if (!data || !data.avertizare) return [];
 const list = Array.isArray(data.avertizare) ? data.avertizare : [data.avertizare];
 const out = [];
 for (const item of list) {
 const at = item['@attributes'] || {};
-const culoare = String(at.culoare || '');
-const level = culoare === '3' ? 'red' : culoare === '2' ? 'orange' : 'yellow';
-const icon = culoare === '3' ? '🔴' : culoare === '2' ? '🟠' : '🟡';
-const tip = at.numeTipMesaj || 'Avertizare meteorologică';
-const title = (culoare === '3' ? 'Cod Roșu' : culoare === '2' ? 'Cod Portocaliu' : 'Cod Galben') + ' — ' + tip;
-const raw = at.mesaj || '';
-const fullMsg = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-const msg = fullMsg.slice(0, 220);
-const exp = at.dataExpirarii ? ' Valabil până: ' + at.dataExpirarii.replace('T', ' ') : '';
-/* județele afectate — extrase din textul complet (pentru hartă) */
-const counties = extractCounties(fullMsg);
-const national = /toat[ea]\s+(regiunile|ț)|cea mai mare parte|majoritatea\s+(regiunilor|zonelor)/i.test(fullMsg);
-out.push({ level, icon, title, msg: msg + exp, src: 'ANM — avertizare oficială', counties, national });
+/* ── Județe STRUCTURATE din API (sursa oficială pentru hartă) ── */
+const judeteRaw = item.judet || item.Judet || item.judete || [];
+const judeteArr = Array.isArray(judeteRaw) ? judeteRaw : (judeteRaw ? [judeteRaw] : []);
+const judete = judeteArr.map(j => {
+const ja = j['@attributes'] || j || {};
+return {
+cod: String(ja.cod || '').toUpperCase(),
+culoare: parseInt(String(ja.culoare != null ? ja.culoare : '0'), 10) || 0
+};
+}).filter(j => j.cod && RO_JUDET_COD[j.cod]);
+const blockLevel = _anmLevelFromAttrs(at);
+const tipName = cleanAnmText(at.numeTipMesaj || 'Avertizare meteorologică');
+const validFrom = at.dataAparitiei ? String(at.dataAparitiei).replace('T', ' ') : '';
+const validUntil = at.dataExpirarii ? String(at.dataExpirarii).replace('T', ' ') : '';
+const sections = _anmSplitSections(at.mesaj || '');
+if (!sections.length) continue;
+/* culori distincte prezente în lista de județe a blocului */
+const judetColors = [...new Set(judete.map(j => j.culoare).filter(c => c >= 1))];
+const multiColor = judetColors.length > 1;
+const srcLabel = 'ANM Meteoromania — avertizare oficială' +
+(validUntil ? ' · valabil până ' + validUntil : '') +
+(validFrom ? ' · emisă ' + validFrom : '');
+for (const sec of sections) {
+const lvlNum = sec.colorKey === 'GALBEN' ? 1 :
+sec.colorKey === 'PORTOCALIU' ? 2 :
+sec.colorKey === 'ROSU' ? 3 :
+(blockLevel || 1);
+const level = lvlNum === 3 ? 'red' : lvlNum === 2 ? 'orange' : 'yellow';
+const icon = lvlNum === 3 ? '🔴' : lvlNum === 2 ? '🟠' : '🟡';
+const colorName = lvlNum === 3 ? 'Cod Roșu' : lvlNum === 2 ? 'Cod Portocaliu' : 'Cod Galben';
+const title = colorName + ' — ' + tipName;
+const body = sec.body || '';
+const interval = _anmField(body, /Interval\s+de\s+valabilitate:\s*([^\n]+)/i)
+|| (at.intervalul && !/^conform/i.test(String(at.intervalul).trim())
+? cleanAnmText(at.intervalul).replace(/[;\s]+$/, '') : null);
+const fenomene = _anmField(body, /Fenomene\s+vizate:\s*([^\n]+)/i)
+|| (at.fenomeneVizate && !/^conform/i.test(String(at.fenomeneVizate).trim())
+? cleanAnmText(at.fenomeneVizate).replace(/[;\s]+$/, '') : null);
+const zona = _anmField(body, /Zon[aă](?:le)?\s+(?:afectat[ea]?|afectate?|vizate?):\s*([^\n]+)/i)
+|| (at.zonaAfectata && !/^conform/i.test(String(at.zonaAfectata).trim())
+? cleanAnmText(at.zonaAfectata).replace(/[;\s]+$/, '') : null);
+/* corpul complet al mesajului, fără liniile de antet deja extrase */
+const msgBody = body
+.replace(/Interval\s+de\s+valabilitate:[^\n]*/ig, '')
+.replace(/Fenomene\s+vizate:[^\n]*/ig, '')
+.replace(/Zon[aă](?:le)?\s+(?:afectat[ea]?|afectate?|vizate?):[^\n]*/ig, '')
+.replace(/\n{2,}/g, '\n').trim();
+/* Județele secțiunii: dacă blocul amestecă mai multe culori,
+   filtrăm județele exact pe culoarea secțiunii curente. */
+let cods = [];
+if (judete.length) {
+cods = multiColor
+? judete.filter(j => j.culoare === lvlNum).map(j => j.cod)
+: (judetColors.length ? judete.filter(j => j.culoare >= 1).map(j => j.cod) : judete.map(j => j.cod));
+} else {
+/* fallback vechi: extragere din text */
+cods = [];
+}
+const counties = cods.length ? cods : extractCounties(msgBody + ' ' + (zona || ''));
+const national = cods.length >= 30 ||
+/cea mai mare parte|majoritatea|toat[aă]\s+(ț|t)ării|peste tot/i.test(msgBody);
+const msgParts = [
+msgBody,
+interval ? '⏱ Valabilitate: ' + interval : '',
+fenomene ? '⚠️ Fenomene: ' + fenomene : '',
+zona ? '📍 Zonă: ' + zona : ''
+].filter(Boolean);
+out.push({
+level, icon, title,
+msg: msgParts.join('\n'),
+fenomene,
+interval: interval || (validUntil ? 'până la ' + validUntil : null),
+zona,
+src: srcLabel,
+counties,                    /* coduri oficiale de județ (BR, CL…) — pentru hartă */
+countyNames: cods.map(c => RO_JUDET_COD[c]),
+national
+});
+}
 }
 return out;
 }
@@ -7640,14 +7792,24 @@ return g;
 function countyLevels(){
 const RANK={yellow:1,orange:2,red:3};
 const lv={};
-RO_COUNTIES.forEach(c=>lv[normTok(c)]={level:null,rank:0,warnings:[]});
+Object.keys(RO_JUDET_COD).forEach(cod=>lv[cod]={level:null,rank:0,warnings:[]});
+const byName={};
+Object.entries(RO_JUDET_COD).forEach(([cod,n])=>{byName[normTok(n)]=cod;});
 const warns=(window.anmParsed&&Array.isArray(window.anmParsed))?window.anmParsed:[];
 warns.forEach(w=>{
 const rank=RANK[w.level]; if(!rank)return;
-/* național > județe extrase din text > nimic */
-const affected=w.national?Object.keys(lv):((w.counties&&w.counties.length)?w.counties:[]);
-affected.forEach(n=>{
-const e=lv[n]; if(!e)return;
+let targets=[];
+if (Array.isArray(w.counties) && w.counties.length && RO_JUDET_COD[String(w.counties[0]).toUpperCase()]) {
+/* coduri oficiale de județ din API (ex: BR, CL, PH) */
+targets = w.counties.map(c=>String(c).toUpperCase());
+} else if (w.national) {
+targets = Object.keys(lv);
+} else if (Array.isArray(w.counties) && w.counties.length) {
+/* fallback: nume normalizate -> coduri */
+targets = w.counties.map(n=>byName[n]).filter(Boolean);
+}
+targets.forEach(cod=>{
+const e=lv[cod]; if(!e)return;
 e.warnings.push(w);
 if(rank>e.rank){e.rank=rank;e.level=w.level;}
 });
@@ -7673,15 +7835,21 @@ if(!(window.anmParsed&&window.anmParsed.length)){
 await new Promise(res=>setTimeout(res,1200));
 }
 const lv=countyLevels();
+/* mapare nume GeoJSON (NAME_1) -> cod oficial județ (BR, CL, PH…) */
+const nameToCod={};
+Object.entries(RO_JUDET_COD).forEach(([cod,n])=>{nameToCod[normTok(n)]=cod;});
+const featureCod=f=>nameToCod[normTok(f.properties.NAME_1||'')];
 if(_anmLayer)_anmLayer.remove();
 _anmLayer=L.geoJSON(geo,{
 style:f=>{
-const e=lv[normTok(f.properties.NAME_1||'')]||{};
+const cod=featureCod(f);
+const e=(cod&&lv[cod])||{};
 const col=e.level==='red'?'#ef4444':e.level==='orange'?'#f97316':e.level==='yellow'?'#eab308':'#22c55e';
 return{color:'#ffffff',weight:1,fillColor:col,fillOpacity:.6};
 },
 onEachFeature:(f,layer)=>{
-const e=lv[normTok(f.properties.NAME_1||'')]||{warnings:[]};
+const cod=featureCod(f);
+const e=(cod&&lv[cod])||{warnings:[]};
 const name=f.properties.NAME_1||'?';
 const col=e.level==='red'?'🔴':e.level==='orange'?'🟠':e.level==='yellow'?'🟡':'🟢';
 let html=`<b>${col} ${name}</b>`;
@@ -7696,6 +7864,13 @@ const h=document.getElementById('anm-map');
 if(h)h.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-weight:700">Harta nu este disponibilă momentan.</div>';
 }
 }
+/* re-randare harta cand vin date ANM proaspete (fara a recreea mapa Leaflet) */
+let _anmMapBusy=false;
+window.refreshAnmMapData=async function(){
+if(!_anmMap||_anmMapBusy)return;
+_anmMapBusy=true;
+try{ await initAnmMap(); } finally { _anmMapBusy=false; }
+};
 bindCollapse('map-toggle','map-body-wrap',()=>initAnmMap());
 
 /* ── 15. TABURI GRILĂ DATE ── */
