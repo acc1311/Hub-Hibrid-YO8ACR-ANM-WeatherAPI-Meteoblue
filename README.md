@@ -63,6 +63,54 @@ npx serve  # Node.js
 3.  Comută între furnizori din bara de sus pentru a compara datele.
 4.  Explorează radarul ploi cu cele 3 opțiuni disponibile.
 
+### Dezvoltare & verificare:
+```bash
+npm install          # instalează ESLint + Prettier + Vitest
+npm run verify       # lint + sintaxă inline + teste unitare
+npm run test:watch   # teste în mod watch
+```
+
+---
+
+## 🚀 Modificări Recente (v2.0 — Precizie & Profesionalism)
+
+### 🎯 Precizie
+| Îmbunătățire | Detalii |
+|--------------|---------|
+| 🌧️ **Nowcast precipitații** | Bandă „următoarele 3h" din `minutely_15` ICON-EU/ICON-D2: „Precipitații în ~30 min" sau „Fără precipitații în următoarele 180 min" |
+| 🎲 **Probabilitate din ensemble** | `precipitation_probability` derivată acum direct din membrii ensemble ECMWF (% membri cu ≥ 0.1 mm), nu doar media modelului |
+| 📊 **Normale climatice reale** | Banda de climatologie a istoricului 7 zile folosește ERA5 1991–2020 (Archive API) cu cache local 30 zile; constantele hardcodate sunt doar fallback |
+| 👁️ **Consens modele** | Badge lângă temperatură: „n/3 modele de acord · dispersie ±x°", colorat verde/galben/roșu după acordul ICON-D2/EU/ECMWF |
+
+### 🔐 Securitate & robustețe
+| Îmbunătățire | Detalii |
+|--------------|---------|
+| 🌐 **`safeFetch()` global** | Toate apelurile API trec printr-un wrapper cu timeout (AbortController), retry pe erori 5xx și backoff |
+| 🛡️ **XSS închis** | `escapeHtml()` aplicat consecvent: autocomplete, banner smart, titluri alerte ANM, tooltip hartă, sync-info |
+| 🧱 **CSP întărit** | Eliminate `'unsafe-eval'` și wildcard-ul `https:` din default-src; surse enumerate explicit (script/style/font/frame/img/connect) |
+| 🔑 **Worker protejat** | `/push/subscribe`: allowlist origini push (FCM/Mozilla/Apple), validare chei base64url, limită 5000 abonamente, **rate-limit per IP** (10/oră, fereastră fixă KV) |
+
+### 🏗️ Arhitectură
+| Îmbunătățire | Detalii |
+|--------------|---------|
+| 📦 **`js/app-logic.js`** | Logica pură (parsere ANM, termodinamică, fuziune, unități, escapeHtml, safeFetch) extrasă din HTML — lint-uibilă și testabilă |
+| 🔀 **Pipeline paralel** | `updateWeather()` rulează ICON-EU/ECMWF + Meteoblue + WeatherAPI cu `Promise.allSettled` (o singură rundă de latență); dubla rezolvare ANM eliminată |
+| 🧹 **Zero monkey-patching** | Wrapper-ele `window.drawSunArc`, `window.drawWindCompass`, `window.startAutoRefresh`, `window.toggleTheme/Lang/Unit`, `wrapLocationSync` și `_origAST/_origLFL` au fost integrate în funcțiile originale |
+| ✅ **Tooling complet** | `package.json` + ESLint 9 (flat config) + Prettier + Vitest + GitHub Actions CI (`npm run verify`) |
+| 🧪 **29 teste unitare** | Parsere ANM, wind chill / heat index / dew point, probabilități ensemble, consens, validare coordonate, conversii vânt, Beaufort, safeFetch (timeout + retry) |
+
+### ✨ UX
+| Îmbunătățire | Detalii |
+|--------------|---------|
+| ⌨️ **Autocomplete cu tastatură** | Săgeți ↑/↓ + Enter, Escape; ARIA combobox/listbox cu `aria-activedescendant` |
+| 💨 **Unități vânt** | km/h / m/s / mph / noduri din Setări — propagate și în embedurile Windy + MeteoRadar |
+| 🌍 **Locale complete** | `localeForLang` acoperă toate cele 7 limbi (de/es/hu nu mai cad înapoi la ro); cheile noi traduse în RO/EN/DE/ES/HU |
+| 🔋 **Pauză particule** | Animațiile de ploaie/zăpadă/furtună se pun pe pauză când tab-ul e ascuns (`visibilitychange`) |
+
+### ⚠️ După actualizare
+1. **Redeploy worker-ul**: `wrangler deploy` (include noile protecții push).
+2. Cache-ul Service Worker a urcat la `hub-meteo-v3` — clienții vor primi automat noul conținut.
+
 ---
 
 ## 🔧 Modificări Recente & Fix-uri (v1.2)
@@ -128,13 +176,18 @@ const providers = { wapi: true, anm: true, mb: true, om: true };
 - showRadarTab()           // Comutare tab-uri radar
 - renderForecastOM()       // Randare prognoză 5 zile (120h)
 - generateAlerts()         // Generare alerte automate
+- renderNowcastStrip()     // Nowcast precipitații minutely_15
+- renderConsensusBadge()   // Acordul modelelor asupra temperaturii
+- fetchClimateNormals()    // Climatologie ERA5 1991–2020
 ```
 
 ### Cloudflare Worker (proxy API)
 Worker-ul din `cloudflare-worker.js` rutează 3 API-uri, ținând cheile **server-side**:
 * `/anm` → meteoromania.ro (fără cache, ca înainte)
+* `/anm-warnings` → avertizările oficiale ANM
 * `/wapi/*` → api.weatherapi.com (cheia din secretul `WAPI_KEY`)
 * `/mb/*` → my.meteoblue.com (cheia din secretul `MB_KEY`)
+* `/push/*` → Web Push cu validare strictă + rate-limit per IP
 
 Deploy + configurare secrete:
 ```bash
@@ -220,12 +273,14 @@ Redeploy worker-ul cu noul cod (`cloudflare-worker.js` conține acum și ruta `/
 Aplicația include header CSP configurat pentru a permite doar sursele necesare:
 ```html
 <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; 
-  child-src 'self' https: blob:; 
-  frame-src https://embed.windy.com https://radar.wo-cloud.com https://api.rainviewer.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://www.meteoradar.ro; 
-  connect-src 'self' https:; 
-  img-src 'self' https: data: blob:; 
-  style-src 'self' 'unsafe-inline' https:;">
+  default-src 'self'; 
+  script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; 
+  style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; 
+  font-src https://cdnjs.cloudflare.com https://unpkg.com data:; 
+  img-src 'self' data: blob: https:; 
+  connect-src 'self' https: wss:; 
+  frame-src https://embed.windy.com https://radar.wo-cloud.com https://www.meteoradar.ro https://api.rainviewer.com; 
+  worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self';">
 ```
 
 ## 🤝 Contribuții
@@ -241,10 +296,11 @@ Aprecierile și contribuțiile sunt binevenite! Proiectul a fost dezvoltat cu pa
 
 ### Idei pentru viitoare îmbunătățiri:
 - [x] Adăugare suport PWA (installable app)
-- [ ] Export date meteo în CSV/JSON
+- [x] Export date meteo în CSV/JSON *(export PNG implementat)*
 - [x] Notificări push pentru alerte meteo
 - [x] Istoric temperaturi cu grafic interactiv
-- [x] Suport pentru mai multe limbi (EN, FR, DE)
+- [x] Suport pentru mai multe limbi (EN, FR, DE, ES, HU, IT)
+- [x] Teste unitare + CI
 
 ---
 

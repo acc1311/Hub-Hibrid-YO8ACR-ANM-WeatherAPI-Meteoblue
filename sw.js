@@ -1,13 +1,14 @@
-/* ============================================================
+﻿/* ============================================================
    Hub Meteo PRO — Service Worker (PWA)
    Strategie: network-first pentru pagină și API, cache-first
    pentru iconițe și resurse statice.
    ============================================================ */
-const CACHE_NAME = 'hub-meteo-v2';
+const CACHE_NAME = 'hub-meteo-v3';
 const WORKER_BASE = 'https://hubmeteoacr.brm-laser-veronese.workers.dev';
 const PRECACHE = [
   './',
   './index.html',
+  './js/app-logic.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -76,7 +77,7 @@ async function showAlertNotifications() {
         exp: at.dataExpirarii || ''
       };
     });
-  } catch (e) {
+  } catch {
     await self.registration.showNotification('Hub Meteo PRO', {
       body: 'Au apărut modificări la avertizările meteo. Deschide aplicația pentru detalii.',
       icon: './icons/icon-192.png', tag: 'hub-meteo-tickle'
