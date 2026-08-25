@@ -84,6 +84,23 @@
     return parseFloat(tempC.toFixed(1));
   }
 
+  /* Indice Căldură (Heat Index / ITU) — Rothfusz, °C */
+  function calcHeatIndex(tempC, relHumidity) {
+    if (tempC == null || relHumidity == null) return null;
+    tempC = Number(tempC);
+    relHumidity = Number(relHumidity);
+    if (!Number.isFinite(tempC) || !Number.isFinite(relHumidity)) return null;
+    if (tempC < 27 || relHumidity < 40) return parseFloat(tempC.toFixed(1));
+    const tF = tempC * 9 / 5 + 32;
+    const hiF = -42.379 + 2.04901523 * tF + 10.14333127 * relHumidity
+      - 0.22475541 * tF * relHumidity
+      - 0.00683783 * tF * tF - 0.05481717 * relHumidity * relHumidity
+      + 0.00122874 * tF * tF * relHumidity + 0.00085282 * tF * relHumidity * relHumidity
+      - 0.00000199 * tF * tF * relHumidity * relHumidity;
+    if (!Number.isFinite(hiF)) return parseFloat(tempC.toFixed(1));
+    return parseFloat(((hiF - 32) * 5 / 9).toFixed(1));
+  }
+
   /* ── ANM parsers ────────────────────────────────────────────── */
   /* Format ANM vânt: "1.8 m/s, directia : VSV" */
   function parseAnmWind(vantRaw) {
@@ -179,6 +196,22 @@
       prob.push(total ? Math.round((wet / total) * 100) : null);
     }
     return prob.some(p => p != null) ? prob : null;
+  }
+
+  /* Probabilitate max precipitații pentru restul zilei curente */
+  function _maxPrecipToday(hourlyObj, startIdx, todayStr) {
+    if (!hourlyObj || !hourlyObj.precipitation_probability || !hourlyObj.time) return null;
+    const arr = hourlyObj.precipitation_probability;
+    const times = hourlyObj.time;
+    let max = null;
+    const si = startIdx >= 0 ? startIdx : 0;
+    for (let i = si; i < times.length; i++) {
+      const ts = String(times[i] || '');
+      if (todayStr && !ts.startsWith(todayStr)) break;
+      const v = arr[i];
+      if (v != null && (max === null || v > max)) max = v;
+    }
+    return max;
   }
 
   /* Probabilitate zilnică afișată: % model sau estimată din cantitate */
@@ -284,9 +317,9 @@
     escapeHtml, cleanAnmText, anmVal, to24h, degToCompass,
     calcDewPoint, calcApparentTemp, parseAnmWind, parseAnmPressure,
     _isNum, _toFiniteNumber, _seriesValue, _buildTimeMap, _avgMembers,
-    memberPrecipProbability, _dailyPrecipProbability, computeConsensus,
+    memberPrecipProbability, _dailyPrecipProbability, _maxPrecipToday, computeConsensus,
     safeFetch, parseCoordinateInput,
-    convertWindFromKmh, windUnitLabel, formatWind, WIND_UNITS, beaufortScale, BEAUFORT
+    convertWindFromKmh, windUnitLabel, formatWind, WIND_UNITS, beaufortScale, BEAUFORT, calcHeatIndex
   };
   Object.keys(api).forEach(k => { global[k] = api[k]; });
   global.HubLogic = api;
