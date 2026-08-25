@@ -1833,10 +1833,12 @@ body { background: white; padding: 0; }
 <div class="widget-card">
 <div class="section-title"><i class="fas fa-temperature-half"></i> <span data-i18n="comfort_title">Confort Termic</span></div>
 <div class="comfort-info" id="comfort-info">
-    <div class="comfort-row"><span class="comfort-label">Punct de rouă</span><span class="comfort-val">-2.8°C</span></div>
-    <div class="comfort-row"><span class="comfort-label">Resimțit</span><span class="comfort-val">3.6°C</span></div>
-    <div class="comfort-row"><span class="comfort-label">Vant disconfort</span><span class="comfort-val">Scăzut</span></div>
-    <div class="comfort-text comfort-ok">Condiții acceptabile pentru activități outdoor.</div>
+    <div class="comfort-row"><span class="comfort-label">Indice Căldură</span><span class="comfort-val">—</span></div>
+    <div class="comfort-row"><span class="comfort-label">Umiditate</span><span class="comfort-val">—</span></div>
+    <div class="comfort-row"><span class="comfort-label">Punct de rouă</span><span class="comfort-val">—</span></div>
+    <div class="comfort-row"><span class="comfort-label">Resimțit</span><span class="comfort-val">—</span></div>
+    <div class="comfort-row"><span class="comfort-label">Disconfort vânt</span><span class="comfort-val">—</span></div>
+    <div class="comfort-text comfort-ok">Se încarcă...</div>
   </div>
 </div>
 </div>
@@ -2174,15 +2176,23 @@ aqi_unhealthy: 'Slab',
 aqi_very_unhealthy: 'Periculos',
 aqi_hazardous: 'Periculos',
 dew_point: 'Punct de rouă',
-wind_discomfort: 'Vant disconfort',
+heat_index: 'Indice Căldură (ITU)',
+itu_no_discomfort: 'Fără disconfort',
+itu_low: 'Disconfort ușor',
+itu_moderate: 'Disconfort moderat',
+itu_high: 'Disconfort ridicat',
+itu_very_high: 'Disconfort foarte ridicat',
+itu_danger: 'Pericol — caniculă!',
+wind_discomfort: 'Disconfort vânt',
 comfort_high: 'Ridicat',
 comfort_moderate: 'Moderat',
 comfort_low: 'Scăzut',
-comfort_good: 'Condiții confortabile — plăcut afara!',
-comfort_cold: 'Frig extrem — îmbracă-te gros!',
-comfort_hot: 'Cald foarte — hidratează-te!',
+comfort_good: 'Condiții confortabile — plăcut afară!',
+comfort_cold: 'Frig — îmbracă-te gros!',
+comfort_hot: 'Cald — hidratează-te!',
+comfort_danger: 'Caniculă — evită expunerea prelungită!',
 comfort_cold_feel: 'Se simte mult mai rece din cauza vântului!',
-comfort_hot_feel: 'Se simte mai cald din cauza umidității!',
+comfort_hot_feel: 'Disconfort termic din cauza umidității!',
 comfort_ok: 'Condiții acceptabile pentru activități outdoor.',
 days_short: ['Dum','Lun','Mar','Mie','Joi','Vin','Sâm'],
 today: 'Azi',
@@ -2339,15 +2349,23 @@ aqi_unhealthy: 'Unhealthy',
 aqi_very_unhealthy: 'Very Unhealthy',
 aqi_hazardous: 'Hazardous',
 dew_point: 'Dew Point',
+heat_index: 'Heat Index (HI)',
+itu_no_discomfort: 'No discomfort',
+itu_low: 'Slight discomfort',
+itu_moderate: 'Moderate discomfort',
+itu_high: 'High discomfort',
+itu_very_high: 'Very high discomfort',
+itu_danger: 'Danger — extreme heat!',
 wind_discomfort: 'Wind Discomfort',
 comfort_high: 'High',
 comfort_moderate: 'Moderate',
 comfort_low: 'Low',
 comfort_good: 'Comfortable conditions — pleasant outside!',
-comfort_cold: 'Extreme cold — dress warmly!',
-comfort_hot: 'Very hot — stay hydrated!',
+comfort_cold: 'Cold — dress warmly!',
+comfort_hot: 'Hot — stay hydrated!',
+comfort_danger: 'Heat advisory — avoid prolonged exposure!',
 comfort_cold_feel: 'Feels much colder due to wind!',
-comfort_hot_feel: 'Feels warmer due to humidity!',
+comfort_hot_feel: 'Heat discomfort due to humidity!',
 comfort_ok: 'Acceptable conditions for outdoor activities.',
 days_short: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
 today: 'Today',
@@ -2527,16 +2545,24 @@ aqi_unhealthy: 'Non salutare',
 aqi_very_unhealthy: 'Molto non salutare',
 aqi_hazardous: 'Pericolosa',
 dew_point: 'Punto di rugiada',
+heat_index: 'Indice di Calore (IC)',
+itu_no_discomfort: 'Nessun disagio',
+itu_low: 'Disagio lieve',
+itu_moderate: 'Disagio moderato',
+itu_high: 'Disagio elevato',
+itu_very_high: 'Disagio molto elevato',
+itu_danger: 'Pericolo — ondata di calore!',
 wind_discomfort: 'Disagio da vento',
 comfort_high: 'Alto',
 comfort_moderate: 'Moderato',
 comfort_low: 'Basso',
-comfort_good: 'Condizioni confortevoli',
-comfort_cold: 'Freddo estremo',
-comfort_hot: 'Molto caldo',
+comfort_good: 'Condizioni confortevoli — piacevole!',
+comfort_cold: 'Freddo — vestiti caldo!',
+comfort_hot: 'Caldo — idratati!',
+comfort_danger: 'Ondata di calore — evitare esposizione prolungata!',
 comfort_cold_feel: 'Sembra molto più freddo per il vento.',
-comfort_hot_feel: 'Sembra più caldo per l umidità.',
-comfort_ok: 'Condizioni accettabili per attività all aperto.',
+comfort_hot_feel: 'Disagio termico per l\'umidità.',
+comfort_ok: 'Condizioni accettabili per attività all\'aperto.',
 days_short: ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'],
 today: 'Oggi',
 today_full: 'Oggi',
@@ -2672,15 +2698,23 @@ aqi_unhealthy: 'Mauvaise',
 aqi_very_unhealthy: 'Très mauvaise',
 aqi_hazardous: 'Dangereuse',
 dew_point: 'Point de rosée',
+heat_index: 'Indice de Chaleur (IC)',
+itu_no_discomfort: 'Aucun inconfort',
+itu_low: 'Inconfort léger',
+itu_moderate: 'Inconfort modéré',
+itu_high: 'Inconfort élevé',
+itu_very_high: 'Inconfort très élevé',
+itu_danger: 'Danger — canicule!',
 wind_discomfort: 'Inconfort dû au vent',
 comfort_high: 'Élevé',
 comfort_moderate: 'Modéré',
 comfort_low: 'Faible',
-comfort_good: 'Conditions confortables',
-comfort_cold: 'Froid extrême',
-comfort_hot: 'Très chaud',
+comfort_good: 'Conditions confortables — agréable!',
+comfort_cold: 'Froid — habillez-vous chaudement!',
+comfort_hot: 'Chaud — hydratez-vous!',
+comfort_danger: 'Canicule — évitez l\'exposition prolongée!',
 comfort_cold_feel: 'Ressenti beaucoup plus froid à cause du vent.',
-comfort_hot_feel: 'Ressenti plus chaud à cause de l humidité.',
+comfort_hot_feel: 'Inconfort thermique dû à l\'humidité.',
 comfort_ok: 'Conditions acceptables pour activités extérieures.',
 days_short: ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],
 today: 'Auj.',
@@ -3962,7 +3996,7 @@ const omCloudCover = omC  ? omC.cloud_cover : null;
 const omPressure   = (omC && omC.surface_pressure != null && anmPressure.value === null)
 ? omC.surface_pressure : null;
 const omUvNow      = omVal(omH ? omH.uv_index : null, omNow);
-const omRainProb   = omVal(omH ? omH.precipitation_probability : null, omNow);
+const omRainProb   = _maxPrecipToday(omH, omNow, todayDateStr);
 const omTonightT   = omVal(omH ? omH.temperature_2m : null, omT23);
 const omTodayMin   = omD  ? omVal(omD.temperature_2m_min, omDIdx) : null;
 const omTodayMax   = omD  ? omVal(omD.temperature_2m_max, omDIdx) : null;
@@ -4273,12 +4307,6 @@ const cloudCover = omc.cloud_cover != null ? omc.cloud_cover : '--';
 // UV și precipitații din hourly la indexul orei curente (nu fix 0)
 const omUvNow   = (omh && omh.uv_index && omi >= 0 && omh.uv_index[omi] != null)
 ? omh.uv_index[omi] : null;
-const omRainProb = (omh && omh.precipitation_probability && omi >= 0 && omh.precipitation_probability[omi] != null)
-? omh.precipitation_probability[omi] : null;
-// Temperatura la ora 23:00 azi (La Noapte)
-const tonightTemp = (omh && omh.temperature_2m && t23i >= 0 && omh.temperature_2m[t23i] != null)
-? omh.temperature_2m[t23i].toFixed(1) + '°C'
-: '--';
 // Min/Max: găsim indexul zilei de azi în daily (nu mereu 0)
 const todayDateStr = (() => {
 const now = new Date();
@@ -4286,6 +4314,11 @@ return now.getFullYear() + '-' +
 String(now.getMonth() + 1).padStart(2, '0') + '-' +
 String(now.getDate()).padStart(2, '0');
 })();
+const omRainProb = _maxPrecipToday(omh, omi, todayDateStr);
+// Temperatura la ora 23:00 azi (La Noapte)
+const tonightTemp = (omh && omh.temperature_2m && t23i >= 0 && omh.temperature_2m[t23i] != null)
+? omh.temperature_2m[t23i].toFixed(1) + '°C'
+: '--';
 const dailyTodayIdx = (omd && omd.time)
 ? omd.time.findIndex(d => d === todayDateStr)
 : -1;
@@ -4657,7 +4690,7 @@ const omPressureMb = omc.surface_pressure;
 const omHumidity   = omc.relative_humidity_2m;
 const omVisKm      = omc.visibility != null ? omc.visibility / 1000 : null;
 const omCloud      = omc.cloud_cover;
-const omRainProb   = omh && omh.precipitation_probability ? omh.precipitation_probability[omi] : null;
+const omRainProb   = _maxPrecipToday(omh, omi, todayStr);
 const omUvNow      = omh && omh.uv_index ? omh.uv_index[omi] : null;
 const omTodayMax   = omd && omd.temperature_2m_max ? omd.temperature_2m_max[dIdx] : null;
 const omTodayMin   = omd && omd.temperature_2m_min ? omd.temperature_2m_min[dIdx] : null;
@@ -6742,19 +6775,41 @@ window.renderComfort = function(dW) {
   const feelsOk = _isNum(feels);
   const dewOk = _isNum(dew);
   const windOk = _isNum(wind);
+  /* Indice Căldură (Heat Index / ITU) */
+  const heatIdx = calcHeatIndex(temp, hum);
+  const heatOk = heatIdx !== null;
+  let heatLabel = '';
+  if (heatOk) {
+    if (heatIdx < 20) heatLabel = t('itu_no_discomfort');
+    else if (heatIdx < 24) heatLabel = t('itu_low');
+    else if (heatIdx < 28) heatLabel = t('itu_moderate');
+    else if (heatIdx < 32) heatLabel = t('itu_high');
+    else if (heatIdx < 36) heatLabel = t('itu_very_high');
+    else heatLabel = t('itu_danger');
+  }
+  /* Clasificare confort pe baza ITU */
   let comfortText = t('comfort_ok');
   let comfortCls = 'comfort-ok';
-  if (temp >= 18 && temp <= 26 && hum < 70 && (!windOk || wind < 20)) {
+  if (heatOk && heatIdx >= 32) {
+    comfortText = t('comfort_danger');
+    comfortCls = 'comfort-bad';
+  } else if (heatOk && heatIdx >= 28) {
+    comfortText = t('comfort_hot');
+    comfortCls = 'comfort-bad';
+  } else if (heatOk && heatIdx >= 24) {
+    comfortText = t('comfort_hot_feel');
+    comfortCls = 'comfort-ok';
+  } else if (temp < 0 || (windOk && temp < 5 && wind > 20)) {
+    comfortText = t('comfort_cold');
+    comfortCls = 'comfort-bad';
+  } else if (temp >= 18 && temp <= 26 && hum < 70 && (!windOk || wind < 20)) {
     comfortText = t('comfort_good');
     comfortCls = 'comfort-good';
-  } else if (temp < 0 || temp > 35) {
-    comfortText = temp < 0 ? t('comfort_cold') : t('comfort_hot');
-    comfortCls = 'comfort-bad';
-  } else if (hum > 85) {
-    comfortText = t('comfort_hot_feel');
   }
-  const windDiscomfortLabel = !windOk ? t('comfort_low') : wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
+  const windDiscomfortLabel = !windOk ? '—' : wind > 40 ? t('comfort_high') : wind > 20 ? t('comfort_moderate') : t('comfort_low');
   el.innerHTML = `
+    <div class="comfort-row"><span class="comfort-label">${t('heat_index')}</span><span class="comfort-val">${heatOk ? displayTemp(heatIdx) + ' — ' + heatLabel : t('incomplete_data')}</span></div>
+    <div class="comfort-row"><span class="comfort-label">${t('humidity')}</span><span class="comfort-val">${hum != null ? hum + '%' : '—'}</span></div>
     <div class="comfort-row"><span class="comfort-label">${t('dew_point')}</span><span class="comfort-val">${dewOk ? displayTemp(dew) : t('incomplete_data')}</span></div>
     <div class="comfort-row"><span class="comfort-label">${t('feels_like_label')}</span><span class="comfort-val">${feelsOk ? displayTemp(feels) : t('incomplete_data')}</span></div>
     <div class="comfort-row"><span class="comfort-label">${t('wind_discomfort')}</span><span class="comfort-val">${windDiscomfortLabel}</span></div>
