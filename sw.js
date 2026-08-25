@@ -1,9 +1,9 @@
-﻿/* ============================================================
-   Hub Meteo PRO — Service Worker (PWA)
-   Strategie: network-first pentru pagină și API, cache-first
-   pentru iconițe și resurse statice.
+/* ============================================================
+   Hub Meteo PRO � Service Worker (PWA)
+   Strategie: network-first pentru pagina ?i API, cache-first
+   pentru iconi?e ?i resurse statice.
    ============================================================ */
-const CACHE_NAME = 'hub-meteo-v3';
+const CACHE_NAME = 'hub-meteo-v4';
 const WORKER_BASE = 'https://hubmeteoacr.brm-laser-veronese.workers.dev';
 const PRECACHE = [
   './',
@@ -32,7 +32,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // API-uri externe (worker Cloudflare, Open-Meteo, hărți) — network-first cu fallback cache
+  // API-uri externe (worker Cloudflare, Open-Meteo, har?i) � network-first cu fallback cache
   if (url.hostname !== location.hostname && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
     event.respondWith(
       fetch(event.request).then((res) => {
@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Resurse locale — network-first, fallback cache
+  // Resurse locale � network-first, fallback cache
   event.respondWith(
     fetch(event.request).then((res) => {
       const copy = res.clone();
@@ -55,11 +55,11 @@ self.addEventListener('fetch', (event) => {
 });
 
 /* ============================================================
-   WEB PUSH — alerte meteo ANM (funcționează și cu app închisă)
-   Push-ul e „tickle" (fără payload): SW-ul își ia datele proaspete
-   direct de la worker, ca notificarea să conțină mereu realitatea.
+   WEB PUSH � alerte meteo ANM (func?ioneaza ?i cu app �nchisa)
+   Push-ul e �tickle" (fara payload): SW-ul �?i ia datele proaspete
+   direct de la worker, ca notificarea sa con?ina mereu realitatea.
    ============================================================ */
-const LEVEL_ICON = { red: '🔴', orange: '🟠', yellow: '🟡' };
+const LEVEL_ICON = { red: '??', orange: '??', yellow: '??' };
 
 async function showAlertNotifications() {
   let warnings = [];
@@ -72,32 +72,32 @@ async function showAlertNotifications() {
       const culoare = String(at.culoare || '');
       return {
         level: culoare === '3' ? 'red' : culoare === '2' ? 'orange' : 'yellow',
-        title: (culoare === '3' ? 'Cod Roșu — ' : culoare === '2' ? 'Cod Portocaliu — ' : 'Cod Galben — ') + (at.numeTipMesaj || 'Avertizare meteorologică'),
+        title: (culoare === '3' ? 'Cod Ro?u � ' : culoare === '2' ? 'Cod Portocaliu � ' : 'Cod Galben � ') + (at.numeTipMesaj || 'Avertizare meteorologica'),
         msg: String(at.mesaj || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220),
         exp: at.dataExpirarii || ''
       };
     });
   } catch {
     await self.registration.showNotification('Hub Meteo PRO', {
-      body: 'Au apărut modificări la avertizările meteo. Deschide aplicația pentru detalii.',
+      body: 'Au aparut modificari la avertizarile meteo. Deschide aplica?ia pentru detalii.',
       icon: './icons/icon-192.png', tag: 'hub-meteo-tickle'
     });
     return;
   }
-  // doar avertizări severe produc notificare separată; galbenul e rezumat
+  // doar avertizari severe produc notificare separata; galbenul e rezumat
   const severe = warnings.filter((w) => w.level === 'red' || w.level === 'orange');
   if (severe.length) {
     for (const w of severe) {
-      await self.registration.showNotification('Hub Meteo PRO · ' + LEVEL_ICON[w.level] + ' ' + w.title, {
-        body: w.msg + (w.exp ? '\nValabil până: ' + w.exp.replace('T', ' ') : ''),
+      await self.registration.showNotification('Hub Meteo PRO � ' + LEVEL_ICON[w.level] + ' ' + w.title, {
+        body: w.msg + (w.exp ? '\nValabil p�na: ' + w.exp.replace('T', ' ') : ''),
         icon: './icons/icon-192.png',
         tag: 'hub-anm-' + w.title,
         requireInteraction: w.level === 'red'
       });
     }
   } else if (warnings.length) {
-    await self.registration.showNotification('Hub Meteo PRO · 🟡 Avertizări ANM active', {
-      body: warnings.length + ' avertizare/avertizări cod galben în vigoare. Apasă pentru detalii.',
+    await self.registration.showNotification('Hub Meteo PRO � ?? Avertizari ANM active', {
+      body: warnings.length + ' avertizare/avertizari cod galben �n vigoare. Apasa pentru detalii.',
       icon: './icons/icon-192.png', tag: 'hub-anm-yellow'
     });
   }

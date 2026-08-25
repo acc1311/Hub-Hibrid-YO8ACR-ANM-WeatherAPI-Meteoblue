@@ -1140,6 +1140,17 @@ border-left: 4px solid transparent; animation: fadeInUp 0.3s ease;
 [data-theme="dark"] .alert-item.yellow { background: #422006; color: #fbbf24; }
 [data-theme="dark"] .alert-item.orange { background: #431407; color: #fb923c; }
 [data-theme="dark"] .alert-item.red    { background: #450a0a; color: #f87171; }
+/* Badge avertizare ANM activă în header */
+.anm-header-badge {
+display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+margin-left: 10px; vertical-align: middle; cursor: pointer;
+border: 2px solid rgba(255,255,255,0.55); box-shadow: 0 0 8px rgba(0,0,0,0.25);
+animation: anm-pulse 1.6s ease-in-out infinite;
+}
+.anm-header-badge.yellow { background: #facc15; }
+.anm-header-badge.orange { background: #f97316; }
+.anm-header-badge.red    { background: #ef4444; }
+@keyframes anm-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: 0.82; } }
 .alert-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
 .alert-body { flex: 1; }
 .alert-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0.7; margin-bottom: 1px; }
@@ -1461,6 +1472,7 @@ body { background: white; padding: 0; }
 <input type="text" id="city-in" data-i18n-placeholder="search_placeholder" placeholder="Caută oraș (Ex: Iași, Cluj...)" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ac-dropdown" oninput="onSearchInput(this.value)" onfocus="onSearchFocus()" onkeydown="acKeydown(event)" onkeypress="if(event.key==='Enter') updateWeather()">
 </div>
 
+<button class="btn-action btn-gps" id="btn-gps" onclick="locateMe()" title="Folosește locația mea (GPS)"><i class="fas fa-location-crosshairs"></i></button>
 <button class="btn-action btn-favorite" id="btn-favorite" onclick="toggleCurrentFavorite()" title="Adaugă sau șterge din favorite"><i class="far fa-star" id="favorite-icon"></i></button>
 <button class="btn-action btn-notif" id="btn-notif" onclick="toggleNotifications()" title="Notificări alerte meteo">
   <i class="fas fa-bell"></i>
@@ -1506,7 +1518,7 @@ body { background: white; padding: 0; }
 <div id="main-content" style="opacity: 1;">
 <!-- LIVE CLOCK -->
 <div class="live-clock" id="live-clock"><i class="fas fa-clock"></i> <span id="live-clock-time">06:37:02</span><span class="live-clock-sep">·</span><span id="live-clock-date"></span></div>
-<div id="city-title" class="city-name">TARGU NEAMT</div>
+<div id="city-title" class="city-name">TARGU NEAMT<span id="anm-badge" class="anm-header-badge" style="display:none" title=""></span></div>
 <div id="sync-info" class="time-sync">OM: ICON-EU | 06:35:54 · ANM: 24-04-2026 ora 06:00 · W-API: AQI ✓<span id="refresh-badge" class="refresh-badge countdown"><i class="fas fa-sync-alt"></i> 28:52</span></div>
 <div class="weather-main">
 <div class="big-icon-wrap" id="big-icon"><i class="fas fa-sun" style="color:#f59e0b"></i></div>
@@ -1802,6 +1814,18 @@ body { background: white; padding: 0; }
 <div class="aqi-item-unit">µg/m³</div>
 </div></div>
 </div>
+<!-- POLEN -->
+<div class="aqi-detail-panel" id="pollen-panel" style="display:none">
+<div class="section-title"><i class="fas fa-seedling"></i> <span data-i18n="pollen_title">Polen</span> <span style="font-size:0.6rem;color:var(--muted);font-weight:600">gr/m³</span></div>
+<div class="aqi-detail-grid" id="pollen-grid"></div>
+</div>
+<!-- COMPARAȚIE LOCAȚII FAVORITE -->
+<div class="aqi-detail-panel" id="fav-compare-panel" style="display:none">
+<div class="section-title" style="display:flex;align-items:center;gap:8px"><i class="fas fa-table-columns"></i> <span data-i18n="fav_compare_title">Comparație locații</span>
+<button class="btn-action" onclick="refreshFavCompare()" title="Reîmprospătează" style="margin-left:auto;padding:3px 9px;font-size:0.62rem;border-radius:8px"><i class="fas fa-sync-alt"></i></button>
+</div>
+<div id="fav-compare-body" style="overflow-x:auto"></div>
+</div>
 <!-- UV INDEX GAUGE -->
 <div class="uv-gauge-wrap" id="uv-gauge-wrap" style="display: block;">
 <div class="section-title"><i class="fas fa-sun"></i> <span>Indice UV — Progresie</span></div>
@@ -2001,7 +2025,11 @@ body { background: white; padding: 0; }
 </div>
 </div>
 <div class="footer-tag" id="footer-tag"><i class="fas fa-check-circle"></i> Hub Hibrid Pro — W-API + ANM + Meteoblue + Open-Meteo + Radar ploi</div>
-<button class="btn-update" onclick="updateWeather()"><i class="fas fa-sync-alt"></i> <span data-i18n="update_btn">Actualizează Datele</span></button>
+<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+<button class="btn-update" onclick="updateWeather()" style="flex:1;min-width:150px"><i class="fas fa-sync-alt"></i> <span data-i18n="update_btn">Actualizează Datele</span></button>
+<button class="btn-update" onclick="exportDataCsv()" style="flex:0 1 auto;padding:10px 14px" title="Export CSV"><i class="fas fa-file-csv"></i> CSV</button>
+<button class="btn-update" onclick="exportDataJson()" style="flex:0 1 auto;padding:10px 14px" title="Export JSON"><i class="fas fa-file-code"></i> JSON</button>
+</div>
 </div>
 </div>
 <script src="js/app-logic.js"></script>
@@ -2090,6 +2118,16 @@ strat_zapada: 'Strat de Zăpadă',
 minima: 'Minima',
 maxima: 'Maxima',
 smart_precip: 'Șanse precipitații:',
+snapshot_note: 'Date locale de la {time}',
+gps_found: 'Locație detectată: {name}',
+gps_denied: 'Permisiune locație refuzată — caută manual orașul.',
+gps_unavailable: 'Locația nu este disponibilă.',
+pollen_title: 'Polen',
+pollen_alder: 'Alun', pollen_birch: 'Mesteacăn', pollen_grass: 'Iarbă',
+pollen_mugwort: 'Pelin', pollen_olive: 'Măslin', pollen_ragweed: 'Ambrozie',
+pollen_l0: 'absent', pollen_l1: 'scăzut', pollen_l2: 'moderat', pollen_l3: 'ridicat',
+rain_chance_short: 'Precip',
+fav_compare_title: 'Comparație locații', fav_compare_empty: 'Adaugă locații favorite pentru comparație.',
 settings_wind_unit: 'Unitate Vânt',
 wind_unit_kmh: 'km/h',
 wind_unit_ms: 'm/s',
@@ -2317,6 +2355,16 @@ strat_zapada: 'Snow Depth',
 minima: 'Minimum',
 maxima: 'Maximum',
 smart_precip: 'Precip. chance:',
+snapshot_note: 'Local data from {time}',
+gps_found: 'Location detected: {name}',
+gps_denied: 'Location permission denied — search manually.',
+gps_unavailable: 'Location unavailable.',
+pollen_title: 'Pollen',
+pollen_alder: 'Alder', pollen_birch: 'Birch', pollen_grass: 'Grass',
+pollen_mugwort: 'Mugwort', pollen_olive: 'Olive', pollen_ragweed: 'Ragweed',
+pollen_l0: 'none', pollen_l1: 'low', pollen_l2: 'moderate', pollen_l3: 'high',
+rain_chance_short: 'Precip',
+fav_compare_title: 'Locations compare', fav_compare_empty: 'Add favorite locations to compare.',
 smart_minmax: 'Min/Max:',
 wind_strong: 'Strong wind!',
 smart_anm_station: 'Official ANM Meteoromania station.',
@@ -2995,7 +3043,9 @@ let currentCoords = { lat: 47.17, lon: 26.36 };
 let isDark        = false;
 const APP_STATE_KEY = 'hub_app_state_v1';
 const DEFAULT_APP_SETTINGS = {
-theme: localStorage.getItem('hub_theme') || 'light',
+/* Auto dark mode: fără alegere explicită → urmează preferința sistemului */
+theme: localStorage.getItem('hub_theme')
+|| (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
 lang: normalizeLang(localStorage.getItem('hub_lang') || 'ro'),
 unit: localStorage.getItem('hub_unit') || 'C',
 windUnit: localStorage.getItem('hub_wind_unit') || 'kmh',
@@ -3204,8 +3254,10 @@ function acPick(idx) {
     }
   } else {
     selectedAnmStation = null;
-    updateWeather();
-  }
+updateWeather();
+}
+/* Comparația favoritei — o dată la boot (fetch manual prin buton după) */
+setTimeout(() => { try { refreshFavCompare(); } catch(e) {} }, 3000);
 }
 function acHighlight(idx) {
   const dropdown = document.getElementById('ac-dropdown');
@@ -3484,6 +3536,7 @@ THEME
 ================================================================ */
 function toggleTheme() {
 appState.settings.theme = isDark ? 'light' : 'dark';
+localStorage.setItem('hub_theme_explicit', '1'); /* userul a ales explicit — nu mai urmărim sistemul */
 applyThemeSilently(appState.settings.theme);
 saveAppState();
 syncSettingsForm();
@@ -4265,6 +4318,7 @@ const r = geoData.results[0];
 lat = r.latitude;
 lon = r.longitude;
 locationName = r.name + (r.admin1 ? ', ' + r.admin1 : '') + ', ' + r.country;
+window._currentCounty = r.admin1 || window._currentCounty;
 currentCoords = { lat, lon };
 }
 }
@@ -4555,6 +4609,7 @@ const r = geoData.results[0];
 lat = r.latitude; lon = r.longitude;
 locationName    = r.name + (r.admin1 ? ', ' + r.admin1 : '');
 locationCountry = r.country || 'România';
+window._currentCounty = r.admin1 || window._currentCounty;
 currentCoords   = { lat, lon };
 geocodedViaOM   = true;
 }
@@ -4578,6 +4633,7 @@ const revData = await revW.json();
 if (revData && revData.length > 0) {
 locationName = revData[0].name + (revData[0].region ? ', ' + revData[0].region : '');
 locationCountry = revData[0].country || 'România';
+window._currentCounty = revData[0].region || window._currentCounty;
 }
 }
 }
@@ -4658,6 +4714,7 @@ dW = await wRes.value.json();
 if (!geocodedViaOM && dW && dW.location) {
 locationName    = dW.location.name + (dW.location.region ? ', ' + dW.location.region : '');
 locationCountry = dW.location.country;
+window._currentCounty = dW.location.region || window._currentCounty;
 }
 } catch(e) { console.warn('W-API parse error:', e); dW = null; }
 } else if (wRes.status === 'rejected') {
@@ -5192,10 +5249,10 @@ anmWarnings = parseANMWarnings(w);
 window.anmParsed = anmWarnings; /* expus pentru harta județelor */
 try { if (typeof window.refreshAnmMapData === 'function') window.refreshAnmMapData(); } catch(e) {}
 } catch(e) { /* alertele ANM sunt opționale */ }
-const all = [...anmWarnings, ...alerts];
-if (!all.length) { panel.style.display = 'none'; return; }
-panel.style.display = 'flex';
-panel.innerHTML = all.map(a => `
+  const all = [...anmWarnings, ...alerts];
+  if (!all.length) { panel.style.display = 'none'; } else {
+  panel.style.display = 'flex';
+  panel.innerHTML = all.map(a => `
 <div class="alert-item ${a.level}">
 <div class="alert-icon">${a.icon}</div>
 <div class="alert-body">
@@ -5205,6 +5262,8 @@ ${a.msg ? `<div class="alert-msg">${escapeHtml(a.msg).replace(/\n/g, '<br>')}</d
 </div>
 </div>
 `).join('');
+  }
+  updateHeaderAlertBadge();
 /* Notificări browser pentru alertele severe (ANM + locale) */
 if (typeof HubNotif !== 'undefined') {
 try {
@@ -5213,6 +5272,39 @@ HubNotif.updateBadge(all);
 } catch(e) {}
 }
 }
+/* ── Badge ANM în header: punct colorat dacă județul curent are avertizare activă ── */
+function _resolveCountyCode() {
+const byNorm = {};
+Object.entries(RO_JUDET_COD).forEach(([c, n]) => { byNorm[_anmNorm(n)] = c; });
+if (window._currentCounty) {
+const c = byNorm[_anmNorm(window._currentCounty)];
+if (c) return c;
+}
+const nm = (document.getElementById('city-title') || {}).innerText || '';
+const hits = (typeof extractCounties === 'function') ? extractCounties(nm) : [];
+for (const h of hits) { if (byNorm[h]) return byNorm[h]; }
+return null;
+}
+function updateHeaderAlertBadge() {
+const badge = document.getElementById('anm-badge');
+if (!badge) return;
+try {
+const warns = (window.anmParsed && Array.isArray(window.anmParsed)) ? window.anmParsed : [];
+const cod = _resolveCountyCode();
+if (!warns.length || !cod) { badge.style.display = 'none'; return; }
+const lv = countyLevels();
+const e = lv[cod];
+if (!e || !e.level) { badge.style.display = 'none'; return; }
+badge.className = 'anm-header-badge ' + e.level;
+badge.title = 'Avertizare ANM activă (' + e.level.toUpperCase() + ') pentru ' + RO_JUDET_COD[cod] + ' — atinge pentru detalii';
+badge.style.display = 'inline-block';
+badge.onclick = () => {
+const p = document.getElementById('alerts-panel');
+if (p && p.style.display !== 'none') p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+} catch(err) { badge.style.display = 'none'; }
+}
+window.updateHeaderAlertBadge = updateHeaderAlertBadge;
 /* ================================================================
 PARSARE OFICIALĂ AVERTIZĂRI ANM (wp-json/meteoapi/v2/avertizari-generale)
 Structura reală a API-ului (identică cu harta oficială meteoromania.ro):
@@ -5487,6 +5579,8 @@ function startAutoRefresh() {
 if (refreshTimer) clearInterval(refreshTimer);
 refreshCountdown = refreshIntervalSeconds;
 updateRefreshBadge();
+saveInstantSnapshot();
+try { renderPollen(); } catch(e) {}
 /* Post-render: UV gauge + trend presiune vizual (fost wrapper _origStartAutoRefresh) */
 setTimeout(() => {
   try {
@@ -5525,20 +5619,122 @@ const el = document.getElementById('refresh-badge');
 if (el) el.innerHTML = `<i class="fas fa-sync-alt"></i> ${m}:${String(s).padStart(2, '0')}`;
 }
 /* ================================================================
+INSTANT SNAPSHOT — cache offline al datelor principale (header)
+Salvat la fiecare refresh reușit; restaurat la boot înainte de fetch
+================================================================ */
+function saveInstantSnapshot() {
+try {
+const g = id => document.getElementById(id);
+const snap = {
+t: Date.now(),
+city: (g('city-title')||{}).innerText || '',
+sync: g('sync-info') ? (g('sync-info').innerHTML.split('<span')[0] || '') : '',
+temp: g('main-temp') ? g('main-temp').innerText : '',
+sec: g('temp-secondary-wrap') && g('temp-secondary-wrap').style.display !== 'none' && g('temp-secondary') ? g('temp-secondary').innerText : '',
+feel: g('temp-feel') ? g('temp-feel').innerText : '',
+desc: g('main-desc') ? g('main-desc').innerText : '',
+icon: g('big-icon') ? g('big-icon').innerHTML : '',
+bodyClass: document.body.className
+};
+if (!snap.temp || !snap.desc || !snap.city) return;
+localStorage.setItem('hub_snapshot', JSON.stringify(snap));
+} catch(e) { /* snapshot e best-effort */ }
+}
+function restoreInstantSnapshot() {
+try {
+const snap = JSON.parse(localStorage.getItem('hub_snapshot') || 'null');
+if (!snap || !snap.temp || !snap.desc || !snap.city) return false;
+if (Date.now() - snap.t > 6 * 3600 * 1000) return false; /* mai vechi de 6h — ignorăm */
+const g = id => document.getElementById(id);
+const ct = g('city-title');
+if (ct) {
+if (ct.firstChild && ct.firstChild.nodeType === 3) ct.firstChild.nodeValue = snap.city;
+else ct.insertAdjacentHTML('afterbegin', escapeHtml(snap.city));
+}
+if (g('main-temp')) g('main-temp').innerText = snap.temp;
+if (g('main-desc')) g('main-desc').innerText = snap.desc;
+if (g('big-icon') && snap.icon) g('big-icon').innerHTML = snap.icon;
+if (g('temp-feel') && snap.feel) g('temp-feel').innerText = snap.feel;
+const sw = g('temp-secondary-wrap');
+if (sw && snap.sec) {
+const secEl = g('temp-secondary');
+if (secEl) secEl.innerText = snap.sec;
+sw.style.display = 'block';
+}
+if (snap.bodyClass) document.body.className = snap.bodyClass;
+if (g('sync-info')) {
+const hh = new Date(snap.t).toLocaleTimeString(localeForLang(currentLang), { hour: '2-digit', minute: '2-digit' });
+g('sync-info').innerHTML = `⚡ ${escapeHtml(t('snapshot_note')).replace('{time}', hh)} · ${snap.sync}`;
+}
+return true;
+} catch(e) { return false; }
+}
+/* ================================================================
+GPS — Locația mea
+================================================================ */
+async function _revGeoName(lat, lon) {
+/* BigDataCloud reverse client (gratuit, fără cheie) */
+try {
+const r = await safeFetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&localityLanguage=ro`, {}, { timeout: 8000, retries: 0 });
+if (r.ok) {
+const j = await r.json();
+const nm = j.city || j.locality || j.principalSubdivision;
+if (nm) {
+window._currentCounty = j.principalSubdivision || window._currentCounty;
+return nm + (j.principalSubdivision ? ', ' + j.principalSubdivision : '');
+}
+}
+} catch(e) {}
+return lat.toFixed(4) + ', ' + lon.toFixed(4);
+}
+function locateMe() {
+if (!navigator.geolocation) { showToast(t('gps_unavailable'), 'error'); return; }
+const btn = document.getElementById('btn-gps');
+if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+navigator.geolocation.getCurrentPosition(async pos => {
+try {
+const lat = pos.coords.latitude, lon = pos.coords.longitude;
+currentCoords = { lat, lon };
+const name = await _revGeoName(lat, lon);
+document.getElementById('city-in').value = name;
+localStorage.setItem('hub_last_city', name);
+showToast(t('gps_found').replace('{name}', cleanAnmText(name)), 'success');
+updateWeather();
+} catch(e) {
+showToast(t('error_generic') + ' — ' + errToast(e), 'error', 9000);
+} finally {
+if (btn) btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+}
+}, err => {
+if (btn) btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+if (err && err.code === err.PERMISSION_DENIED) showToast(t('gps_denied'), 'info');
+else showToast(t('gps_unavailable'), 'error');
+}, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
+}
+window.locateMe = locateMe;
+
+/* ================================================================
 INIT
 ================================================================ */
 function bootApp() {
-const savedTheme = localStorage.getItem('hub_theme');
-if (savedTheme === 'dark') {
-isDark = true;
-document.body.setAttribute('data-theme','dark');
-document.getElementById('theme-icon').className = 'fas fa-sun';
+/* Urmărește schimbările de temă ale sistemului cât timp userul nu a ales explicit o temă */
+if (window.matchMedia) {
+const mqDark = window.matchMedia('(prefers-color-scheme: dark)');
+const _onSysTheme = e => {
+if (!localStorage.getItem('hub_theme_explicit')) {
+applyThemeSilently(e.matches ? 'dark' : 'light');
+}
+};
+if (mqDark.addEventListener) mqDark.addEventListener('change', _onSysTheme);
+else if (mqDark.addListener) mqDark.addListener(_onSysTheme);
 }
 /* Apply saved language */
 currentLang = normalizeLang(localStorage.getItem('hub_lang') || 'ro');
 applyStaticTranslations();
 updateProviderStatus();
 const lastCity = localStorage.getItem('hub_last_city');
+/* Paint instant din cache-ul local înainte de fetch — fără ecran gol */
+restoreInstantSnapshot();
 if (lastCity) {
 document.getElementById('city-in').value = lastCity;
 updateWeather();
@@ -5790,7 +5986,7 @@ ${arcs}
 /* ================================================================
  HOURLY CHART — 24h MODE + PRECIPITATION BARS
 ================================================================ */
-let _hourlyDataFull = null, _hourlyPrecipData = null, _hourlyView = '8h';
+let _hourlyDataFull = null, _hourlyPrecipData = null, _hourlyProbData = null, _hourlyView = '8h';
 
 /* Versiunile finale ale setHourlyView și drawHourlyChart sunt definite mai jos
    (window.setHourlyView / window.drawHourlyChart) — vechiul setHourlyView,
@@ -5969,13 +6165,20 @@ function _updateHourlyTitle(mode, hours) {
 function _sampleLabels(hours, mode) {
   const lbls = document.getElementById('hourly-labels');
   if (!lbls) return;
+  const every = mode === '120h' ? 6 : mode === '48h' ? 4 : 2;
   const labels = hours.map((h, i) => {
     const date = new Date(h.time);
     const hh = _formatHour(h.time);
     const dayMarker = mode === '120h' && i % 24 === 0
       ? `<small style="display:block;font-size:0.47rem;opacity:0.72">${date.toLocaleDateString(localeForLang(currentLang), { weekday: 'short', day: '2-digit' })}</small>`
       : '';
-    return `<span>${dayMarker}${hh}</span>`;
+    let probTag = '';
+    const pr = _hourlyProbData && _isNum(_hourlyProbData[i]) ? Math.round(_hourlyProbData[i]) : null;
+    if (i % every === 0 && pr != null && pr >= 15) {
+      const col = pr >= 70 ? '#ef4444' : pr >= 40 ? '#f59e0b' : '#3b82f6';
+      probTag = `<small style="display:block;font-size:0.5rem;font-weight:800;color:${col}">💧${pr}%</small>`;
+    }
+    return `<span>${dayMarker}${hh}${probTag}</span>`;
   });
   lbls.style.setProperty('--hourly-label-count', String(Math.max(labels.length, 2)));
   lbls.innerHTML = labels.join('');
@@ -6206,6 +6409,10 @@ async function fetchOpenMeteoAll(lat, lon) {
   _hourlySourceMeta = sourceHourly;
   /* Nowcast minutely_15 (preferă ICON-EU, fallback ICON-D2) */
   const minutely15 = (eu && eu.minutely_15) || (d2 && d2.minutely_15) || null;
+  /* Probabilități pure de precipitații (% pe oră) pentru etichetele graficului */
+  _hourlyProbData = mergedHourly.precipitation_probability
+    ? mergedHourly.precipitation_probability.slice(viewStart, viewStart + 120)
+    : null;
   _hourlyPrecipData = _hourlyDataFull.slice(0, 120).map((h, i) => ({
     time: h.time,
     prob: mergedHourly.precipitation_probability && mergedHourly.precipitation_probability[viewStart + i] != null
@@ -6514,6 +6721,7 @@ window.setHourlyView = function(mode, btn) {
 };
 window.drawHourlyChart = function(hours) {
   if (Array.isArray(hours) && hours.length) {
+    _hourlyProbData = null; /* path W-API: fără probabilități OM aliniate */
     _hourlyDataFull = hours.map(h => ({
       time: h.time,
       temp_c: h.temp_c,
@@ -6753,6 +6961,174 @@ window.generateAlerts = function(omData) {
     return true;
   }).slice(0, 10);
 };
+
+/* ================================================================
+POLEN — Open-Meteo Air Quality API (doar Europa)
+================================================================ */
+const _POLLEN_TYPES = [
+['alder_pollen','pollen_alder'], ['birch_pollen','pollen_birch'],
+['grass_pollen','pollen_grass'], ['mugwort_pollen','pollen_mugwort'],
+['olive_pollen','pollen_olive'], ['ragweed_pollen','pollen_ragweed']
+];
+function _pollenLevel(v) { return v == null || v < 1 ? 0 : v < 10 ? 1 : v < 30 ? 2 : 3; }
+async function renderPollen() {
+const panel = document.getElementById('pollen-panel');
+if (!panel) return;
+try {
+if (!currentCoords || !Number.isFinite(currentCoords.lat)) return;
+const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${currentCoords.lat.toFixed(2)}&longitude=${currentCoords.lon.toFixed(2)}`
++ `&current=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto`;
+const res = await safeFetch(url, {}, { timeout: 10000, retries: 0 });
+if (!res.ok) throw new Error('pollen HTTP ' + res.status);
+const j = await res.json();
+const c = j && j.current;
+let any = false, html = '';
+for (const [k, i18nKey] of _POLLEN_TYPES) {
+const v = _toFiniteNumber(c ? c[k] : null);
+if (v === null) continue;
+any = true;
+const lv = _pollenLevel(v);
+const col = ['#22c55e', '#84cc16', '#f59e0b', '#ef4444'][lv];
+html += `<div class="aqi-item">
+<div class="aqi-item-label">${escapeHtml(t(i18nKey))}</div>
+<div class="aqi-item-val" style="color:${col}">${v.toFixed(1)}</div>
+<div class="aqi-item-unit">${escapeHtml(t('pollen_l' + lv))}</div>
+</div>`;
+}
+panel.style.display = any ? 'block' : 'none';
+if (any) document.getElementById('pollen-grid').innerHTML = html;
+} catch(e) { panel.style.display = 'none'; }
+}
+window.renderPollen = renderPollen;
+
+/* ================================================================
+COMPARAȚIE LOCAȚII FAVORITE — temp/vânt/precip pentru fiecare favorit
+================================================================ */
+function _wmoIcon(code, isDay) {
+/* iconițe compacte pe cod WMO */
+if (code == null) return '❓';
+if (code === 0) return isDay === false ? '🌙' : '☀️';
+if (code <= 2) return '🌤️';
+if (code === 3) return '☁️';
+if (code === 45 || code === 48) return '🌫️';
+if (code >= 51 && code <= 57) return '🌦️';
+if (code >= 61 && code <= 67) return '🌧️';
+if (code >= 71 && code <= 77) return '🌨️';
+if (code >= 80 && code <= 82) return '🌧️';
+if (code >= 85 && code <= 86) return '🌨️';
+if (code >= 95) return '⛈️';
+return '🌡️';
+}
+async function refreshFavCompare() {
+const panel = document.getElementById('fav-compare-panel');
+const body = document.getElementById('fav-compare-body');
+if (!panel || !body) return;
+const favs = (appState && Array.isArray(appState.favorites)) ? appState.favorites.slice(0, 8) : [];
+if (!favs.length) { panel.style.display = 'none'; return; }
+panel.style.display = 'block';
+body.innerHTML = `<div style="padding:6px;color:var(--muted);font-size:0.68rem">⏳ …</div>`;
+const targets = favs.map(f => ({
+name: f.name,
+lat: Number(f.lat),
+lon: Number(f.lon),
+current: sameCoords(f, currentFavoriteDraft ? currentFavoriteDraft() : null)
+}));
+const results = await Promise.allSettled(targets.map(tg =>
+safeFetch(`https://api.open-meteo.com/v1/forecast?latitude=${tg.lat.toFixed(3)}&longitude=${tg.lon.toFixed(3)}`
++ `&current=temperature_2m,weather_code,is_day,wind_speed_10m,precipitation&timezone=auto`, {}, { timeout: 9000, retries: 0 })
+.then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+));
+let rows = '';
+results.forEach((res, i) => {
+const tg = targets[i];
+if (res.status !== 'fulfilled' || !res.value || !res.value.current) return;
+const c = res.value.current;
+const tempV = _toFiniteNumber(c.temperature_2m);
+const windV = _toFiniteNumber(c.wind_speed_10m);
+const prV = _toFiniteNumber(c.precipitation);
+rows += `<tr>
+<td style="text-align:left;padding:4px 8px;font-weight:700;white-space:nowrap">${tg.current ? '📍 ' : ''}${escapeHtml(cleanAnmText(tg.name))}</td>
+<td style="padding:4px 8px;font-weight:800;white-space:nowrap">${tempV != null ? displayTemp(tempV.toFixed(1)) : '—'} ${_wmoIcon(c.weather_code, c.is_day)}</td>
+<td style="padding:4px 8px;white-space:nowrap">${windV != null ? formatWind(windV, currentWindUnit) : '—'}</td>
+<td style="padding:4px 8px;white-space:nowrap;color:${prV > 0 ? '#3b82f6' : 'inherit'}">${prV != null ? prV.toFixed(1) + ' mm' : '—'}</td>
+</tr>`;
+});
+if (!rows) {
+body.innerHTML = `<div style="padding:6px;color:var(--muted);font-size:0.7rem">${t('incomplete_data')}</div>`;
+return;
+}
+body.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.72rem">
+<thead><tr style="color:var(--muted);font-weight:700">
+<th style="text-align:left;padding:4px 8px"></th>
+<th style="padding:4px 8px">${t('temp_actual')}</th>
+<th style="padding:4px 8px">${t('avg_wind')}</th>
+<th style="padding:4px 8px">${t('rain_chance_short')}</th>
+</tr></thead><tbody>${rows}</tbody></table>`;
+}
+window.refreshFavCompare = refreshFavCompare;
+
+/* ================================================================
+EXPORT CSV / JSON — datele curente + prognoza orară și zilnică
+================================================================ */
+function _exportPayload() {
+const om = typeof _omCompositeCache !== 'undefined' ? _omCompositeCache : null;
+const city = (document.getElementById('city-title') || {}).innerText || '';
+return {
+meta: {
+app: 'Hub Hibrid Pro',
+location: city,
+coords: currentCoords,
+exportedAt: new Date().toISOString(),
+sources: ['ANM', 'Open-Meteo ICON-D2/EU/ECMWF', 'WeatherAPI', 'Meteoblue']
+},
+current: om && om.current ? om.current : null,
+hourly: (typeof _hourlyDataFull !== 'undefined' && Array.isArray(_hourlyDataFull)) ? _hourlyDataFull : [],
+precipProbability: (typeof _hourlyProbData !== 'undefined' && Array.isArray(_hourlyProbData)) ? _hourlyProbData : null,
+daily: om && om.daily ? {
+time: om.daily.time,
+tmax: om.daily.temperature_2m_max,
+tmin: om.daily.temperature_2m_min,
+precip_sum: om.daily.precipitation_sum,
+precip_prob_max: om.daily.precipitation_probability_max
+} : null
+};
+}
+function _downloadBlob(content, filename, mime) {
+const blob = new Blob([content], { type: mime });
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+a.remove();
+setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function _exportSlug() {
+const city = (document.getElementById('city-title') || {}).innerText || 'hub';
+return city.split(',')[0].trim().replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'hub';
+}
+function exportDataCsv() {
+try {
+const d = _exportPayload();
+const head = 'time,temperature_c,dew_point_c,precip_mm,precip_probability_pct,cape_j_kg';
+const lines = (d.hourly || []).map((h, i) => {
+const pr = d.precipProbability && d.precipProbability[i] != null ? Math.round(d.precipProbability[i]) : '';
+return [h.time, h.temp_c != null ? h.temp_c : '', h.dew_c != null ? h.dew_c : '', h.precip_mm != null ? h.precip_mm : '', pr, h.cape != null ? h.cape : ''].join(',');
+});
+const csv = '\uFEFF' + head + '\n' + lines.join('\n');
+_downloadBlob(csv, `hub-meteo-${_exportSlug()}-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+showToast('✓ CSV', 'success');
+} catch(e) { showToast(t('error_generic') + ' — ' + errToast(e), 'error', 9000); }
+}
+function exportDataJson() {
+try {
+const data = _exportPayload();
+_downloadBlob(JSON.stringify(data, null, 2), `hub-meteo-${_exportSlug()}-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
+showToast('✓ JSON', 'success');
+} catch(e) { showToast(t('error_generic') + ' — ' + errToast(e), 'error', 9000); }
+}
+window.exportDataCsv = exportDataCsv;
+window.exportDataJson = exportDataJson;
 
 window.renderComfort = function(dW) {
   const el = document.getElementById('comfort-info');
@@ -7043,6 +7419,7 @@ function saveSettingsFromModal() {
     autoRefreshSec: [300, 600, 900, 1800].includes(nextSettings.autoRefreshSec) ? nextSettings.autoRefreshSec : 600
   };
   applyThemeSilently(appState.settings.theme);
+  localStorage.setItem('hub_theme_explicit', '1'); /* alegere explicită din setări */
   applyLangSilently(appState.settings.lang);
   applyUnitSilently(appState.settings.unit);
   applyWindUnitSilently(appState.settings.windUnit);
