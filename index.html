@@ -197,11 +197,11 @@ background: var(--grid); border-radius: 20px; padding: 16px; margin-bottom: 18px
 .anm-map-section { background: var(--grid); border-radius: 20px; padding: 16px; margin-bottom: 18px; }
 .anm-map-section .section-title { margin-bottom: 12px; }
 .anm-map-holder { position: relative; }
-#anm-map { height: 340px; border-radius: 14px; z-index: 1; background: var(--grid); overflow: hidden; }
+#anm-map { height: 500px; border-radius: 14px; z-index: 1; background: var(--grid); overflow: hidden; }
 .anm-map-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; font-size: .62rem; font-weight: 800; color: var(--muted); }
 .anm-map-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
 @media (max-width: 480px) {
-#anm-map { height: 280px; }
+#anm-map { height: 380px; }
 .anm-map-legend { gap: 8px; font-size: .58rem; }
 }
 /* ── TABURI GRILĂ DATE ── */
@@ -1006,6 +1006,28 @@ transition: background 0.2s; white-space: nowrap;
 }
 .layer-btn.active { background: var(--primary); }
 .layer-btn:hover  { background: rgba(79,70,229,0.8); }
+.rv-color-select {
+background: rgba(15,23,42,0.8); color: #fff; border: none;
+padding: 5px 6px; border-radius: 8px; font-size: 0.56rem;
+font-weight: 700; cursor: pointer; backdrop-filter: blur(4px);
+max-width: 130px;
+}
+.rv-color-select option { background: #0f172a; color: #fff; }
+.layer-btn:disabled { opacity: 0.45; cursor: default; }
+/* Temperaturi stații ANM pe hartă */
+.anm-temp-marker {
+display: inline-block; padding: 1px 5px; border-radius: 9px;
+color: #fff; font-size: 10px; font-weight: 800; line-height: 15px;
+text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+border: 1px solid rgba(255,255,255,0.75);
+box-shadow: 0 1px 4px rgba(0,0,0,0.35); white-space: nowrap;
+}
+.anm-temp-toggle button {
+background: rgba(255,255,255,0.95); border: 1px solid rgba(0,0,0,0.15);
+border-radius: 8px; padding: 3px 7px; font-size: 14px; cursor: pointer;
+box-shadow: 0 1px 5px rgba(0,0,0,0.25);
+}
+.anm-temp-toggle button.off { opacity: 0.45; filter: grayscale(1); }
 /* FOOTER */
 .footer-tag {
 text-align: center; font-size: 0.7rem; font-weight: 800;
@@ -1156,6 +1178,22 @@ animation: anm-pulse 1.6s ease-in-out infinite;
 .alert-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0.7; margin-bottom: 1px; }
 .alert-msg { font-size: 0.8rem; font-weight: 800; }
 .alert-src { font-size: 0.5rem; opacity: 0.55; font-weight: 700; margin-top: 2px; }
+/* Minimizare panou avertizări + colaps individual */
+.alerts-header {
+display: flex; align-items: center; justify-content: space-between;
+padding: 8px 14px; border-radius: 12px;
+background: var(--card); border: 1px solid var(--grid);
+cursor: pointer; font-size: 0.72rem; font-weight: 800;
+user-select: none; transition: background 0.2s;
+}
+.alerts-header:hover { background: var(--grid); }
+.alerts-header i { opacity: 0.6; }
+.alerts-panel.min .alert-item { display: none; }
+.alert-title { cursor: pointer; }
+.alert-title .alert-chev { float: right; opacity: 0.5; transition: transform 0.2s; }
+.alert-item.collapsed .alert-msg,
+.alert-item.collapsed .alert-src { display: none; }
+.alert-item.collapsed .alert-chev { transform: rotate(-90deg); }
 /* ═══════════════════════════════════════════════════════════
 RADAR ÎMBUNĂTĂȚIT — legendă + controls mai frumoase
 ═══════════════════════════════════════════════════════════ */
@@ -1986,8 +2024,26 @@ body { background: white; padding: 0; }
 </div>
 <div class="map-wrapper" id="map-wrapper">
 <div id="radar-map" class="leaflet-container leaflet-touch leaflet-retina leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom" style="position: relative;" tabindex="0"><div class="leaflet-pane leaflet-map-pane" style="transform: translate3d(0px, 0px, 0px);"><div class="leaflet-pane leaflet-tile-pane"><div class="leaflet-layer " style="z-index: 1; opacity: 0.85;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://a.tile.openstreetmap.org/7/73/44.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://b.tile.openstreetmap.org/7/73/45.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://c.tile.openstreetmap.org/7/72/44.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://b.tile.openstreetmap.org/7/74/44.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://a.tile.openstreetmap.org/7/72/45.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://c.tile.openstreetmap.org/7/74/45.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/910d1fcc6097/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/e5b2bfed48ad/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/7a5da274229f/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/5d89be9e47d9/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/d13cce6acb1c/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b614b03035ac/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/88496db9ff0a/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/b6c182b335d1/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9d1e40f5f43a/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/eb148a2c3add/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/ec4aacae51a7/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9930b88cd5de/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div><div class="leaflet-layer " style="z-index: 10; opacity: 0.6;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 18; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/73/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/73/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(78px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/72/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/74/44/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, -105px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/72/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-178px, 151px, 0px); opacity: 1;"><img alt="" src="https://tilecache.rainviewer.com/v2/radar/9a9f0dabf8f5/256/7/74/45/2/1_1.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(334px, 151px, 0px); opacity: 1;"></div></div></div><div class="leaflet-pane leaflet-overlay-pane"><svg pointer-events="none" class="leaflet-zoom-animated" width="421" height="307" viewBox="-35 -26 421 307" style="transform: translate3d(-35px, -26px, 0px);"><g><path class="leaflet-interactive" stroke="#4f46e5" stroke-opacity="1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="#818cf8" fill-opacity="0.9" fill-rule="evenodd" d="M168,128a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 "></path></g></svg></div><div class="leaflet-pane leaflet-shadow-pane"></div><div class="leaflet-pane leaflet-marker-pane"></div><div class="leaflet-pane leaflet-tooltip-pane"></div><div class="leaflet-pane leaflet-popup-pane"></div><div class="leaflet-proxy leaflet-zoom-animated"></div></div><div class="leaflet-control-container"><div class="leaflet-top leaflet-left"><div class="leaflet-control-zoom leaflet-bar leaflet-control"><a class="leaflet-control-zoom-in" href="#" title="Zoom in" role="button" aria-label="Zoom in" aria-disabled="false"><span aria-hidden="true">+</span></a><a class="leaflet-control-zoom-out" href="#" title="Zoom out" role="button" aria-label="Zoom out" aria-disabled="false"><span aria-hidden="true">−</span></a></div></div><div class="leaflet-top leaflet-right"></div><div class="leaflet-bottom leaflet-left"></div><div class="leaflet-bottom leaflet-right"><div class="leaflet-control-attribution leaflet-control"><a href="https://leafletjs.com" title="A JavaScript library for interactive maps"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"></path><path fill="#FFD500" d="M0 4h12v3H0z"></path><path fill="#E0BC00" d="M0 7h12v1H0z"></path></svg> Leaflet</a> <span aria-hidden="true">|</span> © OSM, RainViewer</div></div></div></div>
-<div class="radar-layers" style="display:none;">
-<button class="layer-btn active" onclick="setRadarLayer('radar',this)" title="Radar ploi" data-i18n="rain_btn">🌧️ Ploi</button>
+<div class="radar-layers">
+<button class="layer-btn active" id="rv-btn-radar" onclick="setRadarLayer('radar',this)" title="Radar ploi (animație)" data-i18n="rain_btn">🌧️ Radar</button>
+<button class="layer-btn" id="rv-btn-sat" onclick="setRadarLayer('satellite',this)" title="Satelit IR — nori noaptea și ziua">🛰️ Satelit IR</button>
+<select class="rv-color-select" id="rv-color-select" onchange="setRainViewerColor(this.value)" title="Schema culori radar">
+<option value="2">🎨 Universal Blue</option>
+<option value="1">🎨 Original</option>
+<option value="0">🎨 B/W</option>
+<option value="3">🎨 TITAN</option>
+<option value="4">🎨 TWC</option>
+<option value="5">🎨 Meteored</option>
+<option value="6">🎨 NEXRAD III</option>
+<option value="7">🌈 Rainbow</option>
+<option value="8">🎨 Dark Sky</option>
+</select>
+<select class="rv-color-select" id="rv-range-select" onchange="setRainViewerRange(this.value)" title="Interval de timp afișat">
+<option value="full">⏱ Tot · -2h → +30m</option>
+<option value="past60">⏱ Ultima oră</option>
+<option value="recent">⏱ Ultimele 30 min</option>
+</select>
+<button class="layer-btn" id="rv-snow-btn" onclick="toggleRainViewerSnow(this)" title="Acoperire zăpadă pe radar">❄️ Zăpadă</button>
 </div>
 <!-- Legendă intensitate precipitații -->
 <div class="radar-legend" id="radar-legend">
@@ -2127,6 +2183,7 @@ pollen_alder: 'Alun', pollen_birch: 'Mesteacăn', pollen_grass: 'Iarbă',
 pollen_mugwort: 'Pelin', pollen_olive: 'Măslin', pollen_ragweed: 'Ambrozie',
 pollen_l0: 'absent', pollen_l1: 'scăzut', pollen_l2: 'moderat', pollen_l3: 'ridicat',
 rain_chance_short: 'Precip',
+alerts_active_count: 'avertizări active — atinge pentru min/ext',
 fav_compare_title: 'Comparație locații', fav_compare_empty: 'Adaugă locații favorite pentru comparație.',
 settings_wind_unit: 'Unitate Vânt',
 wind_unit_kmh: 'km/h',
@@ -2364,6 +2421,7 @@ pollen_alder: 'Alder', pollen_birch: 'Birch', pollen_grass: 'Grass',
 pollen_mugwort: 'Mugwort', pollen_olive: 'Olive', pollen_ragweed: 'Ragweed',
 pollen_l0: 'none', pollen_l1: 'low', pollen_l2: 'moderate', pollen_l3: 'high',
 rain_chance_short: 'Precip',
+alerts_active_count: 'active warnings — tap to min/max',
 fav_compare_title: 'Locations compare', fav_compare_empty: 'Add favorite locations to compare.',
 smart_minmax: 'Min/Max:',
 wind_strong: 'Strong wind!',
@@ -3367,6 +3425,34 @@ try {
 document.getElementById('radar-layer-info').innerText = t('radar_loading');
 const res  = await fetch('https://api.rainviewer.com/public/weather-maps.json');
 const data = await res.json();
+_rvData = data;
+_buildRvLayers(true);
+showToast(t('toast_radar_loaded'), 'success');
+} catch(e) {
+console.error(e);
+document.getElementById('radar-layer-info').innerText = t('radar_error');
+showToast(t('toast_radar_error'), 'error');
+}
+}
+/* ── Opțiuni RainViewer: tip strat (radar/satelit), schemă culori, zăpadă ── */
+let _rvData   = null;
+let _rvKind   = 'radar';
+let _rvColor  = 2;
+let _rvSnow   = 1;
+let _rvRange = 'full';
+function _filterRvRange(frames) {
+if (!frames || !frames.length) return frames;
+if (_rvRange === 'past60') return frames.filter(f => f.time * 1000 <= Date.now()).slice(-6);
+if (_rvRange === 'recent') return frames.slice(-3);
+return frames;
+}
+function setRainViewerRange(v) {
+_rvRange = ['full', 'past60', 'recent'].includes(v) ? v : 'full';
+if (_rvData) _buildRvLayers(false);
+}
+window.setRainViewerRange = setRainViewerRange;
+function _buildRvLayers(resetFrame) {
+if (!_rvData || !map) return;
 if (animTimer) { clearInterval(animTimer); animTimer = null; }
 isPlaying = false;
 const playIcon = document.getElementById('play-icon');
@@ -3374,14 +3460,17 @@ if (playIcon) playIcon.className = 'fas fa-play';
 radarLayers.forEach(l => map.removeLayer(l));
 radarLayers  = [];
 radarFrames  = [];
-currentFrame = 0;
-const frames = [...(data.radar.past || []), ...(data.radar.nowcast || [])];
+if (resetFrame) currentFrame = 0;
+const isSat = _rvKind === 'satellite';
+const frames = _filterRvRange(isSat
+? [...((_rvData.satellite || {}).infrared || [])]
+: [...(_rvData.radar.past || []), ...(_rvData.radar.nowcast || [])]);
 if (!frames.length) { showToast(t('toast_no_radar'), 'error'); return; }
 radarFrames = frames;
 frames.forEach((frame) => {
-const colorScheme = 2;
-const tileUrl = `${data.host}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/1_1.png`;
-const layer = L.tileLayer(tileUrl, {
+/* tile path: /256/{z}/{x}/{y}/{color}/{smooth}_{snow}.png — satelitul folosește 0/0_0 */
+const suffix = isSat ? '0/0_0' : `${_rvColor}/1_${_rvSnow}`;
+const layer = L.tileLayer(`${_rvData.host}${frame.path}/256/{z}/{x}/{y}/${suffix}.png`, {
 opacity: 0, tileSize: 256, zIndex: 10,
 attribution: 'RainViewer',
 errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
@@ -3389,14 +3478,34 @@ errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAA
 layer.addTo(map);
 radarLayers.push(layer);
 });
-showFrame(frames.length - 1);
-document.getElementById('radar-layer-info').innerText = t('radar_rain');
-showToast(t('toast_radar_loaded'), 'success');
-} catch(e) {
-console.error(e);
-document.getElementById('radar-layer-info').innerText = t('radar_error');
-showToast(t('toast_radar_error'), 'error');
+showFrame(radarFrames.length - 1);
+document.getElementById('radar-layer-info').innerText = isSat ? '🛰️ SATELIT IR' : t('radar_rain');
 }
+function setRadarLayer(type, btn) {
+_rvKind = type === 'satellite' ? 'satellite' : 'radar';
+document.querySelectorAll('.radar-layers .layer-btn').forEach(b => b.classList.remove('active'));
+if (_rvKind === 'radar') { const rb = document.getElementById('rv-btn-radar'); if (rb) rb.classList.add('active'); }
+else if (btn) btn.classList.add('active');
+const sb = document.getElementById('rv-snow-btn');
+if (sb && !sb.disabled) sb.classList.toggle('active', _rvSnow === 1);
+/* opțiunile de culoare/zăpadă se aplică doar radarului */
+const radarOnly = ['rv-color-select', 'rv-snow-btn'];
+radarOnly.forEach(id => { const el = document.getElementById(id); if (el) el.style.opacity = _rvKind === 'radar' ? '1' : '0.4'; });
+const sel = document.getElementById('rv-color-select');
+if (sel) sel.disabled = _rvKind !== 'radar';
+if (sb) sb.disabled = _rvKind !== 'radar';
+if (_rvData) _buildRvLayers(false);
+else loadRainViewerFrames();
+}
+function setRainViewerColor(v) {
+_rvColor = parseInt(v, 10) || 0;
+localStorage.setItem('hub_rv_color', String(_rvColor));
+if (_rvKind === 'radar') _buildRvLayers(false);
+}
+function toggleRainViewerSnow(btn) {
+_rvSnow = _rvSnow === 1 ? 0 : 1;
+btn.classList.toggle('active', _rvSnow === 1);
+if (_rvKind === 'radar') _buildRvLayers(false);
 }
 function showFrame(index) {
 if (!radarLayers.length) return;
@@ -5249,21 +5358,31 @@ anmWarnings = parseANMWarnings(w);
 window.anmParsed = anmWarnings; /* expus pentru harta județelor */
 try { if (typeof window.refreshAnmMapData === 'function') window.refreshAnmMapData(); } catch(e) {}
 } catch(e) { /* alertele ANM sunt opționale */ }
-  const all = [...anmWarnings, ...alerts];
-  if (!all.length) { panel.style.display = 'none'; } else {
-  panel.style.display = 'flex';
-  panel.innerHTML = all.map(a => `
+const all = [...anmWarnings, ...alerts];
+if (!all.length) { panel.style.display = 'none'; } else {
+panel.style.display = 'flex';
+/* implicit minimizat — extins doar dacă userul a ales explicit */
+const savedMin = localStorage.getItem('hub_alerts_min');
+const min = savedMin == null ? true : savedMin === '1';
+const items = all.map(a => `
 <div class="alert-item ${a.level}">
 <div class="alert-icon">${a.icon}</div>
 <div class="alert-body">
-<div class="alert-title">${escapeHtml(String(a.icon))} ${escapeHtml(a.title)}</div>
+<div class="alert-title">${escapeHtml(String(a.icon))} ${escapeHtml(a.title)}<span class="alert-chev">▾</span></div>
 ${a.msg ? `<div class="alert-msg">${escapeHtml(a.msg).replace(/\n/g, '<br>')}</div>` : ''}
 <div class="alert-src">${a.src}${a.countyNames && a.countyNames.length && a.countyNames.length < 30 ? ' · Județe: ' + escapeHtml(a.countyNames.join(', ')) : ''}</div>
 </div>
 </div>
 `).join('');
-  }
-  updateHeaderAlertBadge();
+panel.innerHTML = `
+<div class="alerts-header" role="button" tabindex="0" aria-expanded="${!min}" title="${min ? 'Extinde' : 'Minimizează'}">
+<span>⚠️ ${all.length} ${t('alerts_active_count')}</span>
+<i class="fas fa-chevron-${min ? 'down' : 'up'}"></i>
+</div>
+${items}`;
+panel.classList.toggle('min', min);
+}
+updateHeaderAlertBadge();
 /* Notificări browser pentru alertele severe (ANM + locale) */
 if (typeof HubNotif !== 'undefined') {
 try {
@@ -5305,6 +5424,34 @@ if (p && p.style.display !== 'none') p.scrollIntoView({ behavior: 'smooth', bloc
 } catch(err) { badge.style.display = 'none'; }
 }
 window.updateHeaderAlertBadge = updateHeaderAlertBadge;
+/* ── Minimizare panou avertizări + colaps individual (delegat, o singură dată) ── */
+function toggleAlertsMinimized() {
+const panel = document.getElementById('alerts-panel');
+if (!panel) return;
+const min = !panel.classList.contains('min');
+panel.classList.toggle('min', min);
+try { localStorage.setItem('hub_alerts_min', min ? '1' : '0'); } catch(e) {}
+const ic = panel.querySelector('.alerts-header i');
+if (ic) ic.className = 'fas fa-chevron-' + (min ? 'down' : 'up');
+const hdr = panel.querySelector('.alerts-header');
+if (hdr) { hdr.setAttribute('aria-expanded', String(!min)); hdr.title = min ? 'Extinde' : 'Minimizează'; }
+}
+window.toggleAlertsMinimized = toggleAlertsMinimized;
+if (!window._alertsDelegated) {
+window._alertsDelegated = true;
+document.addEventListener('click', e => {
+const panel = document.getElementById('alerts-panel');
+if (!panel || panel.style.display === 'none') return;
+if (e.target.closest('.alerts-header')) {
+toggleAlertsMinimized();
+return;
+}
+const ttl = e.target.closest('.alert-title');
+if (ttl && panel.contains(ttl)) {
+ttl.closest('.alert-item').classList.toggle('collapsed');
+}
+});
+}
 /* ================================================================
 PARSARE OFICIALĂ AVERTIZĂRI ANM (wp-json/meteoapi/v2/avertizari-generale)
 Structura reală a API-ului (identică cu harta oficială meteoromania.ro):
@@ -5717,6 +5864,13 @@ window.locateMe = locateMe;
 INIT
 ================================================================ */
 function bootApp() {
+/* Schema culori RainViewer preferată */
+const savedRvColor = parseInt(localStorage.getItem('hub_rv_color') || '2', 10);
+if (!isNaN(savedRvColor) && savedRvColor >= 0 && savedRvColor <= 8) {
+_rvColor = savedRvColor;
+const sel = document.getElementById('rv-color-select');
+if (sel) sel.value = String(_rvColor);
+}
 /* Urmărește schimbările de temă ale sistemului cât timp userul nu a ales explicit o temă */
 if (window.matchMedia) {
 const mqDark = window.matchMedia('(prefers-color-scheme: dark)');
@@ -8192,7 +8346,7 @@ if(o && o.classList.contains('open')) o.classList.remove('open');
 });
 
 /* ── 12. SECȚIUNI PLIABILE — comparativă & istoric apar doar la apăsare ── */
-function bindCollapse(toggleId,wrapId,onOpen){
+function bindCollapse(toggleId,wrapId,onOpen,startOpen){
 const tgl=document.getElementById(toggleId); const wrap=document.getElementById(wrapId);
 if(!tgl||!wrap) return;
 const setOpen=open=>{
@@ -8201,12 +8355,14 @@ tgl.classList.toggle('open',open);
 tgl.setAttribute('aria-expanded',String(open));
 if(open&&onOpen)setTimeout(onOpen,60);
 };
-setOpen(false); /* implicit închis — conținutul se încarcă la cerere */
+setOpen(!!startOpen); /* implicit închis, cu excepția secțiunilor marcate startOpen */
 tgl.addEventListener('click',()=>setOpen(wrap.style.display==='none'));
 tgl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tgl.click();}});
 }
 bindCollapse('mc-toggle','mc-body-wrap');
 bindCollapse('hist-toggle','hist-body-wrap',()=>loadHistoryTrend());
+/* Harta ANM se deschide automat în timeout-ul de 6s — după ce secțiunea devine vizibilă
+   (inițializarea Leaflet într-un container ascuns produce dimensiune 0 = hartă spartă) */
 /* redesenare istoric la redimensionarea ferestrei (doar dacă e deschis) */
 let _rsT;
 window.addEventListener('resize',()=>{clearTimeout(_rsT);_rsT=setTimeout(()=>{
@@ -8227,11 +8383,18 @@ clearTimeout(deb);deb=setTimeout(()=>{buildModelComparison();tagGridGroups();},8
 /* plasă de siguranță: datele pentru comparativă se pregătesc la 6s (cache previne spamul API);
    istoricul își arată doar titlul pliabil — graficul se desenează la deschidere */
 setTimeout(()=>{
-buildModelComparison();
+try{ buildModelComparison(); }catch(e){}
 const hp=document.getElementById('history-trend');
 if(hp && currentCoords) hp.style.display='block';
 const mp=document.getElementById('anm-map-section');
-if(mp) mp.style.display='block';
+if(mp){
+mp.style.display='block';
+/* Harta ANM — maximizată implicit: deschidem corpul acum că secțiunea e vizibilă */
+const mw=document.getElementById('map-body-wrap');
+const tg=document.getElementById('map-toggle');
+if(mw && tg && mw.style.display==='none') tg.click();
+else if(typeof window.refreshAnmMapData==='function') window.refreshAnmMapData();
+}
 }, 6000);
 
 /* ── 14. HARTA AVERTIZĂRILOR ANM — județe colorate după cod ── */
@@ -8291,10 +8454,48 @@ if(rank>e.rank){e.rank=rank;e.level=w.level;}
 });
 return lv;
 }
+/* ── Temperaturi pe harta ANM ── */
+let _anmTempLayer=null,_anmTempVisible=true,_anmTempCtrlAdded=false;
+function _tempColor(t){
+if(t==null)return'#94a3b8';
+if(t<=-10)return'#7c3aed';
+if(t<=0)return'#60a5fa';
+if(t<=10)return'#34d399';
+if(t<=20)return'#facc15';
+if(t<=28)return'#fb923c';
+return'#ef4444';
+}
+function _buildAnmTempMarkers(){
+if(!_anmMap)return;
+if(_anmTempLayer){_anmTempLayer.remove();_anmTempLayer=null;}
+_anmTempLayer=L.layerGroup();
+fetchANMData().then(data=>{
+if(!data||!data.features||!_anmTempLayer)return;
+data.features.forEach(f=>{
+const p=f.properties||{};
+const ll=anmFeatureLatLon(f);
+const tv=parseFloat(String(p.tempe!=null?p.tempe:'').replace(',','.'));
+if(!ll||isNaN(tv))return;
+const icon=L.divIcon({
+className:'',
+html:`<span class="anm-temp-marker" style="background:${_tempColor(tv)}">${Math.round(tv)}°</span>`,
+iconSize:[36,18],iconAnchor:[18,9]
+});
+const m=L.marker([ll.lat,ll.lon],{icon,keyboard:false});
+m.bindTooltip(`<b>${escapeHtml(cleanAnmText(p.nume||'Stație'))}</b>: ${tv.toFixed(1)}°C`,{direction:'top'});
+_anmTempLayer.addLayer(m);
+});
+if(_anmTempVisible&&_anmTempLayer)_anmTempLayer.addTo(_anmMap);
+}).catch(()=>{});
+}
 async function initAnmMap(){
 try{
 const holder=document.getElementById('anm-map');
 if(!holder)return;
+/* Leaflet se încarcă cu defer — așteaptă până apare (max 8s) */
+if(!window.L){
+await new Promise(res=>{ const t0=Date.now(); const iv=setInterval(()=>{ if(window.L||Date.now()-t0>8000){clearInterval(iv);res();} },120); });
+}
 if(!window.L){
 holder.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-weight:700">Harta nu a putut fi încărcată.</div>';
 return;
@@ -8334,6 +8535,31 @@ layer.on('mouseover',()=>layer.setStyle({weight:2.5,fillOpacity:.8}));
 layer.on('mouseout',()=>layer.setStyle({weight:1,fillOpacity:.6}));
 }
 }).addTo(_anmMap);
+/* ── Temperaturi stații ANM — marker-e + buton toggle ── */
+if (!_anmTempCtrlAdded && _anmMap) {
+_anmTempCtrlAdded = true;
+const TempToggle = L.Control.extend({
+options: { position: 'topright' },
+onAdd() {
+const div = L.DomUtil.create('div', 'anm-temp-toggle');
+div.innerHTML = '<button type="button" title="Temperaturi stații ANM">🌡️</button>';
+L.DomEvent.on(div.querySelector('button'), 'click', e => {
+L.DomEvent.stopPropagation(e);
+_anmTempVisible = !_anmTempVisible;
+if (_anmTempVisible) {
+if (_anmTempLayer) _anmTempLayer.addTo(_anmMap);
+else _buildAnmTempMarkers();
+} else if (_anmTempLayer) {
+_anmMap.removeLayer(_anmTempLayer);
+}
+div.querySelector('button').classList.toggle('off', !_anmTempVisible);
+});
+return div;
+}
+});
+_anmMap.addControl(new TempToggle());
+}
+_buildAnmTempMarkers();
 }catch(err){
 const h=document.getElementById('anm-map');
 if(h)h.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-weight:700">Harta nu este disponibilă momentan.</div>';

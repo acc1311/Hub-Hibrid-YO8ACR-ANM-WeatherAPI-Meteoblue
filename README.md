@@ -1,364 +1,184 @@
-# 🌤️ Hub Hibrid PRO - Dashboard Meteo Multi-Sursă
+# 🌤️ Hub Hibrid PRO — Dashboard Meteo Multi-Sursă (v2.2)
 
-> ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)  
+> ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)
 > ### 🔗 [Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
 
-**Hub Hibrid PRO** este o aplicație web meteo ușoară (single-file), dezvoltată pentru a oferi cea mai precisă prognoză și stare a vremii, combinând date de la furnizori globali cu stațiile meteorologice locale din România (ANM).
+**Hub Hibrid PRO** este o aplicație web meteo PWA (vanilla, single-file) care combină modelele globale de prognoză cu stațiile meteorologice oficiale din România (ANM) pentru cea mai precisă imagine a vremii — plus radar animat, hartă avertizări pe județe și notificări push.
 
-Aplicația rezolvă problema erorilor de localizare (ex: confuzia între orașe cu nume similare precum *Târgu Neamț* și *Târgu Jiu*) printr-un sistem de mapare și filtrare strictă.
-
----
-
-## ✨ Funcționalități Principale
-
-* 🔍 **Smart Match (Filtrare Inteligentă):** Sistem avansat de potrivire a locației care caută exact stația ANM relevantă pentru orașul introdus.
-* 📊 **Sistem Hibrid de Date:** Agregă date în timp real din 4+ surse diferite pentru a construi un profil meteo complet.
-* 🌗 **Temă Dark / Light:** Interfață modernă cu suport nativ pentru modul întunecat (comutare instantanee).
-* 📱 **Design Responsiv:** UI de tip „card" optimizat perfect pentru ecranele telefoanelor mobile, dar și pentru desktop.
-* 🤖 **Smart Summary:** Generare de text dinamic cu rezumatul vremii și șansele de precipitații.
-* 🗺️ **Radar Ploi Multiplu:** 3 opțiuni de radar (Leaflet animat, Meteoradar RO, Windy) cu controale intuitive.
-* 🧭 **Widget-uri Avansate:** Busolă vânt animată, arc solar, fază lună, confort termic, calitate aer detaliată.
-* ⚠️ **Alerte Meteo Automate:** Generare inteligentă de avertismente bazate pe praguri ICON-EU/ECMWF.
+Aplicația rezolvă problema erorilor de localizare (ex: confuzia între *Târgu Neamț* și *Târgu Jiu*) printr-un sistem de mapare și filtrare strictă.
 
 ---
 
-## 📡 Surse de Date (API-uri integrate)
+## ✨ Funcționalități
+
+### Precizie & date
+* 🎯 **Smart Match** — potrivire strictă oraș → stație ANM exactă
+* 📊 **Fuziune 4+ surse** — ICON-D2/EU + ECMWF + WeatherAPI + Meteoblue + stații ANM
+* ⏱️ **Nowcast minutely_15** — bandă „precipitații în ~X min" pe următoarele 3h (ICON-EU)
+* 🎲 **Probabilitate ensemble** — % derivat din membrii ECMWF, nu doar media modelului
+* 💧 **Probabilitate max pe zi** — bannerul arată max % pentru restul zilei, nu doar ora curentă
+* 👁️ **Consens modele** — badge „n/3 modele de acord · dispersie ±x°"
+* 📈 **Normale climatice ERA5** — istoric 7 zile vs climatologia 1991–2020 reală
+* 🌡️ **Indice Căldură (ITU)** — Heat Index Rothfusz cu praguri românești (fără disconfort → pericol caniculă)
+
+### Radar & hărți
+* 🌧️ **RainViewer complet** — radar animat (past + nowcast) **și Satelit IR**, 9 scheme culori, toggle zăpadă, selector interval (-2h…+30m / -1h / -30min), play/pause + timeline seek
+* 🗺️ **Harta ANM pe județe** — colorată după cod galben/portocaliu/roșu, deschisă implicit, cu **temperaturi live de la stațiile ANM** (marker-e colorate după praguri, toggle 🌡️)
+* 🌐 **MeteoRadar RO + Windy** — embeduri alternative
+
+### Avertizări
+* ⚠️ **Alerte ANM oficiale** + alerte locale automate (praguri CAPE/vânt/vizibilitate/WMO)
+* 🟡 **Badge în header** — punct pulsant dacă județul locației curente are avertizare activă
+* 📂 **Panou minimizabil** — header „N avertizări active" (implicit minimizat, starea persistă); fiecare avertizare se poate colapsa individual
+
+### UX & PWA
+* ⚡ **Cache offline instant** — ultimele date apar imediat la deschidere („⚡ Date locale de la HH:MM"), apoi refresh în fundal
+* 📍 **Buton GPS** — „Locația mea" cu reverse-geocoding automat
+* 🌱 **Card Polen** — 6 alergeni (alun, mesteacăn, iarbă, pelin, măslin, ambrozie) din Air Quality API
+* 📊 **Comparație favorite** — tabel temp/vânt/precip pentru toate locațiile salvate
+* 💾 **Export CSV/JSON/PNG** — hourly + daily + metadata; PNG cu avertizări incluse
+* 🌗 **Auto dark mode** — urmează `prefers-color-scheme` până alegi explicit o temă
+* 🔔 **Web Push ANM** — notificări chiar și cu aplicația închisă (cron 15 min pe worker)
+* 📱 **PWA instalabilă** — badge temperatură pe iconiță, skeleton loading, fundal dinamic
+* ⌨️ **Autocomplete tastatură** + ARIA; 🌍 **7 limbi** (ro/en/it/fr/de/es/hu); unități vânt km/h·m/s·mph·kn
+
+---
+
+## 📡 Surse de Date
 
 | Sursă | Rol | Date furnizate |
 |-------|-----|---------------|
-| **Open-Meteo ICON-EU** | 🎯 Sursă primară | Temperaturi, vânt, precipitații, UV, prognoză 5 zile (120h, rezoluție 3km) |
-| **Open-Meteo ECMWF** | 🌍 Ensemble fallback | UV Index, precipitații ensemble, extensie prognoză |
-| **WeatherAPI (W-API)** | 🌐 Global + AQI | Condiții text localizat, calitate aer, date astro |
-| **Meteoblue** | 📈 Grafic orar | Temperaturi orare detaliate pentru următoarele 8h |
-| **ANM (Proxy Cloudflare)** | 🇷🇴 Local RO | Date stații oficiale: vânt, presiune, umiditate, zăpadă |
-| **RainViewer** | 🌧️ Radar animat | Tile-uri radar istorice + nowcast |
-| **Meteoradar.ro** | 🛰️ Radar RO | Hartă interactivă ploi/satelit pentru România |
-| **Windy.com** | 💨 Radar global | Embed Windy cu overlay radar |
+| **Open-Meteo ICON-D2/EU** | 🎯 Primar | Temp, vânt, precipitații, UV, nowcast minutely_15, 120h |
+| **Open-Meteo ECMWF** | 🌍 Ensemble | Probabilități din membri, extensie prognoză |
+| **Open-Meteo Archive/ERA5** | 📚 Climatologie | Normale 1991–2020, istoric 7 zile |
+| **Open-Meteo Air Quality** | 🌱 Polen/AQI | PM2.5, PM10, O₃, NO₂, SO₂, CO + polen (Europa) |
+| **WeatherAPI** | 🌐 Global | Condiții text, AQI US-EPA, astro, reverse geocoding |
+| **Meteoblue** | 📈 Orar | Temperaturi orare detaliate |
+| **ANM (proxy Cloudflare)** | 🇷🇴 Oficial RO | Stații: temp, vânt, presiune, umiditate + avertizări județene |
+| **RainViewer** | 🌧️ Radar/Satelit | Tile-uri radar past+nowcast, satelit IR |
+| **BigDataCloud** | 📍 Reverse geo | Nume locație + județ pentru GPS |
 
 ---
 
 ## 🚀 Instalare & Utilizare
 
-Proiectul este `vanilla` complet (fără framework-uri, fără build-steps). Totul rulează direct din browser.
+Proiect 100% vanilla — fără framework-uri, fără build. Totul rulează direct în browser.
 
-### Instalare rapidă:
 ```bash
-# 1. Clonează repository-ul
-git clone https://github.com/numele-tau/hub-hibrid-pro.git
+# 1. Clonează
+git clone https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue.git
+cd Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue
 
-# 2. Accesează folderul
-cd hub-hibrid-pro
-
-# 3. Deschide în browser
-# Simplu: dublu-click pe index.html
-# Sau folosește un server local:
-python -m http.server 8000  # Python 3
-# sau
-npx serve  # Node.js
+# 2. Deschide index.html în browser sau servește local:
+python -m http.server 8000     # Python
+npx serve                      # Node.js
 ```
 
-### Utilizare:
-1.  Deschide `index.html` în orice browser modern (Chrome, Safari, Firefox, Edge).
-2.  Introdu numele unui oraș în bara de căutare și apasă Enter.
-3.  Comută între furnizori din bara de sus pentru a compara datele.
-4.  Explorează radarul ploi cu cele 3 opțiuni disponibile.
-
-### Dezvoltare & verificare:
+### Dezvoltare & verificare
 ```bash
-npm install          # instalează ESLint + Prettier + Vitest
-npm run verify       # lint + sintaxă inline + teste unitare
+npm install          # ESLint 9 + Prettier + Vitest
+npm run verify       # lint + sintaxă inline JS + 37 teste unitare
 npm run test:watch   # teste în mod watch
 ```
 
----
-
-## 🚀 Modificări Recente (v2.0 — Precizie & Profesionalism)
-
-### 🎯 Precizie
-| Îmbunătățire | Detalii |
-|--------------|---------|
-| 🌧️ **Nowcast precipitații** | Bandă „următoarele 3h" din `minutely_15` ICON-EU/ICON-D2: „Precipitații în ~30 min" sau „Fără precipitații în următoarele 180 min" |
-| 🎲 **Probabilitate din ensemble** | `precipitation_probability` derivată acum direct din membrii ensemble ECMWF (% membri cu ≥ 0.1 mm), nu doar media modelului |
-| 📊 **Normale climatice reale** | Banda de climatologie a istoricului 7 zile folosește ERA5 1991–2020 (Archive API) cu cache local 30 zile; constantele hardcodate sunt doar fallback |
-| 👁️ **Consens modele** | Badge lângă temperatură: „n/3 modele de acord · dispersie ±x°", colorat verde/galben/roșu după acordul ICON-D2/EU/ECMWF |
-
-### 🔐 Securitate & robustețe
-| Îmbunătățire | Detalii |
-|--------------|---------|
-| 🌐 **`safeFetch()` global** | Toate apelurile API trec printr-un wrapper cu timeout (AbortController), retry pe erori 5xx și backoff |
-| 🛡️ **XSS închis** | `escapeHtml()` aplicat consecvent: autocomplete, banner smart, titluri alerte ANM, tooltip hartă, sync-info |
-| 🧱 **CSP întărit** | Eliminate `'unsafe-eval'` și wildcard-ul `https:` din default-src; surse enumerate explicit (script/style/font/frame/img/connect) |
-| 🔑 **Worker protejat** | `/push/subscribe`: allowlist origini push (FCM/Mozilla/Apple), validare chei base64url, limită 5000 abonamente, **rate-limit per IP** (10/oră, fereastră fixă KV) |
-
-### 🏗️ Arhitectură
-| Îmbunătățire | Detalii |
-|--------------|---------|
-| 📦 **`js/app-logic.js`** | Logica pură (parsere ANM, termodinamică, fuziune, unități, escapeHtml, safeFetch) extrasă din HTML — lint-uibilă și testabilă |
-| 🔀 **Pipeline paralel** | `updateWeather()` rulează ICON-EU/ECMWF + Meteoblue + WeatherAPI cu `Promise.allSettled` (o singură rundă de latență); dubla rezolvare ANM eliminată |
-| 🧹 **Zero monkey-patching** | Wrapper-ele `window.drawSunArc`, `window.drawWindCompass`, `window.startAutoRefresh`, `window.toggleTheme/Lang/Unit`, `wrapLocationSync` și `_origAST/_origLFL` au fost integrate în funcțiile originale |
-| ✅ **Tooling complet** | `package.json` + ESLint 9 (flat config) + Prettier + Vitest + GitHub Actions CI (`npm run verify`) |
-| 🧪 **29 teste unitare** | Parsere ANM, wind chill / heat index / dew point, probabilități ensemble, consens, validare coordonate, conversii vânt, Beaufort, safeFetch (timeout + retry) |
-
-### ✨ UX
-| Îmbunătățire | Detalii |
-|--------------|---------|
-| ⌨️ **Autocomplete cu tastatură** | Săgeți ↑/↓ + Enter, Escape; ARIA combobox/listbox cu `aria-activedescendant` |
-| 💨 **Unități vânt** | km/h / m/s / mph / noduri din Setări — propagate și în embedurile Windy + MeteoRadar |
-| 🌍 **Locale complete** | `localeForLang` acoperă toate cele 7 limbi (de/es/hu nu mai cad înapoi la ro); cheile noi traduse în RO/EN/DE/ES/HU |
-| 🔋 **Pauză particule** | Animațiile de ploaie/zăpadă/furtună se pun pe pauză când tab-ul e ascuns (`visibilitychange`) |
-
-### ⚠️ După actualizare
-1. **Redeploy worker-ul**: `wrangler deploy` (include noile protecții push).
-2. Cache-ul Service Worker a urcat la `hub-meteo-v3` — clienții vor primi automat noul conținut.
+CI: `.github/workflows/ci.yml` rulează `npm run verify` la fiecare push.
 
 ---
 
-## 🔧 Modificări Recente & Fix-uri (v1.2)
+## 🆕 Changelog v2.1 / v2.2
 
-### ✅ Probleme rezolvate:
+### v2.2 — Radar opțiuni, hartă ANM cu temperaturi, avertizări minimizabile
+| Funcționalitate | Detalii |
+|----------------|---------|
+| 🛰️ **RainViewer panou opțiuni** | Comutare Radar ↔ Satelit IR, 9 scheme culori (persistente), zăpadă on/off, interval de timp (tot / -1h / -30min); datele se descarcă o dată, comutările sunt instant |
+| 🌡️ **Temperaturi pe harta ANM** | Marker-e pill colorate după praguri (violet ≤-10° … roșu >28°) pentru toate stațiile ANM, tooltip cu nume + valoare exactă, buton toggle 🌡️ |
+| ⚠️ **Avertizări minimizabile** | Header cu contor (implicit **minimizat**, starea persistă în localStorage); colaps individual pe titlu |
+| 🗺️ **Hartă ANM mărită** | 500px desktop / 380px mobil, secțiune deschisă automat după ce devine vizibilă; `initAnmMap` așteaptă Leaflet (defer-safe) |
 
-| Problemă | Soluție aplicată | Status |
-|----------|-----------------|--------|
-| 📍 Geolocalizare inexactă pe mobil (detecta alt oraș) | Dezactivată opțiunea geo, folosită locație implicită + căutare manuală prin autocomplete | ✅ Optimizat |
-| 🌧️ Încărcare lentă/erori iframe Meteoradar | Adăugat `loading="lazy"`, handler `onerror`, timeout de siguranță de 8s | ✅ Îmbunătățit |
-| 📱 Dimensiuni iframe pe mobil | CSS media queries ajustate pentru `height: 420px !important` pe ecrane ≤520px | ✅ Responsive |
-| ⚠️ Fallback radar dacă nu se încarcă | Toast de eroare + posibilitatea comutării automate la tab-ul Leaflet | ✅ Adăugat |
+### v2.1 — Fix-uri precizitate + Confort Termic ITU
+| Funcționalitate | Detalii |
+|----------------|---------|
+| 💧 **Șanse precipitații corecte** | Bannerul + grila afișează probabilitatea **maximă pentru restul zilei** (`_maxPrecipToday`), nu valoarea orei curente — fix pentru „0% dar e avertizare de averse" |
+| 🌡️ **Confort Termic cu ITU** | Rând nou Indice Căldură (Rothfusz) cu clasificare RO: Fără disconfort <20° · Ușor 20–24° · Moderat 24–28° · Ridicat 28–32° · Foarte ridicat 32–36° · Pericol >36°; rând Umiditate; textele corectate |
 
-### Cod CSS modificat:
-```css
-/* Overlay-urile nu mai blochează interacțiunea cu iframe-ul */
-.iframe-nav-blocker,
-.iframe-top-blocker,
-.wo-overlay-block {
-    pointer-events: none !important;
-    background: transparent;
-}
-```
+### v2.0 — Precizie, securitate, arhitectură (17 îmbunătățiri)
+<details>
+<summary>Vezi lista completă v2.0</summary>
 
-### Cod JavaScript modificat:
-```javascript
-// Funcția geoLocate() dezactivată - folosește locație implicită
-function geoLocate() {
-    console.log('Geolocalizare dezactivată');
-    currentCoords = { lat: 47.17, lon: 26.36 }; // Târgu Neamț
-    updateWeather();
-}
-
-// În init(): înlocuit geoLocate() cu locație implicită
-const defaultCity = localStorage.getItem('hub_last_city') || 'Targu Neamt';
-document.getElementById('city-in').value = defaultCity;
-updateWeather();
-```
+* **Precizie:** nowcast minutely_15, probabilitate ensemble ECMWF, normale climatice ERA5, consens modele
+* **Securitate:** `safeFetch()` global (timeout+retry), XSS închis cu `escapeHtml()`, CSP întărit, worker cu rate-limit per IP + validare push
+* **Arhitectură:** `js/app-logic.js` extras (lint-uibil/testabil), pipeline paralel `Promise.allSettled`, zero monkey-patching, ESLint 9 + Prettier + Vitest + CI GitHub Actions
+* **UX:** autocomplete tastatură + ARIA, unități vânt, locale complete 7 limbi, pauză particule la tab ascuns
+</details>
 
 ---
 
-## 🛠️ Detalii Tehnice pentru Dezvoltatori
+## ☁️ Cloudflare Worker (proxy API)
 
-### Stack Tehnologic
-* **Frontend:** HTML5, CSS3 (CSS Variables, Flexbox, Grid, Animations), JavaScript ES6+
-* **Librării externe:** Leaflet.js (hărți), FontAwesome 6 (iconițe)
-* **Arhitectură:** Single-file, zero dependencies build, CSP headers pentru securitate
+Worker-ul (`cloudflare-worker.js`) ține cheile server-side:
 
-### Structura Codului
-```javascript
-// Config API (la începutul script-ului)
-// Cheile API NU mai există în client — totul trece prin Cloudflare Worker
-const API_PROXY = "https://hubmeteoacr.brm-laser-veronese.workers.dev"; // /anm, /wapi/*, /mb/*
+| Rută | Destinație |
+|------|-----------|
+| `/anm` | meteoromania.ro — stații |
+| `/anm-warnings` | avertizările oficiale ANM |
+| `/wapi/*` | api.weatherapi.com (secret `WAPI_KEY`) |
+| `/mb/*` | my.meteoblue.com (secret `MB_KEY`) |
+| `/push/*` | Web Push: allowlist origini FCM/Mozilla/Apple, validare base64url, cap 5000 subs, rate-limit 10/oră/IP via KV |
 
-// Provider state management
-const providers = { wapi: true, anm: true, mb: true, om: true };
-
-// Funcții principale
-- updateWeather()          // Flux principal hibrid
-- updateWeatherANMOnly()   // Mod ANM exclusiv
-- updateWeatherOMOnly()    // Mod Open-Meteo exclusiv
-- fetchOpenMeteo()         // Fuziune ICON-D2 + ICON-EU + ECMWF
-- showRadarTab()           // Comutare tab-uri radar
-- renderForecastOM()       // Randare prognoză 5 zile (120h)
-- generateAlerts()         // Generare alerte automate
-- renderNowcastStrip()     // Nowcast precipitații minutely_15
-- renderConsensusBadge()   // Acordul modelelor asupra temperaturii
-- fetchClimateNormals()    // Climatologie ERA5 1991–2020
-```
-
-### Cloudflare Worker (proxy API)
-Worker-ul din `cloudflare-worker.js` rutează 3 API-uri, ținând cheile **server-side**:
-* `/anm` → meteoromania.ro (fără cache, ca înainte)
-* `/anm-warnings` → avertizările oficiale ANM
-* `/wapi/*` → api.weatherapi.com (cheia din secretul `WAPI_KEY`)
-* `/mb/*` → my.meteoblue.com (cheia din secretul `MB_KEY`)
-* `/push/*` → Web Push cu validare strictă + rate-limit per IP
-
-Deploy + configurare secrete:
 ```bash
-# 1. Instalează Wrangler (dacă nu ai): npm i -g wrangler
-# 2. Login: wrangler login
-# 3. Deploy: wrangler deploy
-# 4. Configurează secretele (cheile tale personale):
-wrangler secret put WAPI_KEY
-wrangler secret put MB_KEY
-```
-După deploy, actualizează `API_PROXY` din `index.html` cu URL-ul worker-ului tău.
-
-### Logica de Mapare Locații
-În cod există constanta `CITY_MAP` (lângă `findStationByName`) care leagă numele uzual al unui oraș de numele exact al stației ANM, prevenind rezultate false (ex: *Târgu Neamț* vs *Târgu Jiu*, *Sinaia* vs *Sinaia 1500*):
-```javascript
-// Exemplu CITY_MAP (deja implementat în index.html)
-const CITY_MAP = {
-  'sinaia': 'SINAIA 1500',
-  'targu neamt': 'TARGU NEAMT',
-  'targu jiu': 'TARGU JIU',
-  'bucuresti': 'BUCURESTI FILARET',
-  // Adaugă aici mapările tale (chei normalizate: fără diacritice, lowercase)
-};
+npm i -g wrangler
+wrangler login
+wrangler deploy
+wrangler secret put WAPI_KEY   # cheia WeatherAPI
+wrangler secret put MB_KEY     # cheia Meteoblue
 ```
 
----
+Configurare push (o singură dată):
+1. KV namespace `hub_push_kv` → legat ca variabilă `PUSH_KV`
+2. Secret `VAPID_PRIVATE` (JWK JSON) + variabilă `VAPID_PUBLIC`
+3. Cron Trigger: `*/15 * * * *`
 
-## 🛡️ Modificări Recente (v1.3 — Securitate & Curățenie)
-
-### ✅ Ce s-a schimbat:
-| Modificare | Detalii |
-|------------|---------|
-| 🔑 **Chei API mutate server-side** | WeatherAPI + Meteoblue nu mai sunt în `index.html`; totul trece prin Cloudflare Worker (`/wapi/*`, `/mb/*`) cu chei ca secrete |
-| 🐛 **Fix grafic orar Meteoblue** | Graficul afișa date ICON cu titlu „[Meteoblue]"; acum folosește mereu fuziunea ICON (24h/48h/120h) cu titlu corect |
-| 🐛 **Fix date precipitații** | `_hourlyPrecipData` folosea mm în loc de probabilitate %; acum citește `precipitation_probability` |
-| 🌐 **Mesaje de eroare localizate** | Erorile de rețea nu mai afișează text brut; folosesc `error_generic` în RO/EN/IT/FR |
-| 🗺️ **CITY_MAP implementat** | Mapare oraș → stație ANM exactă (Târgu Neamț vs Târgu Jiu, Sinaia 1500 etc.) |
-| 🧹 **Cod duplicat eliminat** | ~215 linii de funcții moarte/duplicate (drawHourlyChart, renderForecastOM, generateAlerts, renderComfort, applyDynamicBg, setHourlyView, wrapper-e `_orig*`) |
-| 🛡️ **Robustețe W-API** | Toate accesările `dW.current` / `dW.forecast` sunt acum protejate (`dW && dW.current && …`); un răspuns neașteptat de la proxy nu mai blochează întregul flux — restul datelor (ICON-EU, ANM, Meteoblue) se afișează normal |
-
-### ⚠️ Pas necesar după actualizare:
-Redeploy worker-ul și configurează secretele (vezi secțiunea „Cloudflare Worker" de mai sus), altfel WeatherAPI și Meteoblue nu vor funcționa.
+După deploy, actualizează `API_PROXY` din `index.html`.
 
 ---
 
-## 📱 Modificări Recente (v1.4 — PWA & Alerte ANM)
+## 🏗️ Arhitectură
 
-### ✅ Ce s-a schimbat:
-| Modificare | Detalii |
-|------------|---------|
-| 📱 **PWA complet** | `manifest.json` + `sw.js` (service worker cu cache offline) + iconițe 192/512/maskable generate din logo; aplicația se poate instala pe telefon/PC („Adaugă pe ecranul de pornire") |
-| 🚨 **Alerte ANM oficiale** | Integrare cu endpoint-ul oficial `avertizari-generale` al Meteoromania (prin worker, ruta `/anm-warnings`): coduri **galben/portocaliu/roșu** cu mesaj și valabilitate, afișate împreună cu alertele locale ICON-EU |
-| 🧹 **Duplicat eliminat** | Definiția veche `window.renderAlerts` (fără alerte ANM) eliminată; `enhanceDataGrid` păstrat în versiunea nouă |
+```
+├── index.html              # UI + pipeline-uri (HTML/CSS/JS inline)
+├── js/app-logic.js         # Logica pură: parsere ANM, termodinamică, safeFetch,
+│                           #   escapeHtml, heat index, consens, unități vânt (UMD)
+├── cloudflare-worker.js    # Proxy API + Web Push + cron 15 min
+├── sw.js                   # Service Worker hub-meteo-v4 (network-first + precache)
+├── manifest.json           # PWA manifest
+├── tests/app-logic.test.mjs# 37 teste Vitest
+├── scripts/check-inline.js # Verificare sintaxă JS inline (vm.Script)
+├── eslint.config.js        # ESLint 9 flat config
+└── .github/workflows/ci.yml# CI: lint → check-inline → test
+```
 
-### ⚠️ Pas necesar:
-Redeploy worker-ul cu noul cod (`cloudflare-worker.js` conține acum și ruta `/anm-warnings`) — altfel alertele ANM oficiale nu vor apărea.
-
----
-
-## ✨ Modificări Recente (v1.5 — PRO Pack: UX & Funcționalități Avansate)
-
-### ✅ Ce s-a schimbat:
-| Modificare | Detalii |
-|------------|---------|
-| ⚖️ **Comparativă modele** *(opțional)* | Secțiune **pliabilă, închisă implicit**, sub grila de date — date reale din **ICON-EU, ECMWF** + coloana Hub; coloanele fără acoperire (ex. ICON-D2 în România) se ascund automat; cache 15 min |
-| 📈 **Istoric 7 zile** *(opțional)* | Secțiune pliabilă sub comparativă — grafic canvas max/min din **Open-Meteo Archive API** (gratuit) vs benzile mediilor climatice ale lunii; se desenează doar la deschidere |
-| 🗺️ **Harta Avertizărilor ANM** *(opțional)* | Secțiune pliabilă — harta României cu **județe colorate după cod** (verde/galben/portocaliu/roșu), ca pe meteoromania.ro; tooltip cu titlurile avertizărilor per județ; avertizările naționale colorează toată țara; GeoJSON cache 7 zile |
-| 🗂️ **Taburi grilă date** | Grila de 18 indicatori, direct sub „Încredere Date", organizată în taburi: **Toate / Acum / Vânt & Presiune / Cer & Soare / Aer**; filtrarea persistă la actualizările automate |
-| 📸 **Export imagine** | PNG cu oraș, **dată și oră**, temp., condiție **și textul complet al avertizărilor ANM active** (casete colorate galben/portocaliu/roșu) + **creditele din Setări** (sursele de date și mulțumiri); nume fișier cu dată (`hub-meteo-2026-08-21.png`); distribuie prin Web Share API sau download |
-| 🌐 **7 limbi** | Adăugate **Germană, Spaniolă, Maghiară** (ro/en/it/fr/de/es/hu) — ciclare cu butonul de limbă + select în Setări; **creditele & linkurile din Setări** și mesajul de favorite goale sunt traduse în toate limbile |
-| 🖱️ **Tooltip grafic orar** | Crosshair + tooltip cu ora și temperatura la hover/atingere pe graficul pe 8h |
-| 💀 **Skeleton loading** | Placeholder-e animate (shimmer) la prima încărcare până sosesc datele |
-| 🎨 **Fundal dinamic** | Gradient-ul paginii se schimbă după condiție: senin zi/noapte, ploaie, ninsoare, furtună, noros, ceață, zori, amurg |
-| 📲 **Install prompt** | Banner „Instalează Hub Meteo" după a -a vizită (beforeinstallprompt), cu posibilitate de amânare |
-| 🔢 **PWA badge** | Temperatura curentă afișată pe iconița aplicației (`setAppBadge`, unde e suportat) |
-| ♿ **Accesibilitate** | `role="alert"` pe panoul de alerte, `aria-live` pe toast/sincronizare, `aria-label` pe butoanele-icon, închidere modale cu **Escape**, `:focus-visible` |
-| 🎞️ **Micro-interacțiuni** | Animație pop la actualizarea temperaturii, stagger-in pe griduri, ripple la click pe butoane, respectă `prefers-reduced-motion` |
+Funcții-cheie în `index.html`: `updateWeather()` (flux hibrid paralel), `fetchOpenMeteoAll()` (fuziune ICON-D2/EU/ECMWF), `renderAlerts()` + `countyLevels()` (avertizări + hartă), `loadRainViewerFrames()` / `_buildRvLayers()` (radar multi-strat), `initAnmMap()` + `_buildAnmTempMarkers()` (hartă + temperaturi), `_maxPrecipToday()` (probabilitate restul zilei), `calcHeatIndex()` (ITU, în app-logic.js).
 
 ---
 
 ## 🔐 Securitate & CSP
 
-Aplicația include header CSP configurat pentru a permite doar sursele necesare:
-```html
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self'; 
-  script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; 
-  style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; 
-  font-src https://cdnjs.cloudflare.com https://unpkg.com data:; 
-  img-src 'self' data: blob: https:; 
-  connect-src 'self' https: wss:; 
-  frame-src https://embed.windy.com https://radar.wo-cloud.com https://www.meteoradar.ro https://api.rainviewer.com; 
-  worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self';">
-```
-
-## 🤝 Contribuții
-
-Aprecierile și contribuțiile sunt binevenite! Proiectul a fost dezvoltat cu pasiune pentru comunitatea locală.
-
-### Cum poți contribui:
-1.  Fork repository-ul
-2.  Creează un branch pentru feature-ul tău (`git checkout -b feature/nume-feature`)
-3.  Commit modificările (`git commit -m 'Adaugă feature X'`)
-4.  Push pe branch (`git push origin feature/nume-feature`)
-5.  Deschide un Pull Request
-
-### Idei pentru viitoare îmbunătățiri:
-- [x] Adăugare suport PWA (installable app)
-- [x] Export date meteo în CSV/JSON *(export PNG implementat)*
-- [x] Notificări push pentru alerte meteo
-- [x] Istoric temperaturi cu grafic interactiv
-- [x] Suport pentru mai multe limbi (EN, FR, DE, ES, HU, IT)
-- [x] Teste unitare + CI
-
----
-
-## 🔔 Notificări Push (alerte ANM cu aplicația închisă)
-
-Aplicația folosește **Web Push** cu „tickle push" (fără payload): workerul Cloudflare verifică avertizările ANM la fiecare 15 minute (Cron Trigger) și, dacă s-au schimbat, trezește Service Worker-ul tuturor abonaților; SW-ul își ia datele proaspete și afișează notificarea.
-
-### Configurare Cloudflare (o singură dată):
-1. **KV namespace**: Dashboard → Storage & Databases → KV → creează `hub_push_kv`
-2. **Leagă KV-ul la worker**: Settings → Variables → KV Namespace Bindings → nume variabilă `PUSH_KV` → namespace-ul creat
-3. **Secret cheie privată VAPID**: Settings → Variables → Secrets → `VAPID_PRIVATE` = JWK JSON (generat la implementare)
-4. **Variabilă publică**: `VAPID_PUBLIC` = cheia publică base64url (aceeași e în index.html)
-5. **Cron Trigger**: Settings → Triggers → Cron Triggers → `*/15 * * * *`
-6. Upload `cloudflare-worker.js` + `index.html` + `sw.js`
-
-### Utilizare:
-Setări → **Notificări Push (alerte ANM)** → Activează → permite notificările. Roșu/portocaliu produc notificări individuale; galbenul un rezumat.
+CSP configurat explicit (script/style/font/img/connect/frame/worker/manifest), fără `'unsafe-eval'`. Toate interfațările cu conținut extern trec prin `escapeHtml()`. Cheile API nu există în client — totul prin worker.
 
 ---
 
 ## 📄 Licență
 
-Acest proiect este open-source și disponibil sub licența [MIT](LICENSE).
-
-```
-MIT License
-
-Copyright (c) 2026 Hub Hibrid PRO
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
----
+Open-source sub licența [MIT](LICENSE).
 
 ## 🙏 Mulțumiri
 
-*   **Cătălin Ardei (YO8ACR)** — pentru furnizarea accesului la datele colectate și suport tehnic.
-*   **ANM Meteoromania** — pentru datele meteorologice oficiale din România.
-*   **Open-Meteo** — pentru API-ul gratuit și precis ICON-EU/ECMWF.
-*   **Comunitatea open-source** — pentru librăriile și inspirația oferită.
+* **Cătălin Ardei (YO8ACR)** — accesul la datele colectate și suport tehnic
+* **ANM Meteoromania** — datele meteorologice oficiale din România
+* **Open-Meteo** — API-ul gratuit și precis ICON-EU/ECMWF
+* **Comunitatea open-source** — librăriile și inspirația
 
 ---
 
-> ⭐ **Dacă îți place acest proiect, nu uita să îi dai un Star pe GitHub!**  
-> 🐛 Găsești o problemă? Deschide un [Issue](https://github.com/numele-tau/hub-hibrid-pro/issues) și te ajut cu plăcere.
+> ⭐ **Dacă îți place proiectul, dă-i un Star pe GitHub!**
+> 🐛 Găsești o problemă? Deschide un [Issue](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/issues).
