@@ -2,7 +2,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com https://unpkg.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-src https://embed.windy.com https://radar.wo-cloud.com https://www.meteoradar.ro https://api.rainviewer.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self';">
-<meta http-equiv="Permissions-Policy" content="geolocation=()">
+<meta http-equiv="Permissions-Policy" content="geolocation=(self)">
 <title>Hub Meteo PRO — Radar &amp; Prognoză România</title>
 <meta name="description" content="Aplicație meteo profesională cu radar live, prognoză 5 zile ICON-EU + ECMWF, date ANM, AQI și alerte meteo oficiale.">
 <meta name="theme-color" content="#4f46e5">
@@ -1383,6 +1383,7 @@ body { background: white; padding: 0; }
 .btn-action, .btn-update, .radar-section, .toast-container { display: none; }
 }
 </style>
+  <link rel="stylesheet" href="src/app/theme.css">
 </head>
 <body data-theme="dark" class="bg-cloudy">
 <canvas id="weather-canvas" width="406" height="796"></canvas>
@@ -1503,6 +1504,20 @@ body { background: white; padding: 0; }
 </div>
 <div class="toast-container" id="toast-container"></div>
 <div class="card">
+
+<!-- YO8ACR WEATHER HUB PRO HEADER -->
+<div class="pro-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:10px 14px;background:var(--grid);border-radius:16px;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <strong style="font-size:0.95rem;letter-spacing:0.8px;color:var(--primary);">YO8ACR WEATHER HUB</strong>
+    <span id="pro-mode-badge" style="font-size:0.65rem;font-weight:800;background:rgba(5,150,105,0.12);color:#059669;padding:3px 8px;border-radius:999px;">🇷🇴 ANM FIRST</span>
+    <span id="pro-live-dot" style="font-size:0.6rem;font-weight:800;color:#16a34a;">● LIVE</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span id="pro-updated" style="font-size:0.62rem;color:var(--muted);font-weight:700;">Actualizat --:--</span>
+    <a href="docs/ARCHITECTURE.md" target="_blank" style="font-size:0.6rem;color:var(--primary);text-decoration:none;font-weight:800;">Docs</a>
+  </div>
+</div>
+
 <!-- SEARCH + GEO + THEME + LANG -->
 <div class="header-actions">
 <div class="search-box">
@@ -1757,12 +1772,12 @@ body { background: white; padding: 0; }
 </div>
 </div>
 <!-- HARTA AVERTIZĂRILOR ANM -->
-<div class="anm-map-section" id="anm-map-section" style="display: none;">
-<div class="section-title collapsible-header" id="map-toggle" role="button" tabindex="0" aria-expanded="false">
+<div class="anm-map-section" id="anm-map-section" style="display: block;">
+<div class="section-title collapsible-header open" id="map-toggle" role="button" tabindex="0" aria-expanded="true">
 <span><i class="fas fa-map-marked-alt"></i> <span data-i18n="warn_map_title">Harta Avertizărilor</span></span>
 <i class="fas fa-chevron-down chev"></i>
 </div>
-<div id="map-body-wrap" style="display:none;">
+<div id="map-body-wrap" style="display:block;">
 <div class="anm-map-holder">
 <div id="anm-map"></div>
 <div class="anm-map-legend">
@@ -2089,6 +2104,7 @@ body { background: white; padding: 0; }
 </div>
 </div>
 <script src="js/app-logic.js"></script>
+<script type="module" src="src/app/main.js"></script>
 <script>
 /* ================================================================
 I18N — Internationalization System
@@ -3098,6 +3114,7 @@ Rute worker: /anm (Meteoromania), /wapi/* (WeatherAPI), /mb/* (Meteoblue)
 =============================================================== */
 const API_PROXY = "https://hubmeteoacr.brm-laser-veronese.workers.dev";
 let currentCoords = { lat: 47.17, lon: 26.36 };
+window.currentCoords = currentCoords; // pro-badge-inline
 let isDark        = false;
 const APP_STATE_KEY = 'hub_app_state_v1';
 const DEFAULT_APP_SETTINGS = {
@@ -3776,7 +3793,8 @@ const CITY_MAP = {
   'ceahlau toaca': 'CEAHLAU TOACA',
   'stana de vale': 'STANA DE VALE'
 };
-function findStationByName(query, features) {
+function findStationByName(query, features) { // findStationByName robust
+if(typeof query==="string" && query.includes(",")) query=query.split(",")[0];
 if (!features || !features.length) return null;
 const q = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 const mapped = CITY_MAP[q] || CITY_MAP[q.replace(/\s+/g, ' ')];
@@ -4069,7 +4087,7 @@ let p = null;
 if (selectedAnmStation) {
 p = selectedAnmStation.properties;
 const st = anmFeatureLatLon(selectedAnmStation);
-if (st) currentCoords = st;
+if (st) currentCoords = st; window.currentCoords = currentCoords;
 } else {
 const cityInput = document.getElementById('city-in').value.trim()
 || localStorage.getItem('hub_last_city') || "Targu Neamt";
@@ -4082,8 +4100,8 @@ station = getClosestStation(currentCoords.lat, currentCoords.lon, anmData.featur
 if (station) {
 p = station.properties;
 const st = anmFeatureLatLon(station);
-if (st) currentCoords = st;
-selectedAnmStation = station;
+if (st) currentCoords = st; window.currentCoords = currentCoords;
+selectedAnmStation = station; console.log("ANM station resolved", station && station.properties && station.properties.nume);
 }
 }
 }
@@ -4390,7 +4408,7 @@ freshness: 'Live',
     detail: t('trust_detail_radar_live')
 }
 });
-startAutoRefresh();
+startAutoRefresh(); try{ const c=(typeof currentCoords!=='undefined'?currentCoords:window.currentCoords); if(c){ const isRo = (c.lat>=43.6&&c.lat<=48.3&&c.lon>=20.2&&c.lon<=30.0); const b=document.getElementById('pro-mode-badge'); if(b) b.textContent=isRo?'🇷🇴 ANM FIRST':'🌍 MULTI-MODEL'; } if(window.HubUpdateProHeader) window.HubUpdateProHeader(); const el=document.getElementById('pro-updated'); if(el) el.textContent='Actualizat '+new Date().toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'}); }catch{}
 } catch(e) {
 console.error(e);
 showToast(t('error_generic') + ' — ' + errToast(e), 'error', 9000);
@@ -4428,7 +4446,7 @@ lat = r.latitude;
 lon = r.longitude;
 locationName = r.name + (r.admin1 ? ', ' + r.admin1 : '') + ', ' + r.country;
 window._currentCounty = r.admin1 || window._currentCounty;
-currentCoords = { lat, lon };
+currentCoords = { lat, lon }; window.currentCoords = currentCoords;
 }
 }
 } catch(e) {
@@ -4436,7 +4454,7 @@ console.warn('OM geocoding error:', e);
 }
 } else {
 lat = coordInputOM.lat; lon = coordInputOM.lon;
-currentCoords = { lat, lon };
+currentCoords = { lat, lon }; window.currentCoords = currentCoords;
 }
 localStorage.setItem('hub_last_city', cityInput);
 if (!map) { initMap(); }
@@ -4728,7 +4746,7 @@ geocodedViaOM   = true;
 /* Input sunt coordonate — deja validate de parseCoordinateInput */
 lat = coordInput.lat;
 lon = coordInput.lon;
-currentCoords = { lat, lon };
+currentCoords = { lat, lon }; window.currentCoords = currentCoords;
 /* Reverse geocoding pentru numele locației */
 try {
 const revRes = await fetch(
@@ -4760,7 +4778,7 @@ anmStationForLocation = station;
 selectedAnmStation = station;
 lat = st.lat;
 lon = st.lon;
-currentCoords = { lat, lon };
+currentCoords = { lat, lon }; window.currentCoords = currentCoords;
 locationName = cleanAnmText(station.properties.nume || locationName);
 geocodedViaOM = true;
 }
@@ -4813,7 +4831,7 @@ try { const dM = await mbRes.value.json(); if (dM && dM.data_1h) mbHourlyData = 
 catch(e) { console.warn('Meteoblue parse error:', e); }
 } else if (mbRes.status === 'rejected') {
 console.warn('Meteoblue error:', mbRes.reason);
-showToast(t('toast_mb_unavailable'), 'info');
+console.log('Meteoblue fallback (credits/limit)');
 }
 let dW = null;
 if (wRes.status === 'fulfilled' && wRes.value && wRes.value.ok) {
@@ -5841,7 +5859,7 @@ if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 navigator.geolocation.getCurrentPosition(async pos => {
 try {
 const lat = pos.coords.latitude, lon = pos.coords.longitude;
-currentCoords = { lat, lon };
+currentCoords = { lat, lon }; window.currentCoords = currentCoords;
 const name = await _revGeoName(lat, lon);
 document.getElementById('city-in').value = name;
 localStorage.setItem('hub_last_city', name);
@@ -6090,7 +6108,7 @@ function shareWeather() {
   const desc = (document.getElementById('main-desc')||{}).innerText || '';
   const text = '🌤️ Vremea în '+city+': '+temp+', '+desc+' — Hub Meteo PRO';
   if (navigator.share) {
-    navigator.share({ title:'Hub Meteo PRO', text, url: location.href }).catch(()=>{});
+    navigator.share({ title:'Hub Meteo PRO', text, url: location.href }).catch(e=>{ console.warn("temp markers error",e); });
   } else {
     navigator.clipboard ? navigator.clipboard.writeText(text).then(()=>showToast('✓ Copiat în clipboard','success')) : showToast(text,'info');
   }
@@ -7552,7 +7570,7 @@ function selectFavorite(id) {
   const fav = appState.favorites.find(f => f.id === id);
   if (!fav) return;
   document.getElementById('city-in').value = `${Number(fav.lat).toFixed(4)},${Number(fav.lon).toFixed(4)}`;
-  currentCoords = { lat: Number(fav.lat), lon: Number(fav.lon) };
+  window.currentCoords = { lat: Number(fav.lat), lon: Number(fav.lon) };
   selectedAnmStation = null;
   closeFavoritesModal();
   updateWeather();
@@ -8573,6 +8591,8 @@ _anmMapBusy=true;
 try{ await initAnmMap(); } finally { _anmMapBusy=false; }
 };
 bindCollapse('map-toggle','map-body-wrap',()=>initAnmMap());
+// initAnmMapEarly for visible map
+setTimeout(()=>{ try{ initAnmMap(); }catch{} }, 600); // initAnmMapEarly
 
 /* ── 15. TABURI GRILĂ DATE ── */
 const GTAB_RULES=[
@@ -8618,4 +8638,67 @@ setTimeout(syncCurrentLocationState, 5000);
 
  
  
+
+<!-- Why this value? Provenance Modal -->
+<div class="hub-modal-overlay" id="provenance-modal" onclick="if(event.target===this) this.classList.remove('open')" style="z-index:12000;">
+  <div class="hub-modal" style="max-width:420px;">
+    <div class="hub-modal-head">
+      <div class="hub-modal-title" id="prov-title">De ce această valoare?</div>
+      <button class="hub-modal-close" onclick="document.getElementById('provenance-modal').classList.remove('open')"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="prov-body" style="font-size:0.78rem;line-height:1.5;"></div>
+  </div>
+</div>
+<script>
+window._provenanceMap={};
+window.showProvenance=function(label){
+  const prov=window._provenanceMap[label];
+  const modal=document.getElementById('provenance-modal');
+  const body=document.getElementById('prov-body');
+  const title=document.getElementById('prov-title');
+  if(!prov){ if(body) body.innerHTML='Proveniență indisponibilă pentru '+label; if(modal) modal.classList.add('open'); return; }
+  if(title) title.textContent='De ce '+prov.value+' '+ (prov.unit||'') +' — '+label+'?';
+  if(body) body.innerHTML=
+    '<div><b>Sursă:</b> '+prov.source+' ('+prov.sourceType+')</div>'+
+    (prov.timestamp?'<div><b>Timp:</b> '+prov.timestamp+'</div>':'')+
+    (prov.modelRun?'<div><b>Model run:</b> '+prov.modelRun+'</div>':'')+
+    (prov.observationAge!=null?'<div><b>Vechime:</b> '+Math.round(prov.observationAge/60000)+' min</div>':'')+
+    '<div><b>Încredere:</b> '+prov.confidence+'/100</div>'+
+    (prov.contributingSources&&prov.contributingSources.length?'<div><b>Contribuitori:</b> '+prov.contributingSources.join(', ')+'</div>':'')+
+    (prov.qualityFlags&&prov.qualityFlags.length?'<div><b>Flags:</b> '+prov.qualityFlags.join(', ')+'</div>':'')+
+    '<div style="margin-top:8px;color:var(--muted);font-size:0.68rem;">ANM FIRST în România: observația oficială are prioritate; modelele completează.</div>';
+  if(modal) modal.classList.add('open');
+};
+// delegate click on data-grid
+document.addEventListener('click', e=>{
+  const item=e.target.closest('.data-item');
+  if(!item) return;
+  const labelEl=item.querySelector('.item-label');
+  if(!labelEl) return;
+  const label=labelEl.textContent.trim();
+  if(window._provenanceMap[label]) showProvenance(label);
+});
+</script>
+
+
+<script id="pro-inline-updater">
+// PRO header updater - works even if module not loaded
+(function(){
+  function upd(){
+    try{
+      const el=document.getElementById('pro-updated');
+      if(el) el.textContent='Actualizat '+new Date().toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});
+      const c=(typeof currentCoords!=='undefined'?currentCoords:(window.currentCoords||null));
+      if(c && typeof c.lat==='number'){
+        const isRo=c.lat>=43.6&&c.lat<=48.3&&c.lon>=20.2&&c.lon<=30.0;
+        const b=document.getElementById('pro-mode-badge');
+        if(b) b.textContent=isRo?'🇷🇴 ANM FIRST':'🌍 MULTI-MODEL';
+      }
+    }catch{}
+  }
+  upd();
+  setInterval(upd, 5000);
+  window.HubUpdateProHeader=upd;
+})();
+</script>
 </body></html>

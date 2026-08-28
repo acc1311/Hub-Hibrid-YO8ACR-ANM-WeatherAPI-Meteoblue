@@ -1,7 +1,11 @@
-# 🌤️ Hub Hibrid PRO — Dashboard Meteo Multi-Sursă (v2.2)
+# 🌤️ Hub Hibrid PRO — Weather Intelligence Platform v2.3 (YO8ACR)
+
+> **PRO v2.3 — Transformare completă în platformă hibridă profesională — ANM FIRST în România, MULTI-MODEL global, cu motor de fuziune, încredere 0-100, provenance și verificare.**  
+> Vezi `docs/ARCHITECTURE.md` · `docs/DATA-SOURCES.md` · `docs/ANM-INTEGRATION.md` · `docs/FUSION-ENGINE.md`
 
 > ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)
 > ### 🔗 [Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
+> ### 🔗 [Aplicație Android direct aici!](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases/download/1/Hub_Hibrid_PRO_-_Meteo_Multi-Surs__v1.0.1.APK)
 
 **Hub Hibrid PRO** este o aplicație web meteo PWA (vanilla, single-file) care combină modelele globale de prognoză cu stațiile meteorologice oficiale din România (ANM) pentru cea mai precisă imagine a vremii — plus radar animat, hartă avertizări pe județe și notificări push.
 
@@ -77,11 +81,27 @@ npx serve                      # Node.js
 ### Dezvoltare & verificare
 ```bash
 npm install          # ESLint 9 + Prettier + Vitest
-npm run verify       # lint + sintaxă inline JS + 37 teste unitare
+npm run verify       # lint + sintaxă inline JS + 124 teste unitare
 npm run test:watch   # teste în mod watch
 ```
 
 CI: `.github/workflows/ci.yml` rulează `npm run verify` la fiecare push.
+
+### Nou în v2.3 PRO — Enterprise
+| Modul | Detalii |
+|---|---|
+| 🧠 **Weather Decision Engine** | `src/weather/weather-engine.js` — ANM FIRST vs GLOBAL, ranking dinamic pe freshness/distanță/rezoluție/istoric |
+| 🔀 **Fusion Engine** | `src/fusion/fusion-engine.js` — FieldFusionPolicy per param, outlier/temporal/spatial, consensus `n/tot` + spread + percentiles |
+| 💯 **Confidence 0-100** | `confidence-engine.js` — sourceQuality + freshness + agreement + observation + forecast, niciodată `100% accuracy` |
+| 📦 **Provenance** | Fiecare valoare `{source, sourceType, timestamp, modelRun, confidence, contributingSources, qualityFlags}` + `Why this value?` |
+| 🛡️ **Alert Engine** | `OFFICIAL ANM` > `HUB DERIVED` + severity 0-100 + `Why this alert?` |
+| 🗺️ **ANM Adapter** | `AnmProvider` cu `WeatherProvider` interface + haversine + elevation correction |
+| 📡 **Health Center** | `src/core/health.js` — status/latency/failureRate per provider, `/api/health` |
+| 💾 **Cache L1→L4** | memory → storage → SW → edge, TTL per tip (`config/refresh.js`) |
+| 🔒 **Worker PRO** | Strict CORS allowlist, path/query allowlist, rate-limit, `/api/*` + legacy compat, CSP, circuit breaker |
+| 🧪 **124 teste** | `tests/pro.test.js` + `pro-extra.test.js` — ANM, fuziune, outlier, DST, internațional, security (vezi `docs/TESTING.md`) |
+| 📚 **Docs** | `ARCHITECTURE.md` · `DATA-SOURCES.md` · `ANM-INTEGRATION.md` · `FUSION-ENGINE.md` · `ALERT-ENGINE.md` · `SECURITY.md` · `DEPLOYMENT.md` |
+| 🧩 **Modular Frontend** | `src/app/main.js` ESM + `src/components/*` + `sw.js v5` stale-while-revalidate |
 
 ---
 
@@ -142,19 +162,25 @@ După deploy, actualizează `API_PROXY` din `index.html`.
 
 ---
 
-## 🏗️ Arhitectură
+## 🏗️ Arhitectură v2.3 PRO
 
 ```
-├── index.html              # UI + pipeline-uri (HTML/CSS/JS inline)
-├── js/app-logic.js         # Logica pură: parsere ANM, termodinamică, safeFetch,
-│                           #   escapeHtml, heat index, consens, unități vânt (UMD)
-├── cloudflare-worker.js    # Proxy API + Web Push + cron 15 min
-├── sw.js                   # Service Worker hub-meteo-v4 (network-first + precache)
-├── manifest.json           # PWA manifest
-├── tests/app-logic.test.mjs# 37 teste Vitest
-├── scripts/check-inline.js # Verificare sintaxă JS inline (vm.Script)
-├── eslint.config.js        # ESLint 9 flat config
-└── .github/workflows/ci.yml# CI: lint → check-inline → test
+├── index.html              # UI (monolit compat + import src/app/main.js ESM)
+├── src/
+│   ├── app/main.js         # entry ESM
+│   ├── weather/weather-engine.js, weather-schema.js, verification.js, nowcast-engine.js
+│   ├── fusion/fusion-engine.js, confidence-engine.js, quality.js
+│   ├── providers/anm/*, openmeteo/*, weatherapi/*, meteoblue/*, radar/*
+│   ├── alerts/alert-engine.js
+│   ├── core/cache.js, health.js, observability.js
+│   └── utils/geo.js, time.js, units.js
+├── config/                 # providers, thresholds, regions, units, refresh
+├── worker/src/             # modular Cloudflare Worker (index + routes + security)
+├── cloudflare-worker.js    # single-file PRO deploy (legacy+new /api/* + health + strict CORS)
+├── js/app-logic.js         # logică pură legacy (compat, UMD)
+├── sw.js                   # Service Worker v5 (stale-while-revalidate + precache)
+├── tests/pro.test.js + pro-extra.test.js # 124 teste Vitest
+└── docs/                   # ARCHITECTURE, DATA-SOURCES, etc.
 ```
 
 Funcții-cheie în `index.html`: `updateWeather()` (flux hibrid paralel), `fetchOpenMeteoAll()` (fuziune ICON-D2/EU/ECMWF), `renderAlerts()` + `countyLevels()` (avertizări + hartă), `loadRainViewerFrames()` / `_buildRvLayers()` (radar multi-strat), `initAnmMap()` + `_buildAnmTempMarkers()` (hartă + temperaturi), `_maxPrecipToday()` (probabilitate restul zilei), `calcHeatIndex()` (ITU, în app-logic.js).
