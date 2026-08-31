@@ -20,7 +20,7 @@ Aplicația rezolvă problema erorilor de localizare (ex: confuzia între *Târgu
 
 | Versiune | Link | Descriere |
 |---|---|---|
-| 🚀 **Aplicația Live** | [vremea-tg-neamt.ro](https://tinyurl.com/vremea-tg-neamt) | Versiunea principală de producție |
+| 🚀 **Aplicația Live** | [vremea](https://tinyurl.com/vremea-tg-neamt) | Versiunea principală de producție |
 | 📊 **GitHub Pages** | [Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/) | Deploy direct din repository |
 | 📱 **Android APK** | [Descarcă v1.0.1](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases/download/1/Hub_Hibrid_PRO_-_Meteo_Multi-Surs__v1.0.1.APK) | Aplicație nativă Android |
 
