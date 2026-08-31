@@ -1710,7 +1710,7 @@ body { background: white; padding: 0; }
 <div class="data-item">
 <span class="item-label">Nebulozitate</span>
 <span class="item-val">100%</span>
-<span class="item-src">[ICON-EU 3km]</span>
+<span class="item-src">[ICON-EU]</span>
 </div>
 <div class="data-item">
 <span class="item-label">Răsărit Soare</span>
@@ -2319,7 +2319,7 @@ tonight: 'La Noapte',
 wind_dir: 'Direcție Vânt',
 radar_ploi: 'Radar ploi',
 hourly_title_om: 'Temperaturi Orare (8h) [Open-Meteo ICON-EU]',
-hourly_title_d2: 'Temperaturi Orare (8h) [ICON-EU 3km]',
+hourly_title_d2: 'Temperaturi Orare (8h) [ICON-EU]',
 hourly_prefix_24h: 'Prognoză Orară 24h',
 hourly_prefix_48h: 'Prognoză Orară 48h',
 hourly_prefix_120h: 'Prognoză Orară 5 Zile (120h)',
@@ -2503,7 +2503,7 @@ tonight: 'Tonight',
 wind_dir: 'Wind Direction',
 radar_ploi: 'Rain Radar',
 hourly_title_om: 'Hourly Temperatures (8h) [Open-Meteo ICON-EU]',
-hourly_title_d2: 'Hourly Temperatures (8h) [ICON-EU 3km]',
+hourly_title_d2: 'Hourly Temperatures (8h) [ICON-EU]',
 hourly_prefix_24h: 'Hourly Forecast 24h',
 hourly_prefix_48h: 'Hourly Forecast 48h',
 hourly_prefix_120h: 'Hourly Forecast 5 Days (120h)',
@@ -3115,6 +3115,8 @@ Rute worker: /anm (Meteoromania), /wapi/* (WeatherAPI), /mb/* (Meteoblue)
 const API_PROXY = "https://hubmeteoacr.brm-laser-veronese.workers.dev";
 let currentCoords = { lat: 47.17, lon: 26.36 };
 window.currentCoords = currentCoords; // pro-badge-inline
+let _weatherUpdateSeq = 0;
+const _isLatestWeatherUpdate = (id) => id === _weatherUpdateSeq;
 let isDark        = false;
 const APP_STATE_KEY = 'hub_app_state_v1';
 const DEFAULT_APP_SETTINGS = {
@@ -4078,6 +4080,7 @@ return [...iconDays, ...extraDays].slice(0, 10);
 ANM-ONLY MODE — Când WeatherAPI este dezactivat
 ================================================================ */
 async function updateWeatherANMOnly() {
+const _updateId = ++_weatherUpdateSeq;
 const loader  = document.getElementById('loader');
 const content = document.getElementById('main-content');
 loader.style.display  = 'block';
@@ -4092,6 +4095,7 @@ if (st) currentCoords = st; window.currentCoords = currentCoords;
 const cityInput = document.getElementById('city-in').value.trim()
 || localStorage.getItem('hub_last_city') || "Targu Neamt";
 const anmData = await fetchANMData();
+if (!_isLatestWeatherUpdate(_updateId)) return;
 if (anmData && anmData.features) {
 let station = findStationByName(cityInput, anmData.features);
 if (!station) {
@@ -4149,6 +4153,7 @@ Astfel datele OM sunt integrate direct, fără patching post-render */
 let omDataANM = null;
 if (providers.om) {
 omDataANM = await fetchOpenMeteo(currentCoords.lat, currentCoords.lon);
+if (!_isLatestWeatherUpdate(_updateId)) return;
 if (!omDataANM) showToast(t('toast_om_unavailable'), 'info');
 }
 /* Shortcut-uri OM pentru uz în gridItems */
@@ -4421,6 +4426,7 @@ content.style.opacity = '1';
 OM-ONLY MODE — Când atât WeatherAPI cât și ANM sunt dezactivate
 ================================================================ */
 async function updateWeatherOMOnly() {
+const _updateId = ++_weatherUpdateSeq;
 const loader  = document.getElementById('loader');
 const content = document.getElementById('main-content');
 loader.style.display  = 'block';
@@ -4438,6 +4444,7 @@ try {
 const geoRes = await fetch(
 `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=ro&format=json`
 );
+if (!_isLatestWeatherUpdate(_updateId)) return;
 if (geoRes.ok) {
 const geoData = await geoRes.json();
 if (geoData.results && geoData.results.length > 0) {
@@ -4528,6 +4535,7 @@ document.getElementById('smart-text').innerHTML =
 (omRainProb != null ? `${t('smart_precip')} <b>${omRainProb}%</b>. ` : '') +
 `${t('smart_minmax')} <b>${displayTemp(todayMin)} / ${displayTemp(todayMax)}</b>.${windWarn}`;
 renderNowcastStrip(omData);
+if (typeof window.isRomania === 'function' && window.isRomania(lat, lon)) renderOfficialAnmNowcast(lat, lon);
 renderConsensusBadge(omData);
 const uvInfo = omUvNow !== null ? uvLabel(omUvNow) : { text: 'N/A', color: 'var(--muted)' };
 document.getElementById('full-grid').innerHTML = `
@@ -4678,11 +4686,12 @@ content.style.opacity = '1';
 }
 /* ================================================================
 MAIN UPDATE — ICON-EU primar + ANM + ECMWF + Meteoblue + W-API(AQI)
-Arhitectură: ICON-EU 3km este sursa principală pentru toate datele
+Arhitectură: ICON-EU este sursa principală pentru toate datele
 meteorologice. ANM oferă măsurători reale de stație. W-API opțional
 doar pentru AQI și condiții text localizate.
 ================================================================ */
 async function updateWeather() {
+const _updateId = ++_weatherUpdateSeq;
 hideAutocomplete();
 const cityInputEarly = document.getElementById('city-in').value.trim()
 || localStorage.getItem('hub_last_city') || 'Targu Neamt';
@@ -4729,6 +4738,7 @@ try {
 const geoRes = await fetch(
 `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityInput)}&count=1&language=ro&format=json`
 );
+if (!_isLatestWeatherUpdate(_updateId)) return;
 if (geoRes.ok) {
 const geoData = await geoRes.json();
 if (geoData.results && geoData.results.length > 0) {
@@ -4802,6 +4812,7 @@ providers.wapi
 ? safeFetch(`${API_PROXY}/wapi/forecast.json?q=${lat},${lon}&days=1&lang=${normalizeLang(currentLang)}&aqi=yes`, {}, { json: false })
 : Promise.resolve(null)
 ]);
+if (!_isLatestWeatherUpdate(_updateId)) return;
 const omData = omRes.status === 'fulfilled' ? omRes.value : null;
 if (!omData || !omData.current) {
 /* Fallback complet la W-API dacă ICON-EU eșuează */
@@ -4955,13 +4966,14 @@ document.getElementById('smart-text').innerHTML =
 `${t('smart_precip')} <b>${rainVal}%</b> [ICON-EU]. ` +
 `${t('smart_minmax')} <b>${minMaxStr}</b> [${omTempSrc}/${omPressSrc === omTempSrc ? omTempSrc : omPressSrc}].${windWarn}`;
 renderNowcastStrip(omData);
+if (typeof window.isRomania === 'function' && window.isRomania(lat, lon)) renderOfficialAnmNowcast(lat, lon);
 renderConsensusBadge(omData);
 /* ── GRILĂ DATE ── */
 const uvVal = omUvNow !== null ? `${omUvNow.toFixed(1)} — ${uvInfo.text}` : (dW && dW.current ? `${dW.current.uv} — ${uvInfo.text}` : 'N/A');
 const uvSrc = omUvNow !== null ? 'ECMWF IFS' : (dW ? 'W-API' : '—');
 const nebVal = p ? anmVal(p.nebulozitate) : null;
 const nebDisplay = nebVal ? cleanAnmText(nebVal) : (omCloud != null ? `${omCloud}%` : 'N/A');
-const nebSrc = nebVal ? 'ANM' : (omCloud != null ? 'ICON-EU 3km' : '—');
+const nebSrc = nebVal ? 'ANM' : (omCloud != null ? 'ICON-EU' : '—');
 document.getElementById('full-grid').innerHTML = `
 <div class="data-item">
 <span class="item-label">${t('temp_actual')}</span>
@@ -5120,7 +5132,7 @@ startAutoRefresh();
 updateProviderStatus();
 syncCurrentLocationState();
 /* Toast surse active */
-const activeSrcs = ['ICON-EU 3km ✓'];
+const activeSrcs = ['ICON-EU ✓'];
 if (p) activeSrcs.push('ANM ✓');
 if (mbHourlyData) activeSrcs.push('Meteoblue ✓');
 if (dW) activeSrcs.push('W-API AQI ✓');
@@ -6621,6 +6633,36 @@ function _nowcastLabel(minutesToRain, isRaining) {
   if (minutesToRain == null) return t('nowcast_dry').replace('{min}', '180');
   return t('nowcast_rain_in').replace('{min}', String(Math.max(1, Math.round(minutesToRain))));
 }
+/* ── ANM OFFICIAL NOWCAST — priority layer for Romania ── */
+async function renderOfficialAnmNowcast(lat, lon) {
+  const smart = document.getElementById('smart-text');
+  if (!smart || !providers.anm || typeof lat !== 'number' || typeof lon !== 'number') return;
+  const existing = document.getElementById('anm-official-nowcast');
+  try {
+    const res = await safeFetch(`${API_PROXY}/api/anm/nowcasting?ts=${Date.now()}`, {}, { timeout: 12000 });
+    if (!res || !res.ok) return;
+    const payload = await res.json();
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    const now = Date.now();
+    const active = items.filter(x => {
+      const until = Date.parse(String(x.validUntil || '').replace('până la',''));
+      return !Number.isFinite(until) || until >= now - 5 * 60 * 1000;
+    });
+    if (!active.length) { if (existing) existing.remove(); return; }
+    const rank = { red:3, orange:2, yellow:1 };
+    active.sort((a,b)=>(rank[b.level]||0)-(rank[a.level]||0));
+    const top = active[0];
+    const box = existing || document.createElement('div');
+    box.id = 'anm-official-nowcast';
+    box.className = 'anm-official-nowcast';
+    const label = top.level === 'red' ? 'COD ROȘU' : top.level === 'orange' ? 'COD PORTOCALIU' : 'COD GALBEN';
+    box.innerHTML = `<strong>⚠ ANM NOWCASTING OFICIAL</strong><span>${escapeHtml(label)} · ${escapeHtml(top.phenomena || top.title || 'fenomene periculoase')}</span><small>${active.length} mesaj(e) active în România · sursa: Administrația Națională de Meteorologie</small>`;
+    if (!existing) smart.parentNode.insertBefore(box, smart.nextSibling);
+  } catch (e) {
+    console.debug('ANM official nowcast UI unavailable', e);
+  }
+}
+
 function renderNowcastStrip(omData) {
   const smart = document.getElementById('smart-text');
   if (!smart || !smart.parentNode) return;
@@ -6747,9 +6789,9 @@ window.getPressureTrend = getPressureTrend;
 
 function _decorateSourceText() {
   const sync = document.getElementById('sync-info');
-  if (sync) sync.innerHTML = sync.innerHTML.replace(/ICON-EU 3km/g, 'ICON-D2 · ICON-EU · ECMWF');
+  if (sync) sync.innerHTML = sync.innerHTML.replace(/ICON-EU/g, 'ICON-D2 · ICON-EU · ECMWF');
   const feel = document.getElementById('temp-feel');
-  if (feel) feel.textContent = feel.textContent.replace(/\[ICON-EU 3km\]|\[OM\/ICON-EU\]/g, '[ICON-D2/EU/ECMWF]');
+  if (feel) feel.textContent = feel.textContent.replace(/\[ICON-EU\]|\[OM\/ICON-EU\]/g, '[ICON-D2/EU/ECMWF]');
   const smart = document.getElementById('smart-text');
   if (smart) smart.innerHTML = smart.innerHTML.replace(/\[ICON-EU(?: 3km)?\]/g, '[ICON-D2/EU/ECMWF]');
 }
@@ -7947,6 +7989,7 @@ border-radius:18px;font-weight:800;cursor:pointer;margin-bottom:14px;font-size:.
 .temp-pop{animation:tempPop .5s ease}
 @keyframes tempPop{0%{opacity:.2;transform:translateY(8px) scale(.96)}100%{opacity:1;transform:none}}
 #skel-ov .sk-row{display:flex;gap:12px;margin-bottom:14px}
+.anm-official-nowcast{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding:9px 11px;border:1px solid var(--warning,#f59e0b);border-radius:10px;background:color-mix(in srgb,#f59e0b 10%,transparent);font-size:.78rem}.anm-official-nowcast strong{font-size:.72rem;letter-spacing:.03em}.anm-official-nowcast small{opacity:.72}.anm-official-nowcast span{font-weight:700}.
 .nowcast-strip{display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 10px;
 background:var(--info-box);border-radius:10px;font-size:.62rem;font-weight:700;color:var(--text)}
 .nowcast-label{white-space:nowrap}

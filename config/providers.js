@@ -14,10 +14,12 @@ export const PROVIDERS = {
     endpoints: {
       observations: '/starea-vremii',
       warnings: '/avertizari-generale',
+      nowcasting: '/avertizari-nowcasting',
+      forecast: '/prognoza-orase',
     },
     coverage: 'RO',
     resolution: 'station',
-    dataTypes: ['observation', 'warnings', 'nowcasting'],
+    dataTypes: ['observation', 'warnings', 'nowcasting', 'forecast'],
     ttlMs: 2 * 60 * 1000,
     requiresProxy: true,
   },

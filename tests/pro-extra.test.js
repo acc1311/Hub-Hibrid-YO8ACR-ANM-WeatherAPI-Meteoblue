@@ -129,3 +129,22 @@ describe('Timezone handling', ()=>{
     expect(after.getTime() - before.getTime()).toBeGreaterThan(3600000);
   });
 });
+
+describe('Robust fusion and official ANM semantics', ()=>{
+  it('uses robust fusion and rejects a hard outlier', ()=>{
+    const r=fuseField('temperature.current', [
+      {value:20,source:'anm',weight:0.5},
+      {value:20.4,source:'openmeteo_eu',weight:0.2},
+      {value:20.2,source:'openmeteo_ecmwf',weight:0.2},
+      {value:50,source:'bad',weight:0.5},
+    ]);
+    expect(r.value).toBeLessThan(22);
+    expect(r.flags.some(f=>f.includes('outlier'))).toBe(true);
+    expect(r.provenance.robustOutlierMethod).toBe('MAD');
+  });
+  it('keeps probability fusion non-binary and bounded', ()=>{
+    const r=fuseField('precipitation_probability',[{value:10,source:'a'},{value:90,source:'b'}]);
+    expect(r.value).toBeGreaterThanOrEqual(10);
+    expect(r.value).toBeLessThanOrEqual(90);
+  });
+});

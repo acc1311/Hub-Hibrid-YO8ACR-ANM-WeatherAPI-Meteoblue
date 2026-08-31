@@ -80,9 +80,9 @@ export function provenanceExplain(p) {
 
 // Default empty snapshot
 export function emptySnapshot({ lat, lon, name = 'Unknown', country = 'RO', timezone = 'Europe/Bucharest' } = {}) {
-  const { isRomania } = awaitIsRomania(lat, lon); // sync wrapper below
+  const ro = isRomaniaSync(lat, lon);
   return {
-    location: { name, country, lat, lon, timezone, isRomania: isRomaniaSync(lat, lon), mode: isRomaniaSync(lat, lon) ? 'ANM_FIRST' : 'MULTI_MODEL' },
+    location: { name, country, lat, lon, timezone, isRomania: ro, mode: ro ? 'ANM_FIRST' : 'MULTI_MODEL' },
     observedAt: new Date().toISOString(),
     current: {},
     hourly: { time: [], temperature: [], provenance: {} },
@@ -103,7 +103,6 @@ function isRomaniaSync(lat, lon) {
   if (!Number.isFinite(la) || !Number.isFinite(lo)) return false;
   return la >= 43.6 && la <= 48.3 && lo >= 20.2 && lo <= 30.0;
 }
-async function awaitIsRomania(lat, lon) { return { isRomania: isRomaniaSync(lat, lon) }; }
 
 // Status enum for UI
 export const DATA_STATUS = {

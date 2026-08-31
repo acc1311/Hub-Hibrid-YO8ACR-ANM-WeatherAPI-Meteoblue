@@ -5,6 +5,7 @@
 
 import { handleAnmObservations } from './routes/anm.js';
 import { handleAnmWarnings } from './routes/anm-warnings.js';
+import { handleAnmNowcasting } from './routes/anm-nowcasting.js';
 import { handleWeatherApi } from './routes/weatherapi.js';
 import { handleMeteoblue } from './routes/meteoblue.js';
 import { handleHealth } from './routes/health.js';
@@ -56,8 +57,12 @@ export default {
         const res = await handleAnmObservations(request, env);
         return withCors(res, request, env);
       }
-      if (path === '/anm-warnings' || path.startsWith('/anm-warnings/') || path === '/api/anm/warnings' || path.startsWith('/api/anm/warnings') || path === '/api/anm/nowcasting') {
+      if (path === '/anm-warnings' || path.startsWith('/anm-warnings/') || path === '/api/anm/warnings' || path.startsWith('/api/anm/warnings')) {
         const res = await handleAnmWarnings(request, env);
+        return withCors(res, request, env);
+      }
+      if (path === '/api/anm/nowcasting') {
+        const res = await handleAnmNowcasting(request, env);
         return withCors(res, request, env);
       }
 

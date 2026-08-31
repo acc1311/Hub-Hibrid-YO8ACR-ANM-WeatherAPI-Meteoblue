@@ -1,3 +1,11 @@
+## v2.4.0 — Robust Weather Intelligence Upgrade
+
+- Robust MAD-based outlier detection and robust weighted fusion.
+- Persistent model-skill/verification data in browser storage.
+- Explainable provenance fields and calibrated confidence inputs.
+- Official ANM nowcasting bridge through the public ANM nowcasting page, without inventing an undocumented API.
+- Expanded diagnostics and Node smoke test.
+
 # 🌤️ Hub Hibrid PRO — Weather Intelligence Platform v2.3 (YO8ACR)
 
 > **PRO v2.3 — Transformare completă în platformă hibridă profesională — ANM FIRST în România, MULTI-MODEL global, cu motor de fuziune, încredere 0-100, provenance și verificare.**  
@@ -208,3 +216,9 @@ Open-source sub licența [MIT](LICENSE).
 
 > ⭐ **Dacă îți place proiectul, dă-i un Star pe GitHub!**
 > 🐛 Găsești o problemă? Deschide un [Issue](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/issues).
+
+
+## v2.5.1
+- Fixed legacy inline `isRomania` runtime error by exposing the region helper on `window`.
+- Protected official ANM nowcasting invocation when the helper is not yet available.
+- Version metadata bumped to 2.5.1.

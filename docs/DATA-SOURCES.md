@@ -16,7 +16,7 @@
 | **AQI** | WeatherAPI (US-EPA) | WeatherAPI / Open-Meteo AQ | — | `Unavailable` în ANM-only |
 | **Polen** | Open-Meteo Air Quality (europa only, gr/m³) | — | — | `—` |
 | **Avertizări** | ANM oficial galben/portocaliu/roșu (prioritate absolută) | Hub Derived (praguri CAPE/vânt/vis) | — | Panou ascuns dacă 0 |
-| **Nowcasting** | ANM Nowcasting (dacă API expune) → minutely_15 ICON-EU (12×15min) | minutely_15 / radar nowcast | — | `Fără fenomene` |
+| **Nowcasting** | ANM Nowcasting oficial (bridge public) → radar nowcast → minutely_15 ICON-EU (12×15min) | minutely_15 / radar nowcast | — | `Fără fenomene` |
 | **Radar** | RainViewer radar+nowcast+sat IR (9 scheme) | idem | MeteoRadar RO / Windy iframe | `Satellite` tag |
 | **Prognoză orară** | ICON-D2 (0-48h) + ICON-EU (până 120h) fused | ICON-EU + ECMWF | Meteoblue | — |
 | **Prognoză zilnică** | ICON-EU 1-5 + ECMWF 1-5 ensemble (buildOMDays) → blend + badges | ECMWF 1-10 | WeatherAPI | — |

@@ -7,6 +7,7 @@
 import { WeatherProvider } from '../base.js';
 import { anmVal, parseAnmWind, parseAnmPressure, getAnmConditionText, anmFeatureLatLon, findStationByName, getClosestStationHaversine, haversineKm, cleanAnmText } from './anm-parser.js';
 import { observationAgeMs } from '../../utils/time.js';
+import { normalizeAnmNowcasting } from './anm-nowcasting.js';
 
 // Worker proxy base — will be injected or default
 const DEFAULT_PROXY = 'https://hubmeteoacr.brm-laser-veronese.workers.dev';
@@ -20,6 +21,8 @@ export class AnmProvider extends WeatherProvider {
     this._obsCacheTime = 0;
     this._warnCache = null;
     this._warnCacheTime = 0;
+    this._nowcastCache = null;
+    this._nowcastCacheTime = 0;
     this.cacheTTL = 2 * 60 * 1000;
     this.warnTTL = 5 * 60 * 1000;
   }
@@ -48,6 +51,16 @@ export class AnmProvider extends WeatherProvider {
     this._obsCacheTime = now;
     this.markOnline();
     return data;
+  }
+
+  async getNowcasting(force = false) {
+    const now = Date.now();
+    if (!force && this._nowcastCache && now - this._nowcastCacheTime < 60 * 1000) return this._nowcastCache;
+    const res = await this._safeFetch(`${this.proxyBase}/api/anm/nowcasting?t=${now}`, { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error(`ANM nowcasting HTTP ${res.status}`);
+    const data = await res.json();
+    this._nowcastCache = normalizeAnmNowcasting(data); this._nowcastCacheTime = now;
+    return this._nowcastCache;
   }
 
   async getWarnings(force = false) {
@@ -133,6 +146,10 @@ export class AnmProvider extends WeatherProvider {
         qualityFlags: ageMs!=null && ageMs>30*60*1000 ? ['stale'] : [],
       },
     };
+  }
+
+  async fetchNowcastingNormalized() {
+    return await this.getNowcasting();
   }
 
   async fetchWarningsNormalized() {
