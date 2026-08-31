@@ -1,6 +1,4 @@
-Iată un README complet actualizat pentru proiectul tău:
 
-````markdown
 # 🌤️ Hub Hibrid PRO — Weather Intelligence Platform
 
 [![Version](https://img.shields.io/badge/version-2.5.1-blue.svg)](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases)
@@ -8,14 +6,7 @@ Iată un README complet actualizat pentru proiectul tău:
 [![Tests](https://img.shields.io/badge/tests-124%20passing-brightgreen.svg)](#-dezvoltare--verificare)
 [![PWA](https://img.shields.io/badge/PWA-installable-purple.svg)](#-instalare--utilizare)
 [![Languages](https://img.shields.io/badge/languages-7-orange.svg)](#-ux--pwa)
-
-
-**Accesare online:**
-- 🌐 [Aplicația Live]
-> ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)
-> ###📱 [Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
-> ### 📱 [Aplicație Android direct aici!](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases/download/1/Hub_Hibrid_PRO_-_Meteo_Multi-Surs__v1.0.1.APK)
-
+[![Platform](https://img.shields.io/badge/platform-web%20%7C%20android%20%7C%20PWA-lightgrey.svg)](#-instalare--utilizare)
 
 > **PRO v2.5.1** — Platformă hibridă profesională de prognoză meteo: **ANM FIRST** în România, **MULTI-MODEL** global, motor de fuziune, încredere 0-100, provenance și verificare automată.
 
@@ -25,8 +16,21 @@ Aplicația rezolvă problema erorilor de localizare (ex: confuzia între *Târgu
 
 ---
 
+## 🌐 Accesare Online
+
+| Versiune | Link | Descriere |
+|---|---|---|
+| 🚀 **Aplicația Live** | [vremea-tg-neamt.ro](https://tinyurl.com/vremea-tg-neamt) | Versiunea principală de producție |
+| 📊 **GitHub Pages** | [Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/) | Deploy direct din repository |
+| 📱 **Android APK** | [Descarcă v1.0.1](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases/download/1/Hub_Hibrid_PRO_-_Meteo_Multi-Surs__v1.0.1.APK) | Aplicație nativă Android |
+
+> 💡 **Recomandare:** Pentru experiența completă (PWA + notificări push), folosește **Aplicația Live** pe Chrome/Edge mobil și instalează-o din meniul browserului.
+
+---
+
 ## 📋 Cuprins
 
+- [🌐 Accesare Online](#-accesare-online)
 - [✨ Funcționalități](#-funcționalități)
 - [📡 Surse de Date](#-surse-de-date)
 - [🚀 Instalare & Utilizare](#-instalare--utilizare)
@@ -105,6 +109,22 @@ Aplicația rezolvă problema erorilor de localizare (ex: confuzia între *Târgu
 
 ## 🚀 Instalare & Utilizare
 
+### Utilizare online (recomandat)
+
+| Opțiune | Link |
+|---|---|
+| **Web Live** | [https://tinyurl.com/vremea-tg-neamt](https://tinyurl.com/vremea-tg-neamt) |
+| **GitHub Pages** | [https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/) |
+| **Android APK** | [Descarcă v1.0.1](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases/download/1/Hub_Hibrid_PRO_-_Meteo_Multi-Surs__v1.0.1.APK) |
+
+### Instalare PWA
+
+1. Deschide **[Aplicația Live](https://tinyurl.com/vremea-tg-neamt)** în Chrome/Edge (mobil sau desktop)
+2. Apasă **Instalează aplicația** din meniul browserului
+3. Găsește iconița pe ecranul principal — funcționează offline cu ultimele date
+
+### Dezvoltare locală
+
 Proiect **100% vanilla** — fără framework-uri, fără build. Totul rulează direct în browser.
 
 ```bash
@@ -117,12 +137,6 @@ python -m http.server 8000     # Python
 # sau
 npx serve                      # Node.js
 ```
-
-**Accesare online:**
-- 🌐 [Aplicația Live]
-> ### 🌐 [Accesează Aplicația Live Aici](https://tinyurl.com/vremea-tg-neamt)
-> ###📱 [Vezi direct aici!](https://acc1311.github.io/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/)
-> ### 📱 [Aplicație Android direct aici!](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/releases/download/1/Hub_Hibrid_PRO_-_Meteo_Multi-Surs__v1.0.1.APK)
 
 ---
 
@@ -274,8 +288,3 @@ Open-source sub licența [MIT](LICENSE).
 > ⭐ **Dacă îți place proiectul, dă-i un Star!**
 > 🐛 **Găsești o problemă?** Deschide un [Issue](https://github.com/acc1311/Hub-Hibrid-YO8ACR-ANM-WeatherAPI-Meteoblue/issues)
 ````
-
-## v2.5.1
-- Fixed legacy inline `isRomania` runtime error by exposing the region helper on `window`.
-- Protected official ANM nowcasting invocation when the helper is not yet available.
-- Version metadata bumped to 2.5.1.
